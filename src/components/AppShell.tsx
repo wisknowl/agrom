@@ -1,0 +1,469 @@
+import React from 'react';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import {
+  Home,
+  Sprout,
+  MessageSquare,
+  User,
+  Menu,
+  Plus,
+  Warehouse,
+  ShieldCheck,
+  TrendingUp,
+  Store,
+  Wallet,
+  Sparkles,
+  Compass,
+} from 'lucide-react';
+import MeetingLeafLogo from './MeetingLeafLogo';
+import EcosystemDrawer from './EcosystemDrawer';
+import CreatePostModal from './CreatePostModal';
+import { useCartStore } from '@/store/cartStore';
+import { useAuthStore } from '@/store/authStore';
+import { useRegionalContainerStore } from '@/store/regionalContainerStore';
+import { resolveMediaUrl } from '@/utils/media';
+
+export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const cartItemCount = useCartStore((s) => s.getItemCount());
+  const { user, isAuthenticated } = useAuthStore();
+  const {
+    getContainer,
+    setEcosystemDrawerOpen,
+    setCreatePostModalOpen,
+    language,
+    setLanguage,
+  } = useRegionalContainerStore();
+
+  const regionalContainer = getContainer();
+  const pathname = location.pathname;
+
+  // Check active tab for the 5 core mobile tabs
+  const isFeedActive = pathname.startsWith('/feed');
+  const isMarketActive = pathname === '/' || pathname.startsWith('/yield');
+  const isCartActive = pathname.startsWith('/cart');
+  const isInboxActive = pathname.startsWith('/inbox') || pathname.startsWith('/chat');
+  const isProfileActive = pathname.startsWith('/profile');
+
+  const desktopSidebarLinks = [
+    {
+      to: '/',
+      label: 'AgroMarket',
+      sub: 'Direct Farm Harvests',
+      icon: <Sprout size={19} />,
+      active: isMarketActive,
+    },
+    {
+      to: '/feed',
+      label: 'AgroFeed',
+      sub: 'Live Harvest Stories',
+      icon: <Home size={19} />,
+      active: isFeedActive,
+    },
+    {
+      to: '/wholesaler',
+      label: 'Buyam-Sellam',
+      sub: 'Wholesale Bulk Lots',
+      icon: <Store size={19} />,
+      active: pathname.startsWith('/wholesaler'),
+    },
+    {
+      to: '/fintech/loans',
+      label: 'AgroVestor & Credit',
+      sub: 'Tabi FICO & Crowdlending',
+      icon: <TrendingUp size={19} />,
+      active: pathname.startsWith('/fintech'),
+    },
+    {
+      to: '/orders',
+      label: 'Smart Escrow',
+      sub: 'Engine 3 Order FSM',
+      icon: <ShieldCheck size={19} />,
+      active: pathname.startsWith('/orders'),
+    },
+    {
+      to: '/wallet',
+      label: 'AgroWallet',
+      sub: 'Vault & Patron Passes',
+      icon: <Wallet size={19} />,
+      active: pathname.startsWith('/wallet'),
+    },
+    {
+      to: '/farmer/manage',
+      label: 'My AgroFarms',
+      sub: 'Storefronts & Inventory',
+      icon: <Warehouse size={19} />,
+      active: pathname.startsWith('/farmer'),
+    },
+    {
+      to: '/inbox',
+      label: 'AgroInbox',
+      sub: 'Direct Negotiations',
+      icon: <MessageSquare size={19} />,
+      active: isInboxActive,
+    },
+    {
+      to: '/profile',
+      label: 'My Profile',
+      sub: 'Stats, Wishlist & Bio',
+      icon: <User size={19} />,
+      active: isProfileActive,
+    },
+    {
+      to: '/ecosystem',
+      label: 'Platform Architecture',
+      sub: 'The 5 Agrom Engines',
+      icon: <Compass size={19} />,
+      active: pathname.startsWith('/ecosystem'),
+    },
+  ];
+
+  return (
+    <div className="min-h-screen flex flex-col bg-white text-[#241A12]">
+      {/* =====================================================================
+          TOP COMMAND BAR (Responsive Desktop & Mobile Header)
+      ===================================================================== */}
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#CCEBD5]">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
+          {/* Left: Brand Lockup (Agrom + .app) */}
+          <div className="flex items-center gap-6">
+            <NavLink to="/" className="flex items-center gap-2 focus:outline-none">
+              <MeetingLeafLogo size={34} showWordmark showDomainBadge variant="light" />
+            </NavLink>
+
+            {/* Quick Desktop Mode Pills */}
+            <nav className="hidden lg:flex items-center gap-1 bg-[#EEF8F1] p-1 rounded-full border border-[#CCEBD5]">
+              <NavLink
+                to="/"
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${
+                  isMarketActive
+                    ? 'bg-[#4E8B3F] text-white shadow-xs'
+                    : 'text-[#241A12] hover:text-[#4E8B3F]'
+                }`}
+              >
+                🌱 AgroMarket
+              </NavLink>
+              <NavLink
+                to="/feed"
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${
+                  isFeedActive
+                    ? 'bg-[#4E8B3F] text-white shadow-xs'
+                    : 'text-[#241A12] hover:text-[#4E8B3F]'
+                }`}
+              >
+                🎬 AgroFeed
+              </NavLink>
+              <NavLink
+                to="/wholesaler"
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${
+                  pathname.startsWith('/wholesaler')
+                    ? 'bg-[#4E8B3F] text-white shadow-xs'
+                    : 'text-[#241A12] hover:text-[#4E8B3F]'
+                }`}
+              >
+                📦 Buyam-Sellam
+              </NavLink>
+              <NavLink
+                to="/fintech/loans"
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${
+                  pathname.startsWith('/fintech')
+                    ? 'bg-[#4E8B3F] text-white shadow-xs'
+                    : 'text-[#241A12] hover:text-[#4E8B3F]'
+                }`}
+              >
+                🚀 AgroVestor
+              </NavLink>
+            </nav>
+          </div>
+
+          {/* Right: Actions, Regional Basket, Story Button, Profile, Ecosystem Menu */}
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            {/* + Story Button */}
+            <button
+              type="button"
+              onClick={() => setCreatePostModalOpen(true)}
+              className="inline-flex items-center gap-1.5 bg-[#4E8B3F] hover:bg-[#3D7030] text-white px-3.5 py-1.5 rounded-full text-xs font-semibold shadow-xs transition cursor-pointer"
+            >
+              <Plus size={14} strokeWidth={2.8} />
+              <span>Story</span>
+            </button>
+
+            {/* Language Switcher (Desktop) */}
+            <button
+              type="button"
+              onClick={() => setLanguage(language === 'en' ? 'fr' : 'en')}
+              className="hidden sm:inline-flex items-center gap-1 bg-[#EEF8F1] border border-[#CCEBD5] px-2.5 py-1.5 rounded-full text-xs font-mono-num font-bold text-[#241A12] hover:border-[#4E8B3F] transition cursor-pointer"
+              title="Switch Language (EN / FR)"
+            >
+              <span>{language === 'en' ? '🇬🇧 EN' : '🇫🇷 FR'}</span>
+            </button>
+
+            {/* Desktop Regional Basket Button */}
+            <button
+              type="button"
+              onClick={() => navigate('/cart')}
+              className={`hidden md:inline-flex items-center gap-2 px-3 py-1.5 rounded-full border transition cursor-pointer ${
+                isCartActive
+                  ? 'bg-[#FEF6E8] border-[#E2A63C] text-[#241A12]'
+                  : 'bg-[#EEF8F1] border-[#CCEBD5] hover:border-[#4E8B3F] text-[#241A12]'
+              }`}
+            >
+              <img
+                src={regionalContainer.imageUrl}
+                alt={regionalContainer.shortName}
+                className="w-5 h-5 rounded-full object-cover border border-[#E2A63C]"
+              />
+              <span className="text-xs font-semibold">{regionalContainer.shortName}</span>
+              <span className="font-mono-num text-[11px] font-bold bg-[#E2A63C] text-[#241A12] px-1.5 py-0.2 rounded-full">
+                {cartItemCount}
+              </span>
+            </button>
+
+            {/* User Profile Pill (Desktop) */}
+            <button
+              type="button"
+              onClick={() => navigate('/profile')}
+              className="hidden md:inline-flex items-center gap-2 pl-1.5 pr-3 py-1 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] hover:border-[#4E8B3F] transition cursor-pointer"
+            >
+              <img
+                src={
+                  user?.avatarUrl || user?.avatar
+                    ? resolveMediaUrl(user.avatarUrl || user.avatar)
+                    : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80'
+                }
+                alt="Profile"
+                className="w-6 h-6 rounded-full object-cover border border-[#4E8B3F]"
+              />
+              <span className="text-xs font-semibold text-[#241A12] max-w-[110px] truncate">
+                {isAuthenticated && user?.name ? user.name.split(' ')[0] : 'Profile'}
+              </span>
+            </button>
+
+            {/* 3-Bar Ecosystem Drawer Trigger (Matches ProfileHeaderMenu.tsx) */}
+            <button
+              type="button"
+              onClick={() => setEcosystemDrawerOpen(true)}
+              aria-label="Open Manage Ecosystem Drawer"
+              className="w-9 h-9 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] hover:border-[#4E8B3F] flex items-center justify-center text-[#241A12] transition cursor-pointer"
+            >
+              <Menu size={19} strokeWidth={2.2} />
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* =====================================================================
+          MAIN BODY: DESKTOP LEFT RAIL + RESPONSIVE CONTENT VIEWPORT
+      ===================================================================== */}
+      <div className="flex-1 max-w-[1440px] w-full mx-auto flex">
+        {/* Desktop Left Navigation Rail (Hidden on Mobile < 768px) */}
+        <aside className="hidden md:flex flex-col w-60 lg:w-64 shrink-0 border-r border-[#CCEBD5] bg-white p-3.5 justify-between sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
+          <div className="space-y-1">
+            <div className="px-3 py-1.5 text-[10px] font-mono-num uppercase tracking-wider text-[#5C5245] font-semibold">
+              Agrom.app Navigation
+            </div>
+            {desktopSidebarLinks.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition group ${
+                  item.active
+                    ? 'bg-[#EEF8F1] border border-[#CCEBD5] text-[#173A20]'
+                    : 'text-[#241A12] hover:bg-[#EEF8F1]/60 border border-transparent'
+                }`}
+              >
+                <span
+                  className={`${
+                    item.active
+                      ? 'text-[#4E8B3F]'
+                      : 'text-[#5C5245] group-hover:text-[#4E8B3F]'
+                  }`}
+                >
+                  {item.icon}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div
+                    className={`text-[13px] leading-tight ${
+                      item.active ? 'font-bold text-[#173A20]' : 'font-semibold text-[#241A12]'
+                    }`}
+                  >
+                    {item.label}
+                  </div>
+                  <div className="text-[11px] text-[#5C5245] truncate">{item.sub}</div>
+                </div>
+              </NavLink>
+            ))}
+          </div>
+
+          {/* Bottom Sidebar Trust Card */}
+          <div className="mt-6 p-3.5 rounded-2xl bg-[#EEF8F1] border border-[#CCEBD5]">
+            <div className="flex items-center gap-2 text-xs font-bold text-[#173A20]">
+              <Sparkles size={14} className="text-[#4E8B3F]" />
+              <span>Engine 3 Smart Escrow</span>
+            </div>
+            <p className="text-[11px] text-[#5C5245] mt-1 leading-relaxed">
+              Every purchase on <strong>agrom.app</strong> is locked in escrow until fresh harvest delivery is verified.
+            </p>
+          </div>
+        </aside>
+
+        {/* Main Content Area (Padded on mobile for bottom navbar) */}
+        <main className="flex-1 min-w-0 pb-safe-nav md:pb-10">{children}</main>
+      </div>
+
+      {/* =====================================================================
+          MOBILE WEB FIXED BOTTOM NAVBAR (< 768px)
+          100% Parity with Frontend/components/navigation/CustomTabBar.tsx
+      ===================================================================== */}
+      <nav
+        aria-label="Mobile Bottom Navigation"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[#CCEBD5] px-2 pt-1.5 pb-[max(0.4rem,env(safe-area-inset-bottom))] shadow-[0_-4px_16px_rgba(36,26,18,0.06)]"
+      >
+        <div className="flex items-center justify-between max-w-md mx-auto">
+          {/* 1. AgroFeed */}
+          <button
+            type="button"
+            onClick={() => navigate('/feed')}
+            className="flex-1 flex flex-col items-center justify-center py-0.5 cursor-pointer"
+          >
+            <div
+              className={`w-12 h-7 rounded-full flex items-center justify-center mb-0.5 border transition ${
+                isFeedActive
+                  ? 'bg-[#EEF8F1] border-[#4E8B3F]/25 text-[#4E8B3F]'
+                  : 'border-transparent text-[#241A12]/50'
+              }`}
+            >
+              <Home size={21} strokeWidth={isFeedActive ? 2.4 : 1.9} />
+            </div>
+            <span
+              className={`text-[11.5px] tracking-tight ${
+                isFeedActive ? 'font-bold text-[#4E8B3F]' : 'font-medium text-[#241A12]/60'
+              }`}
+            >
+              AgroFeed
+            </span>
+          </button>
+
+          {/* 2. AgroMarket */}
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            className="flex-1 flex flex-col items-center justify-center py-0.5 cursor-pointer"
+          >
+            <div
+              className={`w-12 h-7 rounded-full flex items-center justify-center mb-0.5 border transition ${
+                isMarketActive
+                  ? 'bg-[#EEF8F1] border-[#4E8B3F]/25 text-[#4E8B3F]'
+                  : 'border-transparent text-[#241A12]/50'
+              }`}
+            >
+              <Sprout size={21} strokeWidth={isMarketActive ? 2.4 : 1.9} />
+            </div>
+            <span
+              className={`text-[11.5px] tracking-tight ${
+                isMarketActive ? 'font-bold text-[#4E8B3F]' : 'font-medium text-[#241A12]/60'
+              }`}
+            >
+              AgroMarket
+            </span>
+          </button>
+
+          {/* 3. Regional Basket (Center Tab with Circular Woven Basket Image & Badge) */}
+          <button
+            type="button"
+            onClick={() => navigate('/cart')}
+            className="flex-1 flex flex-col items-center justify-center py-0.5 cursor-pointer"
+          >
+            <div
+              className={`relative w-12 h-7 rounded-full flex items-center justify-center mb-0.5 border transition ${
+                isCartActive
+                  ? 'bg-[#FEF6E8] border-[#E2A63C]/40'
+                  : 'border-transparent'
+              }`}
+            >
+              <div
+                className={`w-7 h-7 rounded-full overflow-hidden border ${
+                  isCartActive ? 'border-2 border-[#E2A63C]' : 'border-[#241A12]/40'
+                }`}
+              >
+                <img
+                  src={regionalContainer.imageUrl}
+                  alt={regionalContainer.shortName}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              {cartItemCount > 0 && (
+                <span className="absolute -top-1 right-1 bg-[#E2A63C] text-[#241A12] font-mono-num font-bold text-[10px] min-w-[17px] h-[17px] px-1 rounded-full flex items-center justify-center border-2 border-white">
+                  {cartItemCount > 99 ? '99+' : cartItemCount}
+                </span>
+              )}
+            </div>
+            <span
+              className={`text-[11.5px] tracking-tight ${
+                isCartActive ? 'font-bold text-[#C68F30]' : 'font-medium text-[#241A12]/60'
+              }`}
+            >
+              {regionalContainer.shortName}
+            </span>
+          </button>
+
+          {/* 4. Inbox */}
+          <button
+            type="button"
+            onClick={() => navigate('/inbox')}
+            className="flex-1 flex flex-col items-center justify-center py-0.5 cursor-pointer"
+          >
+            <div
+              className={`w-12 h-7 rounded-full flex items-center justify-center mb-0.5 border transition ${
+                isInboxActive
+                  ? 'bg-[#EEF8F1] border-[#4E8B3F]/25 text-[#4E8B3F]'
+                  : 'border-transparent text-[#241A12]/50'
+              }`}
+            >
+              <MessageSquare size={21} strokeWidth={isInboxActive ? 2.4 : 1.9} />
+            </div>
+            <span
+              className={`text-[11.5px] tracking-tight ${
+                isInboxActive ? 'font-bold text-[#4E8B3F]' : 'font-medium text-[#241A12]/60'
+              }`}
+            >
+              Inbox
+            </span>
+          </button>
+
+          {/* 5. Profile */}
+          <button
+            type="button"
+            onClick={() => navigate('/profile')}
+            className="flex-1 flex flex-col items-center justify-center py-0.5 cursor-pointer"
+          >
+            <div
+              className={`w-12 h-7 rounded-full flex items-center justify-center mb-0.5 border transition ${
+                isProfileActive
+                  ? 'bg-[#EEF8F1] border-[#4E8B3F]/25 text-[#4E8B3F]'
+                  : 'border-transparent text-[#241A12]/50'
+              }`}
+            >
+              <User size={21} strokeWidth={isProfileActive ? 2.4 : 1.9} />
+            </div>
+            <span
+              className={`text-[11.5px] tracking-tight ${
+                isProfileActive ? 'font-bold text-[#4E8B3F]' : 'font-medium text-[#241A12]/60'
+              }`}
+            >
+              Profile
+            </span>
+          </button>
+        </div>
+      </nav>
+
+      {/* Modals & Drawers */}
+      <EcosystemDrawer />
+      <CreatePostModal />
+    </div>
+  );
+};
+
+export default AppShell;
+

@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+:root {
+  /* Agrom (agrom.app) Profile-Standard Design System Tokens */
+  --bg-canvas: #FFFFFF;
+  --bg-mint: #EEF8F1;
+  --bg-mint-hover: #E1F3E7;
+  --border-mint: #CCEBD5;
+  --cultivated: #4E8B3F;
+  --cultivated-dark: #3D7030;
+  --canopy: #173A20;
+  --canopy-deep: #0E2515;
+  --gold: #E2A63C;
+  --gold-dim: #C68F30;
+  --gold-tint: #FEF6E8;
+  --espresso: #241A12;
+  --text-secondary: #5C5245;
+  --text-muted: #9C9284;
+  --clay: #B54A34;
+  --soil: #7A4A2D;
+  --parchment: #F6EEDD;
+  --parchment-dim: #EAE0C7;
+
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-canvas);
+  color: var(--espresso);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-display-italic {
+  font-family: var(--font-display);
+  font-style: italic;
+}
+
+.font-mono-num {
+  font-family: var(--font-mono);
+}
+
+/* Custom subtle scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #FFFFFF;
+}
+::-webkit-scrollbar-thumb {
+  background: #CCEBD5;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #4E8B3F;
+}
+
+/* Hide scrollbar utility for horizontal chip/reel rows */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Safe area padding for mobile web bottom navbar */
+.pb-safe-nav {
+  padding-bottom: calc(74px + env(safe-area-inset-bottom, 0px));
+}
+
