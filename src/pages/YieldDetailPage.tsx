@@ -17,6 +17,7 @@ import { fetchYieldByIdApi } from '@/api';
 import { Yield } from '@/types';
 import { useCartStore } from '@/store/cartStore';
 import { useFavoritesStore } from '@/store/favoritesStore';
+import { useRegionalContainerStore } from '@/store/regionalContainerStore';
 import { FarmerBadge } from '@/components/MeetingLeafLogo';
 import { formatXaf } from '@/utils/media';
 
@@ -28,6 +29,9 @@ export const YieldDetailPage: React.FC = () => {
   const [added, setAdded] = useState(false);
 
   const addToCart = useCartStore((s) => s.addToCart);
+  const cartItemCount = useCartStore((s) => s.getItemCount());
+  const cartTotal = useCartStore((s) => s.getTotal());
+  const regionalContainer = useRegionalContainerStore((s) => s.getContainer());
   const { toggleYield, isYieldFavorite } = useFavoritesStore();
 
   useEffect(() => {
@@ -149,11 +153,10 @@ export const YieldDetailPage: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
               <div
                 onClick={() => setQuantity(1)}
-                className={`p-3.5 rounded-2xl border cursor-pointer transition ${
-                  !isBulkActive
+                className={`p-3.5 rounded-2xl border cursor-pointer transition ${!isBulkActive
                     ? 'bg-[#EEF8F1] border-[#4E8B3F]'
                     : 'bg-white border-[#CCEBD5]'
-                }`}
+                  }`}
               >
                 <div className="text-xs font-semibold text-[#5C5245]">Standard Retail Price</div>
                 <div className="font-mono-num text-xl font-bold text-[#173A20] mt-0.5">
@@ -165,11 +168,10 @@ export const YieldDetailPage: React.FC = () => {
               {item.isWholesaleBulkAvailable && item.bulkPricePerUnit && (
                 <div
                   onClick={() => setQuantity(item.bulkMinQuantity || 10)}
-                  className={`p-3.5 rounded-2xl border cursor-pointer transition ${
-                    isBulkActive
+                  className={`p-3.5 rounded-2xl border cursor-pointer transition ${isBulkActive
                       ? 'bg-[#FEF6E8] border-[#E2A63C]'
                       : 'bg-white border-[#CCEBD5]'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-[#8A5F1C]">
@@ -224,9 +226,9 @@ export const YieldDetailPage: React.FC = () => {
               <button
                 type="button"
                 onClick={handleAdd}
-                className="flex-1 py-3.5 px-5 rounded-full bg-[#E2A63C] hover:bg-[#C68F30] text-[#241A12] font-bold text-sm inline-flex items-center justify-center gap-2 transition cursor-pointer"
+                className="flex-1 py-3.5 px-5 rounded-full bg-[#FFF9EE] hover:bg-[#FEF2D8] border border-[#F2DCAA] hover:border-[#E2A63C] text-[#241A12] font-bold text-sm inline-flex items-center justify-center gap-2 transition cursor-pointer"
               >
-                {added ? <Check size={18} /> : <ShoppingBag size={18} />}
+                {added ? <Check size={18} className="text-[#B87D1E]" /> : <ShoppingBag size={18} className="text-[#C68F30]" />}
                 <span>{added ? 'Added to Regional Basket!' : 'Add to Harvest Basket'}</span>
               </button>
 
@@ -236,7 +238,7 @@ export const YieldDetailPage: React.FC = () => {
                   addToCart({ ...item, price: unitPrice }, quantity);
                   navigate('/cart');
                 }}
-                className="py-3.5 px-5 rounded-full bg-[#4E8B3F] hover:bg-[#3D7030] text-white font-bold text-sm inline-flex items-center justify-center gap-2 transition cursor-pointer"
+                className="py-3.5 px-5 rounded-full bg-[#E2A63C] hover:bg-[#C68F30] text-[#241A12] border border-[#C68F30]/40 font-bold text-sm inline-flex items-center justify-center gap-2 transition cursor-pointer"
               >
                 <ShieldCheck size={17} />
                 <span>Escrow Checkout</span>
@@ -254,6 +256,34 @@ export const YieldDetailPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Floating Regional Basket Bar when items exist (Harvest Color Design) */}
+      {cartItemCount > 0 && (
+        <div className="fixed bottom-20 md:bottom-6 right-4 sm:right-6 z-30">
+          <button
+            type="button"
+            onClick={() => navigate('/cart')}
+            className="group flex items-center gap-3 bg-[#FFF9EE] hover:bg-[#FEF2D8] text-[#241A12] pl-2.5 pr-3.5 py-2 rounded-full border-2 border-[#F2DCAA] hover:border-[#E2A63C] shadow-[0_8px_24px_rgba(198,143,48,0.2)] transition cursor-pointer"
+          >
+            <img
+              src={regionalContainer.imageUrl}
+              alt={regionalContainer.shortName}
+              className="w-9 h-9 rounded-full object-cover border-2 border-[#E2A63C]"
+            />
+            <div className="text-left">
+              <div className="text-[11px] font-bold text-[#B87D1E] leading-none">
+                {cartItemCount} {cartItemCount === 1 ? 'Item' : 'Items'} in {regionalContainer.shortName}
+              </div>
+              <div className="font-mono-num text-xs font-bold text-[#241A12] mt-0.5">
+                {formatXaf(cartTotal)} • Checkout
+              </div>
+            </div>
+            <div className="w-7 h-7 rounded-full bg-[#E2A63C] group-hover:bg-[#C68F30] text-[#241A12] flex items-center justify-center ml-0.5 transition">
+              <ShoppingBag size={14} strokeWidth={2.4} />
+            </div>
+          </button>
+        </div>
+      )}
     </div>
   );
 };

@@ -10,7 +10,6 @@ import {
   Warehouse,
   ShieldCheck,
   TrendingUp,
-  Store,
   Wallet,
   Compass,
   PlaySquare,
@@ -49,72 +48,56 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
   const desktopSidebarLinks = [
     {
-      to: '/',
-      label: 'AgroMarket',
-      sub: 'Direct Farm Harvests',
-      icon: <Sprout size={19} />,
-      active: isMarketActive,
-    },
-    {
       to: '/feed',
       label: 'AgroFeed',
-      sub: 'Live Harvest Stories',
       icon: <Home size={19} />,
       active: isFeedActive,
     },
     {
-      to: '/wholesaler',
-      label: 'Buyam-Sellam',
-      sub: 'Wholesale Bulk Lots',
-      icon: <Store size={19} />,
-      active: pathname.startsWith('/wholesaler'),
+      to: '/',
+      label: 'AgroMarket',
+      icon: <Sprout size={19} />,
+      active: isMarketActive,
     },
     {
       to: '/fintech/loans',
       label: 'AgroVestor & Credit',
-      sub: 'Tabi FICO & Crowdlending',
       icon: <TrendingUp size={19} />,
       active: pathname.startsWith('/fintech'),
     },
     {
       to: '/orders',
       label: 'Smart Escrow',
-      sub: 'Order Tracking & OTP',
       icon: <ShieldCheck size={19} />,
       active: pathname.startsWith('/orders'),
     },
     {
       to: '/wallet',
       label: 'AgroWallet',
-      sub: 'Vault & Patron Passes',
       icon: <Wallet size={19} />,
       active: pathname.startsWith('/wallet'),
     },
     {
       to: '/farmer/manage',
       label: 'My AgroFarms',
-      sub: 'Storefronts & Inventory',
       icon: <Warehouse size={19} />,
       active: pathname.startsWith('/farmer'),
     },
     {
       to: '/inbox',
       label: 'AgroInbox',
-      sub: 'Direct Negotiations',
       icon: <MessageSquare size={19} />,
       active: isInboxActive,
     },
     {
       to: '/profile',
       label: 'My Profile',
-      sub: 'Stats, Wishlist & Bio',
       icon: <User size={19} />,
       active: isProfileActive,
     },
     {
       to: '/ecosystem',
       label: 'Platform Architecture',
-      sub: 'The 5 Agrom Engines',
       icon: <Compass size={19} />,
       active: pathname.startsWith('/ecosystem'),
     },
@@ -136,16 +119,6 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             {/* Quick Desktop Mode Pills (Using Lucide System Icons) */}
             <nav className="hidden lg:flex items-center gap-1 bg-[#EEF8F1] p-1 rounded-full border border-[#CCEBD5]">
               <NavLink
-                to="/"
-                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${isMarketActive
-                    ? 'bg-[#4E8B3F] text-white shadow-xs'
-                    : 'text-[#241A12] hover:text-[#4E8B3F]'
-                  }`}
-              >
-                <Sprout size={14} strokeWidth={2.2} />
-                <span>AgroMarket</span>
-              </NavLink>
-              <NavLink
                 to="/feed"
                 className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${isFeedActive
                     ? 'bg-[#4E8B3F] text-white shadow-xs'
@@ -156,14 +129,14 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
                 <span>AgroFeed</span>
               </NavLink>
               <NavLink
-                to="/wholesaler"
-                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${pathname.startsWith('/wholesaler')
+                to="/"
+                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${isMarketActive
                     ? 'bg-[#4E8B3F] text-white shadow-xs'
                     : 'text-[#241A12] hover:text-[#4E8B3F]'
                   }`}
               >
-                <Store size={14} strokeWidth={2.2} />
-                <span>Buyam-Sellam</span>
+                <Sprout size={14} strokeWidth={2.2} />
+                <span>AgroMarket</span>
               </NavLink>
               <NavLink
                 to="/fintech/loans"
@@ -206,8 +179,8 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
               type="button"
               onClick={() => navigate('/cart')}
               className={`hidden md:inline-flex items-center gap-2 px-3 py-1.5 rounded-full border transition cursor-pointer ${isCartActive
-                  ? 'bg-[#FEF6E8] border-[#E2A63C] text-[#241A12]'
-                  : 'bg-[#EEF8F1] border-[#CCEBD5] hover:border-[#4E8B3F] text-[#241A12]'
+                  ? 'bg-[#FEF2D8] border-[#E2A63C] text-[#241A12] shadow-2xs'
+                  : 'bg-[#FFF9EE] border-[#F2DCAA] hover:bg-[#FEF2D8] hover:border-[#E2A63C] text-[#241A12]'
                 }`}
             >
               <img
@@ -278,15 +251,12 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
                 >
                   {item.icon}
                 </span>
-                <div className="min-w-0 flex-1">
-                  <div
-                    className={`text-[13px] leading-tight ${item.active ? 'font-bold text-[#173A20]' : 'font-semibold text-[#241A12]'
-                      }`}
-                  >
-                    {item.label}
-                  </div>
-                  <div className="text-[11px] text-[#5C5245] truncate">{item.sub}</div>
-                </div>
+                <span
+                  className={`text-[13.5px] leading-tight truncate ${item.active ? 'font-bold text-[#173A20]' : 'font-semibold text-[#241A12]'
+                    }`}
+                >
+                  {item.label}
+                </span>
               </NavLink>
             ))}
           </div>
@@ -353,16 +323,16 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
           <button
             type="button"
             onClick={() => navigate('/cart')}
-            className="flex-1 flex flex-col items-center justify-center py-0.5 cursor-pointer"
+            className="flex-1 flex flex-col items-center justify-center py-0.5 cursor-pointer group"
           >
             <div
               className={`relative w-12 h-7 rounded-full flex items-center justify-center mb-0.5 border transition ${isCartActive
-                  ? 'bg-[#FEF6E8] border-[#E2A63C]/40'
-                  : 'border-transparent'
+                  ? 'bg-[#FEF2D8] border-[#E2A63C]'
+                  : 'bg-[#FFF9EE] border-[#F2DCAA] group-hover:bg-[#FEF2D8] group-hover:border-[#E2A63C]'
                 }`}
             >
               <div
-                className={`w-7 h-7 rounded-full overflow-hidden border ${isCartActive ? 'border-2 border-[#E2A63C]' : 'border-[#241A12]/40'
+                className={`w-6 h-6 rounded-full overflow-hidden border ${isCartActive ? 'border-2 border-[#E2A63C]' : 'border-[#E2A63C]/70'
                   }`}
               >
                 <img
@@ -372,13 +342,13 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
                 />
               </div>
               {cartItemCount > 0 && (
-                <span className="absolute -top-1 right-1 bg-[#E2A63C] text-[#241A12] font-mono-num font-bold text-[10px] min-w-[17px] h-[17px] px-1 rounded-full flex items-center justify-center border-2 border-white">
+                <span className="absolute -top-1 right-0.5 bg-[#E2A63C] text-[#241A12] font-mono-num font-bold text-[10px] min-w-[17px] h-[17px] px-1 rounded-full flex items-center justify-center border-2 border-white">
                   {cartItemCount > 99 ? '99+' : cartItemCount}
                 </span>
               )}
             </div>
             <span
-              className={`text-[11.5px] tracking-tight ${isCartActive ? 'font-bold text-[#C68F30]' : 'font-medium text-[#241A12]/60'
+              className={`text-[11.5px] tracking-tight ${isCartActive ? 'font-bold text-[#B87D1E]' : 'font-medium text-[#241A12]/70 group-hover:text-[#B87D1E]'
                 }`}
             >
               {regionalContainer.shortName}

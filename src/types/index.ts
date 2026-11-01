@@ -57,11 +57,33 @@ export interface FarmerProfile {
   creditScore: number;
 }
 
+export type FarmCategory =
+  | 'CROPS'
+  | 'LIVESTOCK'
+  | 'POULTRY'
+  | 'AQUACULTURE'
+  | 'GREENHOUSE'
+  | 'MIXED'
+  | 'HORTICULTURE';
+
+export interface FarmParcel {
+  id: string;
+  name: string;
+  region: string;
+  city: string;
+  division?: string;
+  location?: string;
+  gpsLatitude?: number;
+  gpsLongitude?: number;
+  sizeHectares?: number;
+  isHeadquarters?: boolean;
+}
+
 export interface Farm {
   id: string;
   userId: string;
   name: string;
-  category: string;
+  category: FarmCategory | string;
   description?: string;
   location: string;
   city: string;
@@ -76,6 +98,7 @@ export interface Farm {
   rating?: number;
   totalRatings?: number;
   yieldsCount?: number;
+  parcels?: FarmParcel[];
   createdAt?: string;
   user?: User;
   farmerProfile?: FarmerProfile;

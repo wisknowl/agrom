@@ -45,7 +45,7 @@ export const useAuthStore = create<AuthState>()(
 
       logout: () => {
         localStorage.removeItem('auth_token');
-        set({ user: null, token: null, isAuthenticated: false, isGuest: false });
+        set({ user: null, token: null, isAuthenticated: false, isGuest: true });
       },
 
       updateUser: (userData: Partial<User>) =>

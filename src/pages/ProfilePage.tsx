@@ -6,7 +6,6 @@ import {
   Sparkles,
   BookmarkCheck,
   Edit3,
-  Menu,
   UserPlus,
   UserCheck,
   MessageCircle,
@@ -14,15 +13,17 @@ import {
   ChevronRight,
   Play,
   Leaf,
-  Plus,
   X,
   Check,
   MapPin,
   Star,
+  Sprout,
+  PlaySquare,
+  User,
+  Plus,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useFavoritesStore } from '@/store/favoritesStore';
-import { useRegionalContainerStore } from '@/store/regionalContainerStore';
 import {
   fetchCurrentUserApi,
   fetchPublicProfileApi,
@@ -32,11 +33,10 @@ import {
   fetchMyOrdersApi,
   fetchMyFarmsApi,
   patronizeFarmApi,
-  FALLBACK_YIELDS,
   FALLBACK_POSTS,
 } from '@/api';
 import { Post, Yield, Order, Farm } from '@/types';
-import { FarmerBadge, MeetingLeafLogo } from '@/components/MeetingLeafLogo';
+import { FarmerBadge } from '@/components/MeetingLeafLogo';
 import YieldCard from '@/components/YieldCard';
 import { resolveMediaUrl, formatXaf, isVideoMedia } from '@/utils/media';
 
@@ -46,8 +46,6 @@ export const ProfilePage: React.FC = () => {
   const { user: currentUser, isAuthenticated, updateUser } = useAuthStore();
   const savedYieldIds = useFavoritesStore((s) => s.yields);
   const savedPostIds = useFavoritesStore((s) => s.posts);
-  const setEcosystemDrawerOpen = useRegionalContainerStore((s) => s.setEcosystemDrawerOpen);
-  const setCreatePostModalOpen = useRegionalContainerStore((s) => s.setCreatePostModalOpen);
 
   const isOwner = Boolean(!userId || (currentUser?.id && userId === currentUser.id));
 
@@ -219,6 +217,76 @@ export const ProfilePage: React.FC = () => {
     ...(isOwner ? [{ key: 'wishlist', label: 'Wishlist', icon: BookmarkCheck }] : []),
   ] as const;
 
+  // When signed out (Guest Mode) and viewing own /profile route, show Guest prompt
+  if (!isAuthenticated && !userId) {
+    return (
+      <div className="max-w-xl mx-auto px-4 py-12 sm:py-16">
+        <div className="bg-white rounded-3xl border border-[#CCEBD5] p-6 sm:p-8 text-center space-y-5 shadow-[0_8px_30px_rgba(23,58,32,0.06)]">
+          <div className="w-16 h-16 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] flex items-center justify-center mx-auto text-[#4E8B3F]">
+            <User size={30} strokeWidth={2.2} />
+          </div>
+
+          <div className="space-y-1.5">
+            <span className="inline-block px-3 py-0.5 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] text-[11px] font-semibold text-[#4E8B3F]">
+              Guest Session Active
+            </span>
+            <h1 className="font-display-italic text-2xl sm:text-[26px] font-semibold text-[#173A20]">
+              Sign in to your Agrom Profile
+            </h1>
+            <p className="text-xs sm:text-sm text-[#5C5245] max-w-md mx-auto leading-relaxed">
+              Sign in or create an account to manage your farms, track Smart Escrow orders, save harvests to your wishlist, and connect with AgroPatrons.
+            </p>
+          </div>
+
+          {/* Primary Auth Actions */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <button
+              type="button"
+              onClick={() => navigate('/auth/login')}
+              className="w-full py-3 px-5 rounded-full bg-[#4E8B3F] hover:bg-[#3D7030] text-white text-sm font-bold shadow-xs transition cursor-pointer"
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/auth/register')}
+              className="w-full py-3 px-5 rounded-full bg-[#EEF8F1] hover:bg-[#E1F3E7] border border-[#CCEBD5] text-[#173A20] text-sm font-bold transition cursor-pointer"
+            >
+              Create Account
+            </button>
+          </div>
+
+          {/* Divider */}
+          <div className="flex items-center gap-3 py-1">
+            <div className="h-px flex-1 bg-[#CCEBD5]" />
+            <span className="text-[11px] font-medium text-[#9C9284]">or continue exploring</span>
+            <div className="h-px flex-1 bg-[#CCEBD5]" />
+          </div>
+
+          {/* Secondary Guest Exploration Shortcuts */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <button
+              type="button"
+              onClick={() => navigate('/')}
+              className="inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-2xl bg-white hover:bg-[#EEF8F1] border border-[#CCEBD5] text-xs font-semibold text-[#241A12] transition cursor-pointer"
+            >
+              <Sprout size={15} className="text-[#4E8B3F]" />
+              <span>Go to AgroMarket</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/feed')}
+              className="inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-2xl bg-white hover:bg-[#EEF8F1] border border-[#CCEBD5] text-xs font-semibold text-[#241A12] transition cursor-pointer"
+            >
+              <PlaySquare size={15} className="text-[#4E8B3F]" />
+              <span>Check AgroFeed</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto bg-white min-h-screen">
       {/* =====================================================================
@@ -226,9 +294,21 @@ export const ProfilePage: React.FC = () => {
           Pure White (#FFFFFF) + Mint (#EEF8F1) + Sage Border (#CCEBD5)
       ===================================================================== */}
       <div className="px-4 sm:px-6 pt-5 pb-0 bg-white border-b border-[#CCEBD5]">
-        {/* 1. Top Bar Navigation: Edit Profile on Top Left, Sign In / 3-Bar Menu on Right */}
+        {/* 1. Top Bar Navigation: Back on Left (if visiting another profile), Edit Profile on Top Right */}
         <div className="flex items-center justify-between mb-4">
-          {isOwner ? (
+          {!isOwner ? (
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="px-3.5 py-1.5 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] text-xs font-semibold text-[#241A12] cursor-pointer"
+            >
+              ← Back
+            </button>
+          ) : (
+            <div />
+          )}
+
+          {isOwner && (
             <button
               type="button"
               onClick={openEditModal}
@@ -237,35 +317,7 @@ export const ProfilePage: React.FC = () => {
               <Edit3 size={15} strokeWidth={2.2} />
               <span>Edit Profile</span>
             </button>
-          ) : (
-            <button
-              type="button"
-              onClick={() => navigate(-1)}
-              className="px-3.5 py-1.5 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] text-xs font-semibold text-[#241A12] cursor-pointer"
-            >
-              ← Back
-            </button>
           )}
-
-          <div className="flex items-center gap-2">
-            {!isAuthenticated && (
-              <button
-                type="button"
-                onClick={() => navigate('/auth/login')}
-                className="px-3.5 py-1.5 rounded-full bg-[#4E8B3F] text-white text-xs font-semibold hover:bg-[#3D7030] transition cursor-pointer"
-              >
-                Sign In / Sync Account
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={() => setEcosystemDrawerOpen(true)}
-              aria-label="Open Manage Ecosystem Menu"
-              className="w-10 h-10 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] flex items-center justify-center text-[#241A12] hover:border-[#4E8B3F] transition cursor-pointer"
-            >
-              <Menu size={20} strokeWidth={2.2} />
-            </button>
-          </div>
         </div>
 
         {/* 2. Profile Info Row: Avatar on Left, Large Name, Email, Bio, Credit Badge on Right */}
@@ -362,8 +414,8 @@ export const ProfilePage: React.FC = () => {
             type="button"
             onClick={() => setPatronModalVisible(true)}
             className={`flex-1 py-2.5 px-4 rounded-full text-xs sm:text-[13px] font-semibold inline-flex items-center justify-center gap-2 transition cursor-pointer ${isFollowing
-                ? 'bg-[#EEF8F1] border border-[#4E8B3F] text-[#4E8B3F]'
-                : 'bg-[#4E8B3F] hover:bg-[#3D7030] text-white'
+              ? 'bg-[#EEF8F1] border border-[#4E8B3F] text-[#4E8B3F]'
+              : 'bg-[#4E8B3F] hover:bg-[#3D7030] text-white'
               }`}
           >
             {isFollowing ? (
@@ -427,68 +479,115 @@ export const ProfilePage: React.FC = () => {
         {/* TAB 1: FARMS */}
         {activeTab === 'farms' && (
           <div className="space-y-4">
-            {/* Manage AgroFarms Banner (Matches profile.tsx farmHubBanner) */}
-            <div
-              onClick={() => navigate('/farmer/manage')}
-              className="flex items-center justify-between bg-[#EEF8F1] hover:bg-[#E1F3E7] border border-[#CCEBD5] p-4 rounded-2xl cursor-pointer transition"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-xl bg-[#4E8B3F] text-white flex items-center justify-center shadow-sm">
-                  <Warehouse size={22} />
+            {!userHasFarm ? (
+              <div className="p-8 sm:p-10 rounded-3xl bg-[#EEF8F1] border border-[#CCEBD5] text-center space-y-3">
+                <div className="w-14 h-14 rounded-2xl bg-white border border-[#CCEBD5] flex items-center justify-center mx-auto text-[#4E8B3F] shadow-xs">
+                  <Warehouse size={28} strokeWidth={2} />
                 </div>
-                <div>
-                  <div className="font-display font-bold text-[15px] text-[#173A20]">
-                    Manage AgroFarms & Publish Harvests
-                  </div>
-                  <div className="text-xs text-[#5C5245]">
-                    Register farm parcels, update live crate inventory & track cooperative sales
-                  </div>
+                <div className="space-y-1">
+                  <h3 className="font-bold text-base text-[#173A20]">No Farm Page Created Yet</h3>
+                  <p className="text-xs text-[#5C5245] max-w-sm mx-auto leading-relaxed">
+                    {isOwner
+                      ? 'Register your farm page to publish direct harvests, record field stories, and build your cooperative rating.'
+                      : 'This user does not currently manage any public farm pages.'}
+                  </p>
                 </div>
+                {isOwner && (
+                  <button
+                    type="button"
+                    onClick={() => navigate('/farmer/new')}
+                    className="mt-2 inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#4E8B3F] hover:bg-[#3D7030] text-white text-xs font-bold transition shadow-xs cursor-pointer"
+                  >
+                    <Plus size={16} strokeWidth={2.5} />
+                    <span>+ Create Your Farm</span>
+                  </button>
+                )}
               </div>
-              <div className="w-8 h-8 rounded-full bg-white border border-[#CCEBD5] flex items-center justify-center text-[#4E8B3F]">
-                <ChevronRight size={18} />
-              </div>
-            </div>
-
-            {/* Farm Cards List */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {(targetUser?.farms || []).map((farm: Farm) => (
+            ) : (
+              <div className="space-y-4">
+                {/* Manage AgroFarms Banner (Matches profile.tsx farmHubBanner) */}
                 <div
-                  key={farm.id}
-                  onClick={() => navigate(`/farmer/manage?farmId=${farm.id}`)}
-                  className="bg-white rounded-2xl border border-[#CCEBD5] hover:border-[#4E8B3F] overflow-hidden shadow-xs transition cursor-pointer"
+                  onClick={() => navigate('/farmer/manage')}
+                  className="flex items-center justify-between bg-[#EEF8F1] hover:bg-[#E1F3E7] border border-[#CCEBD5] p-4 rounded-2xl cursor-pointer transition"
                 >
-                  <div className="h-36 bg-[#EEF8F1] relative">
-                    <img
-                      src={
-                        farm.coverPhoto ||
-                        'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=900&auto=format&fit=crop&q=80'
-                      }
-                      alt={farm.name}
-                      className="w-full h-full object-cover"
-                    />
-                    <span className="absolute top-3 left-3 bg-[#EEF8F1]/95 text-[#173A20] border border-[#CCEBD5] text-[11px] font-bold px-2.5 py-0.5 rounded-full">
-                      {farm.category || 'CROPS'} • {farm.sizeHectares || 12} Ha
-                    </span>
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-xl bg-[#4E8B3F] text-white flex items-center justify-center shadow-sm">
+                      <Warehouse size={22} />
+                    </div>
+                    <div>
+                      <div className="font-display font-bold text-[15px] text-[#173A20]">
+                        Manage AgroFarms & Publish Harvests
+                      </div>
+                      <div className="text-xs text-[#5C5245]">
+                        Register farm parcels, update live crate inventory & track cooperative sales
+                      </div>
+                    </div>
                   </div>
-                  <div className="p-4 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-bold text-base text-[#241A12]">{farm.name}</h3>
-                      <span className="inline-flex items-center gap-1 text-xs font-mono-num font-bold text-[#173A20]">
-                        <Star size={13} className="fill-[#E2A63C] text-[#E2A63C]" />
-                        {farm.rating || 4.9}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1 text-xs text-[#5C5245]">
-                      <MapPin size={13} className="text-[#4E8B3F]" />
-                      <span>
-                        {farm.location || farm.city} • {farm.region}
-                      </span>
-                    </div>
+                  <div className="w-8 h-8 rounded-full bg-white border border-[#CCEBD5] flex items-center justify-center text-[#4E8B3F]">
+                    <ChevronRight size={18} />
                   </div>
                 </div>
-              ))}
-            </div>
+
+                {/* Section Header with + New Farm Button */}
+                <div className="flex items-center justify-between pt-1">
+                  <h3 className="font-bold text-sm text-[#173A20]">
+                    Registered AgroFarms ({(targetUser?.farms || []).length})
+                  </h3>
+                  {isOwner && (
+                    <button
+                      type="button"
+                      onClick={() => navigate('/farmer/new')}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#4E8B3F] hover:bg-[#3D7030] text-white text-xs font-bold shadow-xs transition cursor-pointer"
+                    >
+                      <Plus size={14} strokeWidth={2.5} />
+                      <span>+ New Farm</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Farm Cards List */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {(targetUser?.farms || []).map((farm: Farm) => (
+                    <div
+                      key={farm.id}
+                      onClick={() =>
+                        navigate(isOwner ? `/farmer/manage?farmId=${farm.id}` : `/farmer/${farm.id}`)
+                      }
+                      className="bg-white rounded-2xl border border-[#CCEBD5] hover:border-[#4E8B3F] overflow-hidden shadow-xs transition cursor-pointer"
+                    >
+                      <div className="h-36 bg-[#EEF8F1] relative">
+                        <img
+                          src={
+                            farm.coverPhoto ||
+                            'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=900&auto=format&fit=crop&q=80'
+                          }
+                          alt={farm.name}
+                          className="w-full h-full object-cover"
+                        />
+                        <span className="absolute top-3 left-3 bg-[#EEF8F1]/95 text-[#173A20] border border-[#CCEBD5] text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+                          {farm.category || 'CROPS'} • {farm.sizeHectares || 12} Ha
+                        </span>
+                      </div>
+                      <div className="p-4 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-bold text-base text-[#241A12]">{farm.name}</h3>
+                          <span className="inline-flex items-center gap-1 text-xs font-mono-num font-bold text-[#173A20]">
+                            <Star size={13} className="fill-[#E2A63C] text-[#E2A63C]" />
+                            {farm.rating || 4.9}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1 text-xs text-[#5C5245]">
+                          <MapPin size={13} className="text-[#4E8B3F]" />
+                          <span>
+                            {farm.location || farm.city} • {farm.region}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -606,8 +705,8 @@ export const ProfilePage: React.FC = () => {
                   type="button"
                   onClick={() => setWishlistFilter(pill.id)}
                   className={`px-4 py-1.5 rounded-full text-xs font-semibold border transition cursor-pointer ${wishlistFilter === pill.id
-                      ? 'bg-[#4E8B3F] text-white border-[#4E8B3F]'
-                      : 'bg-[#EEF8F1] text-[#241A12] border-[#CCEBD5]'
+                    ? 'bg-[#4E8B3F] text-white border-[#4E8B3F]'
+                    : 'bg-[#EEF8F1] text-[#241A12] border-[#CCEBD5]'
                     }`}
                 >
                   {pill.label}
@@ -773,8 +872,8 @@ export const ProfilePage: React.FC = () => {
                 type="button"
                 onClick={() => setPatronPlan('MONTHLY')}
                 className={`p-3.5 rounded-2xl border text-left cursor-pointer ${patronPlan === 'MONTHLY'
-                    ? 'bg-[#EEF8F1] border-[#4E8B3F]'
-                    : 'bg-white border-[#CCEBD5]'
+                  ? 'bg-[#EEF8F1] border-[#4E8B3F]'
+                  : 'bg-white border-[#CCEBD5]'
                   }`}
               >
                 <div className="text-xs font-bold text-[#173A20]">Monthly Pass</div>
@@ -788,8 +887,8 @@ export const ProfilePage: React.FC = () => {
                 type="button"
                 onClick={() => setPatronPlan('SEASONAL')}
                 className={`p-3.5 rounded-2xl border text-left cursor-pointer ${patronPlan === 'SEASONAL'
-                    ? 'bg-[#FEF6E8] border-[#E2A63C]'
-                    : 'bg-white border-[#CCEBD5]'
+                  ? 'bg-[#FEF6E8] border-[#E2A63C]'
+                  : 'bg-white border-[#CCEBD5]'
                   }`}
               >
                 <div className="text-xs font-bold text-[#173A20]">Seasonal Pass (3 Mo)</div>

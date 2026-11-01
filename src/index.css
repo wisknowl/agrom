@@ -12,7 +12,12 @@
   --canopy-deep: #0E2515;
   --gold: #E2A63C;
   --gold-dim: #C68F30;
-  --gold-tint: #FEF6E8;
+  --gold-deep: #B87D1E;
+  --gold-tint: #FEF2D8;
+  --bg-harvest-light: #FFF9EE;
+  --bg-harvest-hover: #FEF2D8;
+  --border-harvest-light: #F2DCAA;
+  --border-harvest: #E2A63C;
   --espresso: #241A12;
   --text-secondary: #5C5245;
   --text-muted: #9C9284;
@@ -59,13 +64,16 @@ body {
   width: 6px;
   height: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: #FFFFFF;
 }
+
 ::-webkit-scrollbar-thumb {
   background: #CCEBD5;
   border-radius: 9999px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: #4E8B3F;
 }
@@ -74,6 +82,7 @@ body {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -83,4 +92,3 @@ body {
 .pb-safe-nav {
   padding-bottom: calc(74px + env(safe-area-inset-bottom, 0px));
 }
-

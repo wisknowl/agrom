@@ -77,14 +77,14 @@ export const CartAndCheckoutPage: React.FC = () => {
 
   if (orderCompleted) {
     return (
-      <div className="p-6 max-w-2xl mx-auto my-8 bg-[#EEF8F1] border-2 border-[#4E8B3F] rounded-3xl text-center space-y-4 shadow-lg">
-        <div className="w-16 h-16 rounded-full bg-[#4E8B3F] text-white flex items-center justify-center mx-auto shadow">
+      <div className="p-6 max-w-2xl mx-auto my-8 bg-[#FFF9EE] border-2 border-[#E2A63C] rounded-3xl text-center space-y-4 shadow-lg">
+        <div className="w-16 h-16 rounded-full bg-[#E2A63C] text-[#241A12] flex items-center justify-center mx-auto shadow">
           <CheckCircle2 size={34} />
         </div>
-        <span className="inline-block px-3 py-1 rounded-full bg-[#173A20] text-[#E2A63C] font-mono-num text-xs font-bold">
+        <span className="inline-block px-3 py-1 rounded-full bg-[#FEF2D8] border border-[#E2A63C] text-[#B87D1E] font-mono-num text-xs font-bold">
           Engine 3 FSM State: ESCROW_LOCKED 🔒
         </span>
-        <h2 className="font-display text-2xl font-bold text-[#173A20]">
+        <h2 className="font-display text-2xl font-bold text-[#241A12]">
           Funds Locked in Smart Escrow!
         </h2>
         <p className="text-sm text-[#5C5245] max-w-md mx-auto leading-relaxed">
@@ -95,7 +95,7 @@ export const CartAndCheckoutPage: React.FC = () => {
           <button
             type="button"
             onClick={() => navigate('/orders')}
-            className="px-5 py-2.5 rounded-full bg-[#173A20] text-[#E2A63C] text-xs font-bold cursor-pointer"
+            className="px-5 py-2.5 rounded-full bg-[#E2A63C] hover:bg-[#C68F30] text-[#241A12] text-xs font-bold transition cursor-pointer"
           >
             Track Escrow Order FSM
           </button>
@@ -105,7 +105,7 @@ export const CartAndCheckoutPage: React.FC = () => {
               setOrderCompleted(null);
               navigate('/');
             }}
-            className="px-5 py-2.5 rounded-full bg-[#4E8B3F] text-white text-xs font-bold cursor-pointer"
+            className="px-5 py-2.5 rounded-full bg-white border border-[#F2DCAA] hover:bg-[#FEF2D8] hover:border-[#E2A63C] text-[#241A12] text-xs font-bold transition cursor-pointer"
           >
             Continue Shopping
           </button>
@@ -116,8 +116,8 @@ export const CartAndCheckoutPage: React.FC = () => {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto space-y-6">
-      {/* Header with Regional Woven Basket */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#EEF8F1] border border-[#CCEBD5] p-4 sm:p-5 rounded-3xl">
+      {/* Header with Regional Woven Basket (Harvest Color Theme) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#FFF9EE] border border-[#F2DCAA] p-4 sm:p-5 rounded-3xl">
         <div className="flex items-center gap-3.5">
           <img
             src={regionalContainer.imageUrl}
@@ -125,11 +125,11 @@ export const CartAndCheckoutPage: React.FC = () => {
             className="w-14 h-14 rounded-2xl object-cover border-2 border-[#E2A63C] shadow-xs"
           />
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="font-display-italic text-xl sm:text-2xl font-semibold text-[#173A20]">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="font-display-italic text-xl sm:text-2xl font-semibold text-[#241A12]">
                 Your {regionalContainer.name}
               </h1>
-              <span className="text-xs bg-white border border-[#CCEBD5] px-2.5 py-0.5 rounded-full font-semibold text-[#4E8B3F]">
+              <span className="text-xs bg-white border border-[#F2DCAA] px-2.5 py-0.5 rounded-full font-semibold text-[#B87D1E]">
                 {regionalContainer.flag} {regionalContainer.regionLabel}
               </span>
             </div>
@@ -138,25 +138,25 @@ export const CartAndCheckoutPage: React.FC = () => {
         </div>
 
         {/* Gamified Eco-Delivery Progress */}
-        <div className="bg-white border border-[#CCEBD5] rounded-2xl px-4 py-2.5 text-xs">
+        <div className="bg-white border border-[#F2DCAA] rounded-2xl px-4 py-2.5 text-xs">
           {unlockedFreeEcoDelivery ? (
-            <div className="flex items-center gap-1.5 font-bold text-[#4E8B3F]">
-              <Truck size={15} />
+            <div className="flex items-center gap-1.5 font-bold text-[#B87D1E]">
+              <Truck size={15} className="text-[#C68F30]" />
               <span>🎉 Free Pooled Eco-Delivery Unlocked!</span>
             </div>
           ) : (
             <div className="text-[#241A12]">
               Add <strong>{Math.max(1, 3 - totalItems)} more unit(s)</strong> to unlock{' '}
-              <span className="font-bold text-[#4E8B3F]">Free Eco-Delivery</span>!
+              <span className="font-bold text-[#B87D1E]">Free Eco-Delivery</span>!
             </div>
           )}
         </div>
       </div>
 
       {items.length === 0 ? (
-        <div className="bg-[#EEF8F1] border border-[#CCEBD5] rounded-3xl p-12 text-center space-y-3">
-          <ShoppingBag size={44} className="text-[#4E8B3F] mx-auto" />
-          <h2 className="font-display-italic text-xl text-[#173A20] font-semibold">
+        <div className="bg-[#FFF9EE] border border-[#F2DCAA] rounded-3xl p-12 text-center space-y-3">
+          <ShoppingBag size={44} className="text-[#C68F30] mx-auto" />
+          <h2 className="font-display-italic text-xl text-[#241A12] font-semibold">
             Your {regionalContainer.shortName} is Empty
           </h2>
           <p className="text-xs text-[#5C5245] max-w-md mx-auto">
@@ -165,7 +165,7 @@ export const CartAndCheckoutPage: React.FC = () => {
           <button
             type="button"
             onClick={() => navigate('/')}
-            className="mt-2 px-6 py-2.5 rounded-full bg-[#4E8B3F] text-white text-xs font-bold cursor-pointer"
+            className="mt-2 px-6 py-2.5 rounded-full bg-[#E2A63C] hover:bg-[#C68F30] text-[#241A12] text-xs font-bold transition cursor-pointer"
           >
             Explore Fresh Harvests
           </button>
@@ -177,13 +177,13 @@ export const CartAndCheckoutPage: React.FC = () => {
             {items.map((cartItem) => (
               <div
                 key={cartItem.id}
-                className="bg-white rounded-2xl border border-[#CCEBD5] p-3.5 sm:p-4 flex items-center justify-between gap-3 shadow-2xs"
+                className="bg-white rounded-2xl border border-[#F2DCAA] hover:border-[#E2A63C] transition p-3.5 sm:p-4 flex items-center justify-between gap-3 shadow-2xs"
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <img
                     src={cartItem.yield.image}
                     alt={cartItem.yield.title}
-                    className="w-16 h-16 rounded-xl object-cover border border-[#CCEBD5] shrink-0"
+                    className="w-16 h-16 rounded-xl object-cover border border-[#F2DCAA] shrink-0"
                   />
                   <div className="min-w-0">
                     <h3 className="font-bold text-sm text-[#241A12] truncate">
@@ -192,18 +192,18 @@ export const CartAndCheckoutPage: React.FC = () => {
                     <div className="text-xs text-[#5C5245] truncate">
                       {cartItem.yield.originRegion || 'Verified Cooperative'}
                     </div>
-                    <div className="font-mono-num text-xs font-bold text-[#4E8B3F] mt-1">
+                    <div className="font-mono-num text-xs font-bold text-[#B87D1E] mt-1">
                       {formatXaf(cartItem.yield.price)} / {cartItem.yield.unit}
                     </div>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
-                  <div className="flex items-center gap-2 bg-[#EEF8F1] border border-[#CCEBD5] rounded-full px-2 py-1">
+                  <div className="flex items-center gap-2 bg-[#FFF9EE] border border-[#F2DCAA] rounded-full px-2 py-1">
                     <button
                       type="button"
                       onClick={() => updateQuantity(cartItem.id, cartItem.quantity - 1)}
-                      className="w-6 h-6 rounded-full bg-white text-xs font-bold text-[#241A12] cursor-pointer"
+                      className="w-6 h-6 rounded-full bg-white border border-[#F2DCAA] hover:bg-[#FEF2D8] hover:border-[#E2A63C] text-xs font-bold text-[#241A12] transition cursor-pointer"
                     >
                       -
                     </button>
@@ -213,7 +213,7 @@ export const CartAndCheckoutPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => updateQuantity(cartItem.id, cartItem.quantity + 1)}
-                      className="w-6 h-6 rounded-full bg-white text-xs font-bold text-[#241A12] cursor-pointer"
+                      className="w-6 h-6 rounded-full bg-white border border-[#F2DCAA] hover:bg-[#FEF2D8] hover:border-[#E2A63C] text-xs font-bold text-[#241A12] transition cursor-pointer"
                     >
                       +
                     </button>
@@ -235,14 +235,14 @@ export const CartAndCheckoutPage: React.FC = () => {
           {/* Right: Multi-Gateway Smart Escrow Checkout Form */}
           <form
             onSubmit={handleCheckout}
-            className="lg:col-span-5 bg-white rounded-3xl border border-[#CCEBD5] p-5 sm:p-6 space-y-4 shadow-xs"
+            className="lg:col-span-5 bg-white rounded-3xl border border-[#F2DCAA] p-5 sm:p-6 space-y-4 shadow-xs"
           >
-            <div className="flex items-center justify-between pb-3 border-b border-[#CCEBD5]">
-              <h2 className="font-display-italic text-lg font-semibold text-[#173A20]">
+            <div className="flex items-center justify-between pb-3 border-b border-[#F2DCAA]">
+              <h2 className="font-display-italic text-lg font-semibold text-[#241A12]">
                 Smart Escrow Checkout
               </h2>
-              <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-[#EEF8F1] text-[#4E8B3F] border border-[#CCEBD5] px-2.5 py-0.5 rounded-full">
-                <ShieldCheck size={13} /> Engine 3 Protected
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-[#FFF9EE] text-[#B87D1E] border border-[#F2DCAA] px-2.5 py-0.5 rounded-full">
+                <ShieldCheck size={13} className="text-[#C68F30]" /> Engine 3 Protected
               </span>
             </div>
 
@@ -256,7 +256,7 @@ export const CartAndCheckoutPage: React.FC = () => {
                   required
                   value={deliveryCity}
                   onChange={(e) => setDeliveryCity(e.target.value)}
-                  className="w-full rounded-xl bg-[#EEF8F1] border border-[#CCEBD5] px-3.5 py-2 text-xs text-[#241A12]"
+                  className="w-full rounded-xl bg-[#FFF9EE] border border-[#F2DCAA] focus:bg-[#FEF2D8]/40 focus:border-[#E2A63C] focus:outline-none px-3.5 py-2 text-xs text-[#241A12] transition"
                 />
               </div>
 
@@ -269,7 +269,7 @@ export const CartAndCheckoutPage: React.FC = () => {
                   required
                   value={deliveryAddress}
                   onChange={(e) => setDeliveryAddress(e.target.value)}
-                  className="w-full rounded-xl bg-[#EEF8F1] border border-[#CCEBD5] px-3.5 py-2 text-xs text-[#241A12]"
+                  className="w-full rounded-xl bg-[#FFF9EE] border border-[#F2DCAA] focus:bg-[#FEF2D8]/40 focus:border-[#E2A63C] focus:outline-none px-3.5 py-2 text-xs text-[#241A12] transition"
                 />
               </div>
 
@@ -282,7 +282,7 @@ export const CartAndCheckoutPage: React.FC = () => {
                   required
                   value={deliveryPhone}
                   onChange={(e) => setDeliveryPhone(e.target.value)}
-                  className="w-full rounded-xl bg-[#EEF8F1] border border-[#CCEBD5] px-3.5 py-2 text-xs text-[#241A12]"
+                  className="w-full rounded-xl bg-[#FFF9EE] border border-[#F2DCAA] focus:bg-[#FEF2D8]/40 focus:border-[#E2A63C] focus:outline-none px-3.5 py-2 text-xs text-[#241A12] transition"
                 />
               </div>
 
@@ -305,11 +305,11 @@ export const CartAndCheckoutPage: React.FC = () => {
                       type="button"
                       onClick={() => setPaymentMethod(gw.id)}
                       className={`p-2.5 rounded-xl border text-left transition cursor-pointer ${paymentMethod === gw.id
-                          ? 'bg-[#EEF8F1] border-[#4E8B3F]'
-                          : 'bg-white border-[#CCEBD5]'
+                        ? 'bg-[#FEF2D8] border-[#E2A63C] shadow-2xs'
+                        : 'bg-[#FFF9EE]/60 border-[#F2DCAA] hover:bg-[#FEF2D8]/60 hover:border-[#E2A63C]'
                         }`}
                     >
-                      <div className="text-xs font-bold text-[#173A20]">{gw.label}</div>
+                      <div className="text-xs font-bold text-[#241A12]">{gw.label}</div>
                       <div className="text-[10px] text-[#5C5245]">{gw.sub}</div>
                     </button>
                   ))}
@@ -318,7 +318,7 @@ export const CartAndCheckoutPage: React.FC = () => {
             </div>
 
             {/* Order Totals */}
-            <div className="bg-[#EEF8F1] border border-[#CCEBD5] rounded-2xl p-4 space-y-2 text-xs">
+            <div className="bg-[#FFF9EE] border border-[#F2DCAA] rounded-2xl p-4 space-y-2 text-xs">
               <div className="flex justify-between text-[#5C5245]">
                 <span>Harvest Subtotal ({totalItems} units)</span>
                 <span className="font-mono-num font-semibold text-[#241A12]">
@@ -327,20 +327,20 @@ export const CartAndCheckoutPage: React.FC = () => {
               </div>
               <div className="flex justify-between text-[#5C5245]">
                 <span>Cold-Chain / Pooled Logistics</span>
-                <span className="font-mono-num font-semibold text-[#4E8B3F]">
+                <span className="font-mono-num font-semibold text-[#B87D1E]">
                   {deliveryFee === 0 ? 'FREE (Eco-Pool)' : formatXaf(deliveryFee)}
                 </span>
               </div>
-              <div className="pt-2 border-t border-[#CCEBD5] flex justify-between text-sm font-bold text-[#173A20]">
+              <div className="pt-2 border-t border-[#F2DCAA] flex justify-between text-sm font-bold text-[#241A12]">
                 <span>Total Escrow Lock</span>
-                <span className="font-mono-num">{formatXaf(grandTotal)}</span>
+                <span className="font-mono-num text-[#B87D1E]">{formatXaf(grandTotal)}</span>
               </div>
             </div>
 
             <button
               type="submit"
               disabled={submitting}
-              className="w-full py-3.5 rounded-full bg-[#173A20] hover:bg-[#0E2515] text-[#E2A63C] font-bold text-xs sm:text-sm inline-flex items-center justify-center gap-2 shadow-md transition cursor-pointer"
+              className="w-full py-3.5 rounded-full bg-[#E2A63C] hover:bg-[#C68F30] text-[#241A12] border border-[#C68F30]/40 font-bold text-xs sm:text-sm inline-flex items-center justify-center gap-2 shadow-md transition cursor-pointer"
             >
               <ShieldCheck size={17} />
               <span>

@@ -6,11 +6,9 @@ import {
   Wallet,
   ShieldCheck,
   Plus,
-  Store,
   Truck,
   TrendingUp,
   Crown,
-  Settings,
   ShieldAlert,
   Globe,
   Check,
@@ -63,13 +61,6 @@ export const EcosystemDrawer: React.FC = () => {
       bg: 'bg-[#EEF8F1]',
       title: 'Register & Manage AgroFarms',
       sub: 'Crops, Livestock, Poultry, Aquaculture & Yields',
-    },
-    {
-      path: '/wholesaler',
-      icon: <Store size={18} className="text-[#E2A63C]" />,
-      bg: 'bg-[#FEF6E8]',
-      title: 'Buyam-Sellam Wholesale Hub',
-      sub: 'Bulk aggregator lots & B2B cooperative trading',
     },
     {
       path: '/fintech/loans',
@@ -222,6 +213,7 @@ export const EcosystemDrawer: React.FC = () => {
                 onClick={() => {
                   logout();
                   setEcosystemDrawerOpen(false);
+                  navigate('/');
                 }}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-[#B54A34] bg-white border border-[#B54A34]/30 hover:bg-[#FDF3F1] transition cursor-pointer"
               >

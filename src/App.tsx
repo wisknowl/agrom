@@ -8,12 +8,13 @@ import YieldDetailPage from './pages/YieldDetailPage';
 import CartAndCheckoutPage from './pages/CartAndCheckoutPage';
 import InboxPage from './pages/InboxPage';
 import { LoginPage, RegisterPage } from './pages/AuthPages';
+import FarmManagementPage from './pages/FarmManagementPage';
+import RegisterFarmWizardPage from './pages/RegisterFarmWizardPage';
+import FarmStorefrontPage from './pages/FarmStorefrontPage';
 import {
   FintechAndLoansPage,
   WalletPage,
   EscrowOrdersPage,
-  WholesalerHubPage,
-  FarmManagePage,
   ArchitectureOverviewPage,
   AdminConsolePage,
 } from './pages/EcosystemAndFintechPages';
@@ -60,10 +61,9 @@ export const App: React.FC = () => {
                 <Route path="/wallet" element={<WalletPage />} />
                 <Route path="/orders" element={<EscrowOrdersPage />} />
                 <Route path="/orders/:id" element={<EscrowOrdersPage />} />
-                <Route path="/wholesaler" element={<WholesalerHubPage />} />
-                <Route path="/farmer/manage" element={<FarmManagePage />} />
-                <Route path="/farmer/new" element={<FarmManagePage />} />
-                <Route path="/farmer/:id" element={<FarmManagePage />} />
+                <Route path="/farmer/manage" element={<FarmManagementPage />} />
+                <Route path="/farmer/new" element={<RegisterFarmWizardPage />} />
+                <Route path="/farmer/:id" element={<FarmStorefrontPage />} />
                 <Route path="/ecosystem" element={<ArchitectureOverviewPage />} />
                 <Route path="/admin" element={<AdminConsolePage />} />
 
