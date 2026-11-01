@@ -47,14 +47,14 @@ export const EcosystemDrawer: React.FC = () => {
       path: '/wallet',
       icon: <Wallet size={18} className="text-[#4E8B3F]" />,
       bg: 'bg-[#EEF8F1]',
-      title: 'AgroWallet & Escrow Vault 💳',
+      title: 'AgroWallet & Escrow Vault',
       sub: 'Balance, escrow releases & patron passes',
     },
     {
       path: '/orders',
       icon: <ShieldCheck size={18} className="text-[#4E8B3F]" />,
       bg: 'bg-[#EEF8F1]',
-      title: 'Escrow Orders & Settlements 🛡️',
+      title: 'Escrow Orders & Settlements',
       sub: 'Live MoMo verification & Engine 3 FSM release',
     },
     {
@@ -75,21 +75,21 @@ export const EcosystemDrawer: React.FC = () => {
       path: '/fintech/loans',
       icon: <TrendingUp size={18} className="text-[#4E8B3F]" />,
       bg: 'bg-[#EEF8F1]',
-      title: 'AgroVestor & Tabi Credit Engine 🚀',
+      title: 'AgroVestor & Tabi Credit Engine',
       sub: 'FICO 300–850 scoring, input loans & crowdlending',
     },
     {
       path: '/feed?tab=patronized',
       icon: <Crown size={18} className="text-[#E2A63C]" />,
       bg: 'bg-[#FEF6E8]',
-      title: 'AgroPatron VIP Feed ⭐',
+      title: 'AgroPatron VIP Feed',
       sub: 'Exclusive stories & 8% discounts from patronized farms',
     },
     {
       path: '/ecosystem',
       icon: <Truck size={18} className="text-[#173A20]" />,
       bg: 'bg-[#EEF8F1]',
-      title: 'Agrom.app 5-Engine Architecture',
+      title: 'Agrom 5-Engine Architecture',
       sub: 'How Smart Escrow, Credit Scoring & Logistics work',
     },
     {
@@ -161,11 +161,10 @@ export const EcosystemDrawer: React.FC = () => {
                     key={rId}
                     type="button"
                     onClick={() => setRegion(rId)}
-                    className={`flex items-center gap-1.5 p-1.5 rounded-lg border text-left transition cursor-pointer ${
-                      active
-                        ? 'bg-white border-[#4E8B3F] shadow-xs'
-                        : 'bg-white/60 border-[#CCEBD5] hover:bg-white'
-                    }`}
+                    className={`flex items-center gap-1.5 p-1.5 rounded-lg border text-left transition cursor-pointer ${active
+                      ? 'bg-white border-[#4E8B3F] shadow-xs'
+                      : 'bg-white/60 border-[#CCEBD5] hover:bg-white'
+                      }`}
                   >
                     <img
                       src={c.imageUrl}
@@ -243,7 +242,7 @@ export const EcosystemDrawer: React.FC = () => {
                 onClick={() => go('/auth/register')}
                 className="flex-1 py-2.5 rounded-full bg-white border border-[#CCEBD5] text-[#173A20] text-xs font-semibold hover:bg-[#EEF8F1] transition cursor-pointer"
               >
-                Join Agrom.app
+                Create Account
               </button>
             </div>
           )}

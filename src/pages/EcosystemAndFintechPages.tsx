@@ -395,8 +395,8 @@ export const WalletPage: React.FC = () => {
               <div className="flex items-center gap-3">
                 <div
                   className={`w-10 h-10 rounded-full flex items-center justify-center ${tx.positive
-                      ? 'bg-[#EEF8F1] text-[#4E8B3F]'
-                      : 'bg-[#FEF6E8] text-[#C68F30]'
+                    ? 'bg-[#EEF8F1] text-[#4E8B3F]'
+                    : 'bg-[#FEF6E8] text-[#C68F30]'
                     }`}
                 >
                   {tx.positive ? <ArrowDownLeft size={18} /> : <ArrowUpRight size={18} />}
@@ -524,8 +524,8 @@ export const EscrowOrdersPage: React.FC = () => {
                     <div
                       key={step}
                       className={`p-2 rounded-xl border text-center ${done
-                          ? 'bg-[#EEF8F1] border-[#4E8B3F] text-[#173A20]'
-                          : 'bg-white border-[#CCEBD5] text-[#9C9284]'
+                        ? 'bg-[#EEF8F1] border-[#4E8B3F] text-[#173A20]'
+                        : 'bg-white border-[#CCEBD5] text-[#9C9284]'
                         }`}
                     >
                       <div className="font-mono-num text-[10px] font-bold">
@@ -790,7 +790,7 @@ export const ArchitectureOverviewPage: React.FC = () => {
     <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-6">
       <div className="rounded-3xl bg-[#173A20] text-white p-6 sm:p-8 border border-[#4E8B3F]/40 space-y-3">
         <span className="font-mono-num text-xs text-[#E2A63C] font-bold">
-          agrom.app • Master Systems Architecture
+          Agrom • Master Systems Architecture
         </span>
         <h1 className="font-display text-2xl sm:text-4xl font-bold">
           The 5 Deterministic Engines Powering Agrom
@@ -834,7 +834,7 @@ export const AdminConsolePage: React.FC = () => {
       <div className="bg-[#EEF8F1] border border-[#CCEBD5] rounded-3xl p-5 flex items-center justify-between">
         <div>
           <h1 className="font-display-italic text-xl sm:text-2xl font-semibold text-[#173A20]">
-            Agrom.app Governance & Admin Console
+            Agrom Governance & Admin Console
           </h1>
           <p className="text-xs text-[#5C5245]">
             KYC Farmer Verification, Escrow Dispute Arbitration & Engine Feature Flags

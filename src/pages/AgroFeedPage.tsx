@@ -64,11 +64,11 @@ export const AgroFeedPage: React.FC = () => {
   const filteredPosts =
     activeTab === 'Patronized ⭐'
       ? posts.filter(
-          (p) =>
-            p.isPatron ||
-            p.farmerCreditTier === 'GOLD' ||
-            p.farmerCreditTier === 'PLATINUM'
-        )
+        (p) =>
+          p.isPatron ||
+          p.farmerCreditTier === 'GOLD' ||
+          p.farmerCreditTier === 'PLATINUM'
+      )
       : posts;
 
   const activePost = filteredPosts[currentIndex] || filteredPosts[0];
@@ -108,10 +108,10 @@ export const AgroFeedPage: React.FC = () => {
       curr.map((p) =>
         p.id === activePost.id
           ? {
-              ...p,
-              commentsCount: (p.commentsCount ?? 0) + 1,
-              comments: [...(p.comments || []), newComment],
-            }
+            ...p,
+            commentsCount: (p.commentsCount ?? 0) + 1,
+            comments: [...(p.comments || []), newComment],
+          }
           : p
       )
     );
@@ -138,11 +138,10 @@ export const AgroFeedPage: React.FC = () => {
                   setActiveTab(tab);
                   setCurrentIndex(0);
                 }}
-                className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold transition cursor-pointer ${
-                  active
+                className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold transition cursor-pointer ${active
                     ? 'bg-[#4E8B3F] text-white shadow-xs'
                     : 'text-[#241A12]/70 hover:text-[#173A20]'
-                }`}
+                  }`}
               >
                 {tab}
               </button>
@@ -295,11 +294,10 @@ export const AgroFeedPage: React.FC = () => {
                   className="flex flex-col items-center gap-1 cursor-pointer"
                 >
                   <div
-                    className={`w-11 h-11 rounded-full flex items-center justify-center border transition ${
-                      likedLocal[activePost.id]
+                    className={`w-11 h-11 rounded-full flex items-center justify-center border transition ${likedLocal[activePost.id]
                         ? 'bg-[#B54A34] border-white text-white'
                         : 'bg-black/50 border-white/25 text-white hover:bg-black/70'
-                    }`}
+                      }`}
                   >
                     <Heart
                       size={20}
@@ -317,11 +315,10 @@ export const AgroFeedPage: React.FC = () => {
                   className="flex flex-col items-center gap-1 cursor-pointer"
                 >
                   <div
-                    className={`w-11 h-11 rounded-full flex items-center justify-center border transition ${
-                      isPostFavorite(activePost.id)
+                    className={`w-11 h-11 rounded-full flex items-center justify-center border transition ${isPostFavorite(activePost.id)
                         ? 'bg-[#4E8B3F] border-white text-white'
                         : 'bg-black/50 border-white/25 text-white hover:bg-black/70'
-                    }`}
+                      }`}
                   >
                     <Bookmark
                       size={19}
@@ -432,11 +429,10 @@ export const AgroFeedPage: React.FC = () => {
                     key={p.id}
                     type="button"
                     onClick={() => setCurrentIndex(idx)}
-                    className={`relative aspect-square rounded-xl overflow-hidden border-2 transition cursor-pointer ${
-                      idx === currentIndex
+                    className={`relative aspect-square rounded-xl overflow-hidden border-2 transition cursor-pointer ${idx === currentIndex
                         ? 'border-[#4E8B3F] scale-[1.03]'
                         : 'border-[#CCEBD5] opacity-70 hover:opacity-100'
-                    }`}
+                      }`}
                   >
                     <img
                       src={p.mediaUrl || p.media}

@@ -165,11 +165,10 @@ export const YieldCard: React.FC<YieldCardProps> = ({ item }) => {
             <button
               type="button"
               onClick={handleAddToCart}
-              className={`h-8 px-3 rounded-full font-semibold text-xs inline-flex items-center gap-1.5 transition cursor-pointer ${
-                justAdded
+              className={`h-8 px-3 rounded-full font-semibold text-xs inline-flex items-center gap-1.5 transition cursor-pointer ${justAdded
                   ? 'bg-[#4E8B3F] text-white'
                   : 'bg-[#E2A63C] hover:bg-[#C68F30] text-[#241A12]'
-              }`}
+                }`}
             >
               {justAdded ? (
                 <>

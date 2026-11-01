@@ -128,7 +128,7 @@ export const LandingMarketPage: React.FC = () => {
           <div className="lg:col-span-7 space-y-3.5">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0E2515] border border-[#4E8B3F]/50 text-xs font-medium text-[#EEF8F1]">
               <span className="w-2 h-2 rounded-full bg-[#4E8B3F] animate-pulse" />
-              <span>agrom.app • Multi-Actor Agri-Commerce & Agri-Fintech</span>
+              <span>Agrom • Direct Agri-Commerce & Agri-Fintech</span>
             </div>
 
             <h1 className="font-display text-2xl sm:text-4xl font-semibold tracking-tight text-white leading-tight">
@@ -328,11 +328,10 @@ export const LandingMarketPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setWholesaleOnly(!wholesaleOnly)}
-            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold border transition shrink-0 cursor-pointer ${
-              wholesaleOnly
+            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold border transition shrink-0 cursor-pointer ${wholesaleOnly
                 ? 'bg-[#173A20] text-[#E2A63C] border-[#173A20]'
                 : 'bg-white text-[#241A12] border-[#CCEBD5] hover:border-[#4E8B3F]'
-            }`}
+              }`}
           >
             <SlidersHorizontal size={14} />
             <span>Wholesale Bulk Only</span>
@@ -348,11 +347,10 @@ export const LandingMarketPage: React.FC = () => {
                 key={cat}
                 type="button"
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-4 py-2 rounded-full text-xs font-semibold border whitespace-nowrap transition cursor-pointer ${
-                  active
+                className={`px-4 py-2 rounded-full text-xs font-semibold border whitespace-nowrap transition cursor-pointer ${active
                     ? 'bg-[#4E8B3F] text-white border-[#4E8B3F] shadow-xs'
                     : 'bg-[#EEF8F1] text-[#241A12] border-[#CCEBD5] hover:border-[#4E8B3F]'
-                }`}
+                  }`}
               >
                 {cat}
               </button>

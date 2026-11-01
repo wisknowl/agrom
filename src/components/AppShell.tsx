@@ -12,8 +12,9 @@ import {
   TrendingUp,
   Store,
   Wallet,
-  Sparkles,
   Compass,
+  PlaySquare,
+  Globe,
 } from 'lucide-react';
 import MeetingLeafLogo from './MeetingLeafLogo';
 import EcosystemDrawer from './EcosystemDrawer';
@@ -78,7 +79,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
     {
       to: '/orders',
       label: 'Smart Escrow',
-      sub: 'Engine 3 Order FSM',
+      sub: 'Order Tracking & OTP',
       icon: <ShieldCheck size={19} />,
       active: pathname.startsWith('/orders'),
     },
@@ -126,53 +127,53 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
       ===================================================================== */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#CCEBD5]">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
-          {/* Left: Brand Lockup (Agrom + .app) */}
+          {/* Left: Brand Lockup (Agrom) */}
           <div className="flex items-center gap-6">
             <NavLink to="/" className="flex items-center gap-2 focus:outline-none">
-              <MeetingLeafLogo size={34} showWordmark showDomainBadge variant="light" />
+              <MeetingLeafLogo size={36} showWordmark variant="light" />
             </NavLink>
 
-            {/* Quick Desktop Mode Pills */}
+            {/* Quick Desktop Mode Pills (Using Lucide System Icons) */}
             <nav className="hidden lg:flex items-center gap-1 bg-[#EEF8F1] p-1 rounded-full border border-[#CCEBD5]">
               <NavLink
                 to="/"
-                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${
-                  isMarketActive
+                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${isMarketActive
                     ? 'bg-[#4E8B3F] text-white shadow-xs'
                     : 'text-[#241A12] hover:text-[#4E8B3F]'
-                }`}
+                  }`}
               >
-                🌱 AgroMarket
+                <Sprout size={14} strokeWidth={2.2} />
+                <span>AgroMarket</span>
               </NavLink>
               <NavLink
                 to="/feed"
-                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${
-                  isFeedActive
+                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${isFeedActive
                     ? 'bg-[#4E8B3F] text-white shadow-xs'
                     : 'text-[#241A12] hover:text-[#4E8B3F]'
-                }`}
+                  }`}
               >
-                🎬 AgroFeed
+                <PlaySquare size={14} strokeWidth={2.2} />
+                <span>AgroFeed</span>
               </NavLink>
               <NavLink
                 to="/wholesaler"
-                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${
-                  pathname.startsWith('/wholesaler')
+                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${pathname.startsWith('/wholesaler')
                     ? 'bg-[#4E8B3F] text-white shadow-xs'
                     : 'text-[#241A12] hover:text-[#4E8B3F]'
-                }`}
+                  }`}
               >
-                📦 Buyam-Sellam
+                <Store size={14} strokeWidth={2.2} />
+                <span>Buyam-Sellam</span>
               </NavLink>
               <NavLink
                 to="/fintech/loans"
-                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${
-                  pathname.startsWith('/fintech')
+                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition ${pathname.startsWith('/fintech')
                     ? 'bg-[#4E8B3F] text-white shadow-xs'
                     : 'text-[#241A12] hover:text-[#4E8B3F]'
-                }`}
+                  }`}
               >
-                🚀 AgroVestor
+                <TrendingUp size={14} strokeWidth={2.2} />
+                <span>AgroVestor</span>
               </NavLink>
             </nav>
           </div>
@@ -193,21 +194,21 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             <button
               type="button"
               onClick={() => setLanguage(language === 'en' ? 'fr' : 'en')}
-              className="hidden sm:inline-flex items-center gap-1 bg-[#EEF8F1] border border-[#CCEBD5] px-2.5 py-1.5 rounded-full text-xs font-mono-num font-bold text-[#241A12] hover:border-[#4E8B3F] transition cursor-pointer"
+              className="hidden sm:inline-flex items-center gap-1.5 bg-[#EEF8F1] border border-[#CCEBD5] px-2.5 py-1.5 rounded-full text-xs font-mono-num font-bold text-[#241A12] hover:border-[#4E8B3F] transition cursor-pointer"
               title="Switch Language (EN / FR)"
             >
-              <span>{language === 'en' ? '🇬🇧 EN' : '🇫🇷 FR'}</span>
+              <Globe size={13} className="text-[#4E8B3F]" />
+              <span>{language === 'en' ? 'EN' : 'FR'}</span>
             </button>
 
             {/* Desktop Regional Basket Button */}
             <button
               type="button"
               onClick={() => navigate('/cart')}
-              className={`hidden md:inline-flex items-center gap-2 px-3 py-1.5 rounded-full border transition cursor-pointer ${
-                isCartActive
+              className={`hidden md:inline-flex items-center gap-2 px-3 py-1.5 rounded-full border transition cursor-pointer ${isCartActive
                   ? 'bg-[#FEF6E8] border-[#E2A63C] text-[#241A12]'
                   : 'bg-[#EEF8F1] border-[#CCEBD5] hover:border-[#4E8B3F] text-[#241A12]'
-              }`}
+                }`}
             >
               <img
                 src={regionalContainer.imageUrl}
@@ -223,7 +224,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             {/* User Profile Pill (Desktop) */}
             <button
               type="button"
-              onClick={() => navigate('/profile')}
+              onClick={() => navigate(isAuthenticated ? '/profile' : '/auth/login')}
               className="hidden md:inline-flex items-center gap-2 pl-1.5 pr-3 py-1 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] hover:border-[#4E8B3F] transition cursor-pointer"
             >
               <img
@@ -236,7 +237,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
                 className="w-6 h-6 rounded-full object-cover border border-[#4E8B3F]"
               />
               <span className="text-xs font-semibold text-[#241A12] max-w-[110px] truncate">
-                {isAuthenticated && user?.name ? user.name.split(' ')[0] : 'Profile'}
+                {isAuthenticated && user?.name ? user.name.split(' ')[0] : 'Sign In'}
               </span>
             </button>
 
@@ -258,35 +259,29 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
       ===================================================================== */}
       <div className="flex-1 max-w-[1440px] w-full mx-auto flex">
         {/* Desktop Left Navigation Rail (Hidden on Mobile < 768px) */}
-        <aside className="hidden md:flex flex-col w-60 lg:w-64 shrink-0 border-r border-[#CCEBD5] bg-white p-3.5 justify-between sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
+        <aside className="hidden md:flex flex-col w-60 lg:w-64 shrink-0 border-r border-[#CCEBD5] bg-white p-3.5 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
           <div className="space-y-1">
-            <div className="px-3 py-1.5 text-[10px] font-mono-num uppercase tracking-wider text-[#5C5245] font-semibold">
-              Agrom.app Navigation
-            </div>
             {desktopSidebarLinks.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition group ${
-                  item.active
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition group ${item.active
                     ? 'bg-[#EEF8F1] border border-[#CCEBD5] text-[#173A20]'
                     : 'text-[#241A12] hover:bg-[#EEF8F1]/60 border border-transparent'
-                }`}
+                  }`}
               >
                 <span
-                  className={`${
-                    item.active
+                  className={`${item.active
                       ? 'text-[#4E8B3F]'
                       : 'text-[#5C5245] group-hover:text-[#4E8B3F]'
-                  }`}
+                    }`}
                 >
                   {item.icon}
                 </span>
                 <div className="min-w-0 flex-1">
                   <div
-                    className={`text-[13px] leading-tight ${
-                      item.active ? 'font-bold text-[#173A20]' : 'font-semibold text-[#241A12]'
-                    }`}
+                    className={`text-[13px] leading-tight ${item.active ? 'font-bold text-[#173A20]' : 'font-semibold text-[#241A12]'
+                      }`}
                   >
                     {item.label}
                   </div>
@@ -294,17 +289,6 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
                 </div>
               </NavLink>
             ))}
-          </div>
-
-          {/* Bottom Sidebar Trust Card */}
-          <div className="mt-6 p-3.5 rounded-2xl bg-[#EEF8F1] border border-[#CCEBD5]">
-            <div className="flex items-center gap-2 text-xs font-bold text-[#173A20]">
-              <Sparkles size={14} className="text-[#4E8B3F]" />
-              <span>Engine 3 Smart Escrow</span>
-            </div>
-            <p className="text-[11px] text-[#5C5245] mt-1 leading-relaxed">
-              Every purchase on <strong>agrom.app</strong> is locked in escrow until fresh harvest delivery is verified.
-            </p>
           </div>
         </aside>
 
@@ -328,18 +312,16 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             className="flex-1 flex flex-col items-center justify-center py-0.5 cursor-pointer"
           >
             <div
-              className={`w-12 h-7 rounded-full flex items-center justify-center mb-0.5 border transition ${
-                isFeedActive
+              className={`w-12 h-7 rounded-full flex items-center justify-center mb-0.5 border transition ${isFeedActive
                   ? 'bg-[#EEF8F1] border-[#4E8B3F]/25 text-[#4E8B3F]'
                   : 'border-transparent text-[#241A12]/50'
-              }`}
+                }`}
             >
               <Home size={21} strokeWidth={isFeedActive ? 2.4 : 1.9} />
             </div>
             <span
-              className={`text-[11.5px] tracking-tight ${
-                isFeedActive ? 'font-bold text-[#4E8B3F]' : 'font-medium text-[#241A12]/60'
-              }`}
+              className={`text-[11.5px] tracking-tight ${isFeedActive ? 'font-bold text-[#4E8B3F]' : 'font-medium text-[#241A12]/60'
+                }`}
             >
               AgroFeed
             </span>
@@ -352,18 +334,16 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             className="flex-1 flex flex-col items-center justify-center py-0.5 cursor-pointer"
           >
             <div
-              className={`w-12 h-7 rounded-full flex items-center justify-center mb-0.5 border transition ${
-                isMarketActive
+              className={`w-12 h-7 rounded-full flex items-center justify-center mb-0.5 border transition ${isMarketActive
                   ? 'bg-[#EEF8F1] border-[#4E8B3F]/25 text-[#4E8B3F]'
                   : 'border-transparent text-[#241A12]/50'
-              }`}
+                }`}
             >
               <Sprout size={21} strokeWidth={isMarketActive ? 2.4 : 1.9} />
             </div>
             <span
-              className={`text-[11.5px] tracking-tight ${
-                isMarketActive ? 'font-bold text-[#4E8B3F]' : 'font-medium text-[#241A12]/60'
-              }`}
+              className={`text-[11.5px] tracking-tight ${isMarketActive ? 'font-bold text-[#4E8B3F]' : 'font-medium text-[#241A12]/60'
+                }`}
             >
               AgroMarket
             </span>
@@ -376,16 +356,14 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             className="flex-1 flex flex-col items-center justify-center py-0.5 cursor-pointer"
           >
             <div
-              className={`relative w-12 h-7 rounded-full flex items-center justify-center mb-0.5 border transition ${
-                isCartActive
+              className={`relative w-12 h-7 rounded-full flex items-center justify-center mb-0.5 border transition ${isCartActive
                   ? 'bg-[#FEF6E8] border-[#E2A63C]/40'
                   : 'border-transparent'
-              }`}
+                }`}
             >
               <div
-                className={`w-7 h-7 rounded-full overflow-hidden border ${
-                  isCartActive ? 'border-2 border-[#E2A63C]' : 'border-[#241A12]/40'
-                }`}
+                className={`w-7 h-7 rounded-full overflow-hidden border ${isCartActive ? 'border-2 border-[#E2A63C]' : 'border-[#241A12]/40'
+                  }`}
               >
                 <img
                   src={regionalContainer.imageUrl}
@@ -400,9 +378,8 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
               )}
             </div>
             <span
-              className={`text-[11.5px] tracking-tight ${
-                isCartActive ? 'font-bold text-[#C68F30]' : 'font-medium text-[#241A12]/60'
-              }`}
+              className={`text-[11.5px] tracking-tight ${isCartActive ? 'font-bold text-[#C68F30]' : 'font-medium text-[#241A12]/60'
+                }`}
             >
               {regionalContainer.shortName}
             </span>
@@ -415,18 +392,16 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             className="flex-1 flex flex-col items-center justify-center py-0.5 cursor-pointer"
           >
             <div
-              className={`w-12 h-7 rounded-full flex items-center justify-center mb-0.5 border transition ${
-                isInboxActive
+              className={`w-12 h-7 rounded-full flex items-center justify-center mb-0.5 border transition ${isInboxActive
                   ? 'bg-[#EEF8F1] border-[#4E8B3F]/25 text-[#4E8B3F]'
                   : 'border-transparent text-[#241A12]/50'
-              }`}
+                }`}
             >
               <MessageSquare size={21} strokeWidth={isInboxActive ? 2.4 : 1.9} />
             </div>
             <span
-              className={`text-[11.5px] tracking-tight ${
-                isInboxActive ? 'font-bold text-[#4E8B3F]' : 'font-medium text-[#241A12]/60'
-              }`}
+              className={`text-[11.5px] tracking-tight ${isInboxActive ? 'font-bold text-[#4E8B3F]' : 'font-medium text-[#241A12]/60'
+                }`}
             >
               Inbox
             </span>
@@ -439,18 +414,16 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             className="flex-1 flex flex-col items-center justify-center py-0.5 cursor-pointer"
           >
             <div
-              className={`w-12 h-7 rounded-full flex items-center justify-center mb-0.5 border transition ${
-                isProfileActive
+              className={`w-12 h-7 rounded-full flex items-center justify-center mb-0.5 border transition ${isProfileActive
                   ? 'bg-[#EEF8F1] border-[#4E8B3F]/25 text-[#4E8B3F]'
                   : 'border-transparent text-[#241A12]/50'
-              }`}
+                }`}
             >
               <User size={21} strokeWidth={isProfileActive ? 2.4 : 1.9} />
             </div>
             <span
-              className={`text-[11.5px] tracking-tight ${
-                isProfileActive ? 'font-bold text-[#4E8B3F]' : 'font-medium text-[#241A12]/60'
-              }`}
+              className={`text-[11.5px] tracking-tight ${isProfileActive ? 'font-bold text-[#4E8B3F]' : 'font-medium text-[#241A12]/60'
+                }`}
             >
               Profile
             </span>
@@ -466,4 +439,3 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
 };
 
 export default AppShell;
-
