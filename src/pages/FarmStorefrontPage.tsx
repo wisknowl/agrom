@@ -34,6 +34,7 @@ import {
 } from '@/api';
 import { FarmerBadge } from '@/components/MeetingLeafLogo';
 import YieldCard from '@/components/YieldCard';
+import AgromPostButton from '@/components/AgromPostButton';
 import { resolveMediaUrl, formatXaf, isVideoMedia } from '@/utils/media';
 
 export const FarmStorefrontPage: React.FC = () => {
@@ -71,7 +72,7 @@ export const FarmStorefrontPage: React.FC = () => {
           name: 'Foumbot Volcanic Highland Farm',
           category: 'CROPS',
           description:
-            'Family-run volcanic highland estate supplying Grade-A Roma tomatoes, sweet bell peppers, and highland cabbage across CEMAC with Engine 3 Escrow protection.',
+            'Family-run volcanic highland estate supplying Grade-A Roma tomatoes, sweet bell peppers, and highland cabbage across CEMAC with Smart Escrow protection.',
           city: 'Foumbot',
           region: 'West Region',
           sizeHectares: 14.5,
@@ -154,8 +155,33 @@ export const FarmStorefrontPage: React.FC = () => {
     );
   }
 
-  const farmYields = farm.yields || [];
+  const farmYields = (farm.yields || []).map((y: any) => ({
+    ...y,
+    price: Number(y.price !== undefined ? y.price : (y.pricePerUnit || 0)),
+    pricePerUnit: Number(y.pricePerUnit !== undefined ? y.pricePerUnit : (y.price || 0)),
+    image: resolveMediaUrl(y.image || y.mediaUrls?.[0]) || 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=800',
+    mediaUrls: y.mediaUrls?.length ? y.mediaUrls : [y.image].filter(Boolean),
+  }));
   const farmPosts = farm.posts || [];
+
+  const ownerAvatar =
+    farm.user?.avatarUrl ||
+    farm.avatarPhoto ||
+    farm.farmer?.avatarUrl ||
+    farm.avatarUrl ||
+    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500';
+
+  const handleOwnerAvatarClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isOwner) {
+      navigate('/profile');
+    } else {
+      const targetUserId = farm.userId || farm.user?.id;
+      if (targetUserId) {
+        navigate(`/profile/${targetUserId}`);
+      }
+    }
+  };
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
@@ -170,11 +196,6 @@ export const FarmStorefrontPage: React.FC = () => {
         </button>
 
         <div className="flex items-center gap-2">
-          {isOwner && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#173A20] text-[#E2A63C] text-xs font-bold">
-              <Sparkles size={13} /> Owner View
-            </span>
-          )}
           <button
             type="button"
             onClick={() => {
@@ -206,15 +227,17 @@ export const FarmStorefrontPage: React.FC = () => {
           {/* Bottom Overlay Info */}
           <div className="absolute bottom-4 left-4 right-4 text-white flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div className="flex items-center gap-3.5">
-              <img
-                src={
-                  farm.avatarPhoto
-                    ? resolveMediaUrl(farm.avatarPhoto)
-                    : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500'
-                }
-                alt="Farmer avatar"
-                className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-[#4E8B3F] shadow-md"
-              />
+              <div
+                onClick={handleOwnerAvatarClick}
+                className="cursor-pointer group shrink-0 relative"
+                title={isOwner ? 'Go to your Profile' : 'View Farmer Profile'}
+              >
+                <img
+                  src={resolveMediaUrl(ownerAvatar)}
+                  alt="Farmer avatar"
+                  className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-[#4E8B3F] group-hover:border-[#E2A63C] shadow-md transition"
+                />
+              </div>
               <div className="space-y-0.5">
                 <div className="flex items-center gap-2 flex-wrap">
                   <FarmerBadge tier={farm.creditTier || 'GOLD'} size="sm" />
@@ -264,13 +287,13 @@ export const FarmStorefrontPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Engine 1 AgroTrust Underwriting & Commercial Card */}
+      {/* AgroTrust Verification Score & Reliability Card */}
       <div className="bg-[#EEF8F1] border border-[#CCEBD5] rounded-3xl p-5 sm:p-6 space-y-3.5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Award size={18} className="text-[#E2A63C]" />
             <h3 className="font-display font-bold text-sm text-[#173A20]">
-              AgroTrust Underwriting (Engine 1)
+              AgroTrust Verification Score
             </h3>
           </div>
           <span className="font-mono-num text-xs font-bold bg-white text-[#173A20] border border-[#CCEBD5] px-3 py-0.5 rounded-full">
@@ -281,17 +304,17 @@ export const FarmStorefrontPage: React.FC = () => {
         <div className="grid grid-cols-3 gap-2.5 text-center">
           <div className="bg-white rounded-xl p-2.5 border border-[#CCEBD5]">
             <div className="font-mono-num font-bold text-sm text-[#173A20]">99.2%</div>
-            <div className="text-[10px] text-[#5C5245]">Fulfillment (M4)</div>
+            <div className="text-[10px] text-[#5C5245]">Fulfillment Rate</div>
           </div>
           <div className="bg-white rounded-xl p-2.5 border border-[#CCEBD5]">
             <div className="font-mono-num font-bold text-sm text-[#173A20]">98.4%</div>
-            <div className="text-[10px] text-[#5C5245]">Punctuality (M5)</div>
+            <div className="text-[10px] text-[#5C5245]">On-Time Dispatch</div>
           </div>
           <div className="bg-white rounded-xl p-2.5 border border-[#CCEBD5]">
             <div className="font-mono-num font-bold text-sm text-[#173A20]">
               {farm.rating?.toFixed(1) || '4.9'} ★
             </div>
-            <div className="text-[10px] text-[#5C5245]">Bayesian (M3)</div>
+            <div className="text-[10px] text-[#5C5245]">Verified Rating</div>
           </div>
         </div>
 
@@ -315,14 +338,7 @@ export const FarmStorefrontPage: React.FC = () => {
                 <Plus size={15} />
                 <span>+ List Produce</span>
               </button>
-              <button
-                type="button"
-                onClick={() => setCreatePostModalOpen(true)}
-                className="py-3 px-4 rounded-full bg-white border border-[#CCEBD5] hover:bg-[#EEF8F1] text-[#173A20] text-xs font-semibold inline-flex items-center justify-center gap-1.5 transition cursor-pointer"
-              >
-                <Sparkles size={14} className="text-[#E2A63C]" />
-                <span>Post Story</span>
-              </button>
+              <AgromPostButton onClick={() => setCreatePostModalOpen(true)} />
             </div>
           ) : (
             <div className="flex items-center gap-2.5 flex-wrap">
@@ -330,8 +346,8 @@ export const FarmStorefrontPage: React.FC = () => {
                 type="button"
                 onClick={() => setPatronModalVisible(true)}
                 className={`flex-1 py-3 px-5 rounded-full text-xs font-bold inline-flex items-center justify-center gap-2 transition cursor-pointer ${isPatron
-                    ? 'bg-[#FEF2D8] border border-[#E2A63C] text-[#B87D1E]'
-                    : 'bg-[#E2A63C] hover:bg-[#C68F30] text-[#241A12]'
+                  ? 'bg-[#FEF2D8] border border-[#E2A63C] text-[#B87D1E]'
+                  : 'bg-[#E2A63C] hover:bg-[#C68F30] text-[#241A12]'
                   }`}
               >
                 <Crown size={16} />
@@ -366,8 +382,8 @@ export const FarmStorefrontPage: React.FC = () => {
           type="button"
           onClick={() => setActiveTab('produce')}
           className={`pb-3 text-sm font-bold border-b-2 transition cursor-pointer ${activeTab === 'produce'
-              ? 'border-[#4E8B3F] text-[#4E8B3F]'
-              : 'border-transparent text-[#5C5245] hover:text-[#241A12]'
+            ? 'border-[#4E8B3F] text-[#4E8B3F]'
+            : 'border-transparent text-[#5C5245] hover:text-[#241A12]'
             }`}
         >
           Fresh Produce Catalog ({farmYields.length})
@@ -377,8 +393,8 @@ export const FarmStorefrontPage: React.FC = () => {
           type="button"
           onClick={() => setActiveTab('stories')}
           className={`pb-3 text-sm font-bold border-b-2 transition cursor-pointer ${activeTab === 'stories'
-              ? 'border-[#4E8B3F] text-[#4E8B3F]'
-              : 'border-transparent text-[#5C5245] hover:text-[#241A12]'
+            ? 'border-[#4E8B3F] text-[#4E8B3F]'
+            : 'border-transparent text-[#5C5245] hover:text-[#241A12]'
             }`}
         >
           Farm Stories ({farmPosts.length})
@@ -388,8 +404,8 @@ export const FarmStorefrontPage: React.FC = () => {
           type="button"
           onClick={() => setActiveTab('about')}
           className={`pb-3 text-sm font-bold border-b-2 transition cursor-pointer ${activeTab === 'about'
-              ? 'border-[#4E8B3F] text-[#4E8B3F]'
-              : 'border-transparent text-[#5C5245] hover:text-[#241A12]'
+            ? 'border-[#4E8B3F] text-[#4E8B3F]'
+            : 'border-transparent text-[#5C5245] hover:text-[#241A12]'
             }`}
         >
           About & Soil Ethics
@@ -529,8 +545,8 @@ export const FarmStorefrontPage: React.FC = () => {
                 type="button"
                 onClick={() => setPatronPlan('MONTHLY')}
                 className={`p-3.5 rounded-2xl border text-left cursor-pointer ${patronPlan === 'MONTHLY'
-                    ? 'bg-[#EEF8F1] border-[#4E8B3F]'
-                    : 'bg-white border-[#CCEBD5]'
+                  ? 'bg-[#EEF8F1] border-[#4E8B3F]'
+                  : 'bg-white border-[#CCEBD5]'
                   }`}
               >
                 <div className="text-xs font-bold text-[#173A20]">Monthly Pass</div>
@@ -544,8 +560,8 @@ export const FarmStorefrontPage: React.FC = () => {
                 type="button"
                 onClick={() => setPatronPlan('SEASONAL')}
                 className={`p-3.5 rounded-2xl border text-left cursor-pointer ${patronPlan === 'SEASONAL'
-                    ? 'bg-[#FEF2D8] border-[#E2A63C]'
-                    : 'bg-white border-[#CCEBD5]'
+                  ? 'bg-[#FEF2D8] border-[#E2A63C]'
+                  : 'bg-white border-[#CCEBD5]'
                   }`}
               >
                 <div className="text-xs font-bold text-[#173A20]">Seasonal Pass (3 Mo)</div>

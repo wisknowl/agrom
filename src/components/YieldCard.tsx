@@ -13,7 +13,7 @@ import { Yield } from '@/types';
 import { useCartStore } from '@/store/cartStore';
 import { useFavoritesStore } from '@/store/favoritesStore';
 import { FarmerBadge } from './MeetingLeafLogo';
-import { formatXaf } from '@/utils/media';
+import { resolveMediaUrl, formatXaf } from '@/utils/media';
 
 interface YieldCardProps {
   item: Yield;
@@ -26,6 +26,11 @@ export const YieldCard: React.FC<YieldCardProps> = ({ item }) => {
   const isFavorite = isYieldFavorite(item.id);
   const [justAdded, setJustAdded] = useState(false);
 
+  const displayImage =
+    resolveMediaUrl(item.image || item.mediaUrls?.[0]) ||
+    'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=800';
+  const displayPrice = Number(item.price !== undefined ? item.price : (item.pricePerUnit || 0));
+
   const farm = item.farm;
   const farmer = item.farmer || (farm as any)?.farmerProfile;
   const farmerUser = farmer?.user || (farm as any)?.user;
@@ -37,7 +42,8 @@ export const YieldCard: React.FC<YieldCardProps> = ({ item }) => {
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
-    addToCart(item, 1);
+    const qtyToAdd = item.minOrderQuantity && item.minOrderQuantity > 1 ? item.minOrderQuantity : 1;
+    addToCart({ ...item, price: displayPrice, image: displayImage }, qtyToAdd);
     setJustAdded(true);
     setTimeout(() => setJustAdded(false), 1100);
   };
@@ -64,7 +70,7 @@ export const YieldCard: React.FC<YieldCardProps> = ({ item }) => {
       {/* Image Header */}
       <div className="relative h-44 sm:h-48 w-full bg-[#EEF8F1] overflow-hidden">
         <img
-          src={item.image}
+          src={displayImage}
           alt={item.title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           loading="lazy"
@@ -119,7 +125,7 @@ export const YieldCard: React.FC<YieldCardProps> = ({ item }) => {
           {/* Price Row */}
           <div className="flex items-baseline gap-2 mt-1">
             <span className="font-mono-num font-bold text-base text-[#173A20]">
-              {formatXaf(item.price)}
+              {formatXaf(displayPrice)}
             </span>
             <span className="text-xs text-[#5C5245] font-medium">
               / {String(item.unit || 'UNIT').replace('_', ' ')}
@@ -166,8 +172,8 @@ export const YieldCard: React.FC<YieldCardProps> = ({ item }) => {
               type="button"
               onClick={handleAddToCart}
               className={`h-8 px-3 rounded-full font-semibold text-xs inline-flex items-center gap-1.5 transition cursor-pointer ${justAdded
-                  ? 'bg-[#4E8B3F] text-white'
-                  : 'bg-[#E2A63C] hover:bg-[#C68F30] text-[#241A12]'
+                ? 'bg-[#4E8B3F] text-white'
+                : 'bg-[#E2A63C] hover:bg-[#C68F30] text-[#241A12]'
                 }`}
             >
               {justAdded ? (

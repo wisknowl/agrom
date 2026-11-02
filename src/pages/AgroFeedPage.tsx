@@ -22,6 +22,7 @@ import {
 } from '@/api';
 import { Post } from '@/types';
 import { FarmerBadge } from '@/components/MeetingLeafLogo';
+import { AgromPostButton } from '@/components/AgromPostButton';
 import { useCartStore } from '@/store/cartStore';
 import { useFavoritesStore } from '@/store/favoritesStore';
 import { useRegionalContainerStore } from '@/store/regionalContainerStore';
@@ -139,8 +140,8 @@ export const AgroFeedPage: React.FC = () => {
                   setCurrentIndex(0);
                 }}
                 className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold transition cursor-pointer ${active
-                    ? 'bg-[#4E8B3F] text-white shadow-xs'
-                    : 'text-[#241A12]/70 hover:text-[#173A20]'
+                  ? 'bg-[#4E8B3F] text-white shadow-xs'
+                  : 'text-[#241A12]/70 hover:text-[#173A20]'
                   }`}
               >
                 {tab}
@@ -149,14 +150,11 @@ export const AgroFeedPage: React.FC = () => {
           })}
         </div>
 
-        <button
-          type="button"
+        <AgromPostButton
+          label="Story"
+          compact
           onClick={() => setCreatePostModalOpen(true)}
-          className="inline-flex items-center gap-1.5 bg-[#173A20] hover:bg-[#0E2515] text-[#E2A63C] px-3.5 py-1.5 rounded-full text-xs font-bold transition cursor-pointer"
-        >
-          <Plus size={14} strokeWidth={2.8} />
-          <span>Publish Story</span>
-        </button>
+        />
       </div>
 
       {/* Main Split-Screen Stage (9:16 Immersive Story Player + Shoppable Yield & Comments Panel) */}
@@ -199,7 +197,14 @@ export const AgroFeedPage: React.FC = () => {
             {/* Top Overlay: Producer Info & Story Counter */}
             <div className="relative z-10 p-4 sm:p-5 flex items-center justify-between gap-2">
               <div
-                onClick={() => navigate(`/profile/${activePost.userId || activePost.farmerId}`)}
+                onClick={() => {
+                  const targetFarmId = activePost.farmId || activePost.farm?.id || activePost.linkedYield?.farmId;
+                  if (targetFarmId) {
+                    navigate(`/farm/${targetFarmId}`);
+                  } else if (activePost.userId || activePost.farmerId) {
+                    navigate(`/profile/${activePost.userId || activePost.farmerId}`);
+                  }
+                }}
                 className="flex items-center gap-2.5 bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20 cursor-pointer"
               >
                 <img
@@ -295,8 +300,8 @@ export const AgroFeedPage: React.FC = () => {
                 >
                   <div
                     className={`w-11 h-11 rounded-full flex items-center justify-center border transition ${likedLocal[activePost.id]
-                        ? 'bg-[#B54A34] border-white text-white'
-                        : 'bg-black/50 border-white/25 text-white hover:bg-black/70'
+                      ? 'bg-[#B54A34] border-white text-white'
+                      : 'bg-black/50 border-white/25 text-white hover:bg-black/70'
                       }`}
                   >
                     <Heart
@@ -316,8 +321,8 @@ export const AgroFeedPage: React.FC = () => {
                 >
                   <div
                     className={`w-11 h-11 rounded-full flex items-center justify-center border transition ${isPostFavorite(activePost.id)
-                        ? 'bg-[#4E8B3F] border-white text-white'
-                        : 'bg-black/50 border-white/25 text-white hover:bg-black/70'
+                      ? 'bg-[#4E8B3F] border-white text-white'
+                      : 'bg-black/50 border-white/25 text-white hover:bg-black/70'
                       }`}
                   >
                     <Bookmark
@@ -430,8 +435,8 @@ export const AgroFeedPage: React.FC = () => {
                     type="button"
                     onClick={() => setCurrentIndex(idx)}
                     className={`relative aspect-square rounded-xl overflow-hidden border-2 transition cursor-pointer ${idx === currentIndex
-                        ? 'border-[#4E8B3F] scale-[1.03]'
-                        : 'border-[#CCEBD5] opacity-70 hover:opacity-100'
+                      ? 'border-[#4E8B3F] scale-[1.03]'
+                      : 'border-[#CCEBD5] opacity-70 hover:opacity-100'
                       }`}
                   >
                     <img

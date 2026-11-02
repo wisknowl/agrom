@@ -390,8 +390,8 @@ export const RegisterFarmWizardPage: React.FC = () => {
                       type="button"
                       onClick={() => setCategory(cat.key)}
                       className={`p-3.5 rounded-2xl border text-left transition cursor-pointer flex flex-col justify-between ${active
-                          ? 'bg-[#EEF8F1] border-[#4E8B3F] shadow-xs'
-                          : 'bg-white border-[#CCEBD5] hover:border-[#4E8B3F]'
+                        ? 'bg-[#EEF8F1] border-[#4E8B3F] shadow-xs'
+                        : 'bg-white border-[#CCEBD5] hover:border-[#4E8B3F]'
                         }`}
                     >
                       <div
@@ -728,9 +728,8 @@ export const RegisterFarmWizardPage: React.FC = () => {
                       key={i}
                       type="button"
                       onClick={() => setCoverPhoto(url)}
-                      className={`aspect-[16/9] rounded-xl overflow-hidden border-2 transition cursor-pointer ${
-                        coverPhoto === url ? 'border-[#4E8B3F] shadow-xs' : 'border-transparent'
-                      }`}
+                      className={`aspect-[16/9] rounded-xl overflow-hidden border-2 transition cursor-pointer ${coverPhoto === url ? 'border-[#4E8B3F] shadow-xs' : 'border-transparent'
+                        }`}
                     >
                       <img src={url} alt={`Preset ${i}`} className="w-full h-full object-cover" />
                     </button>

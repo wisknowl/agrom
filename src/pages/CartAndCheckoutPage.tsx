@@ -82,7 +82,7 @@ export const CartAndCheckoutPage: React.FC = () => {
           <CheckCircle2 size={34} />
         </div>
         <span className="inline-block px-3 py-1 rounded-full bg-[#FEF2D8] border border-[#E2A63C] text-[#B87D1E] font-mono-num text-xs font-bold">
-          Engine 3 FSM State: ESCROW_LOCKED 🔒
+          Smart Escrow State: ESCROW_LOCKED 🔒
         </span>
         <h2 className="font-display text-2xl font-bold text-[#241A12]">
           Funds Locked in Smart Escrow!
@@ -242,7 +242,7 @@ export const CartAndCheckoutPage: React.FC = () => {
                 Smart Escrow Checkout
               </h2>
               <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-[#FFF9EE] text-[#B87D1E] border border-[#F2DCAA] px-2.5 py-0.5 rounded-full">
-                <ShieldCheck size={13} className="text-[#C68F30]" /> Engine 3 Protected
+                <ShieldCheck size={13} className="text-[#C68F30]" /> Smart Escrow Protected
               </span>
             </div>
 
@@ -345,7 +345,7 @@ export const CartAndCheckoutPage: React.FC = () => {
               <ShieldCheck size={17} />
               <span>
                 {submitting
-                  ? 'Locking Funds in Engine 3 Escrow...'
+                  ? 'Locking Funds in Smart Escrow...'
                   : `Lock ${formatXaf(grandTotal)} in Smart Escrow`}
               </span>
             </button>

@@ -167,6 +167,8 @@ export interface Yield {
   available?: boolean;
   harvestDate?: string;
   mediaUrls?: string[];
+  seasonality?: string;
+  shelfLifeDays?: number;
   image: string;
   images?: string[];
   rating?: number;

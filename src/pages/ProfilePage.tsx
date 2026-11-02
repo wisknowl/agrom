@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Navigate, NavLink } from 'react-router-dom';
 import {
   Warehouse,
   ShoppingBag,
@@ -21,6 +21,7 @@ import {
   PlaySquare,
   User,
   Plus,
+  ArrowLeft,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useFavoritesStore } from '@/store/favoritesStore';
@@ -36,7 +37,7 @@ import {
   FALLBACK_POSTS,
 } from '@/api';
 import { Post, Yield, Order, Farm } from '@/types';
-import { FarmerBadge } from '@/components/MeetingLeafLogo';
+import { FarmerBadge, MeetingLeafLogo } from '@/components/MeetingLeafLogo';
 import YieldCard from '@/components/YieldCard';
 import { resolveMediaUrl, formatXaf, isVideoMedia } from '@/utils/media';
 
@@ -52,6 +53,7 @@ export const ProfilePage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'farms' | 'orders' | 'posts' | 'wishlist'>('farms');
   const [wishlistFilter, setWishlistFilter] = useState<'all' | 'harvests' | 'stories'>('all');
   const [profileData, setProfileData] = useState<any>(null);
+  const [profileLoading, setProfileLoading] = useState<boolean>(Boolean(userId && !isOwner));
   const [userPosts, setUserPosts] = useState<Post[]>([]);
   const [ordersList, setOrdersList] = useState<Order[]>([]);
   const [savedYieldsList, setSavedYieldsList] = useState<Yield[]>([]);
@@ -118,7 +120,14 @@ export const ProfilePage: React.FC = () => {
           ? currentUser.farms
           : profileData?.farms || fallbackDemoProfile.farms,
     }
-    : profileData || fallbackDemoProfile;
+    : profileData || {
+        id: userId,
+        name: 'Agrom Producer',
+        email: 'producer@agrom.app',
+        avatarUrl: '',
+        bio: 'Verified Agricultural Producer on Agrom',
+        farms: [],
+      };
 
   const userHasFarm = Boolean(targetUser?.farms && targetUser.farms.length > 0);
 
@@ -142,11 +151,14 @@ export const ProfilePage: React.FC = () => {
           // use fallback
         }
       } else if (userId) {
+        setProfileLoading(true);
         try {
           const pub = await fetchPublicProfileApi(userId);
           if (pub) setProfileData(pub);
         } catch {
           // use fallback
+        } finally {
+          setProfileLoading(false);
         }
       }
 
@@ -216,6 +228,36 @@ export const ProfilePage: React.FC = () => {
     { key: 'posts', label: 'Posts', icon: Sparkles },
     ...(isOwner ? [{ key: 'wishlist', label: 'Wishlist', icon: BookmarkCheck }] : []),
   ] as const;
+
+  // If viewing /profile/:userId where userId is actually the logged in user, redirect to /profile
+  if (userId && currentUser?.id && userId === currentUser.id) {
+    return <Navigate to="/profile" replace />;
+  }
+
+  // Loading state when fetching public profile (prevents showing wrong profile data)
+  if (profileLoading) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-8 bg-white min-h-screen">
+        <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#CCEBD5]">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="px-3.5 py-1.5 rounded-full bg-[#EEF8F1] hover:bg-[#E1F3E7] border border-[#CCEBD5] text-xs font-semibold text-[#241A12] cursor-pointer inline-flex items-center gap-1.5 transition"
+          >
+            <ArrowLeft size={14} />
+            <span>Back</span>
+          </button>
+          <NavLink to="/" className="inline-flex items-center gap-1.5">
+            <MeetingLeafLogo size={26} showWordmark variant="light" />
+          </NavLink>
+        </div>
+        <div className="h-64 rounded-3xl bg-[#EEF8F1] border border-[#CCEBD5] animate-pulse flex flex-col items-center justify-center gap-3">
+          <div className="w-9 h-9 border-3 border-[#4E8B3F] border-t-transparent rounded-full animate-spin" />
+          <span className="text-xs font-semibold text-[#4E8B3F]">Loading Producer Profile...</span>
+        </div>
+      </div>
+    );
+  }
 
   // When signed out (Guest Mode) and viewing own /profile route, show Guest prompt
   if (!isAuthenticated && !userId) {
@@ -300,12 +342,19 @@ export const ProfilePage: React.FC = () => {
             <button
               type="button"
               onClick={() => navigate(-1)}
-              className="px-3.5 py-1.5 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] text-xs font-semibold text-[#241A12] cursor-pointer"
+              className="px-3.5 py-1.5 rounded-full bg-[#EEF8F1] hover:bg-[#E1F3E7] border border-[#CCEBD5] text-xs font-semibold text-[#241A12] cursor-pointer inline-flex items-center gap-1.5 transition"
             >
-              ← Back
+              <ArrowLeft size={14} />
+              <span>Back</span>
             </button>
           ) : (
             <div />
+          )}
+
+          {!isOwner && (
+            <NavLink to="/" className="inline-flex items-center gap-1.5">
+              <MeetingLeafLogo size={26} showWordmark variant="light" />
+            </NavLink>
           )}
 
           {isOwner && (
@@ -505,28 +554,30 @@ export const ProfilePage: React.FC = () => {
               </div>
             ) : (
               <div className="space-y-4">
-                {/* Manage AgroFarms Banner (Matches profile.tsx farmHubBanner) */}
-                <div
-                  onClick={() => navigate('/farmer/manage')}
-                  className="flex items-center justify-between bg-[#EEF8F1] hover:bg-[#E1F3E7] border border-[#CCEBD5] p-4 rounded-2xl cursor-pointer transition"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-xl bg-[#4E8B3F] text-white flex items-center justify-center shadow-sm">
-                      <Warehouse size={22} />
+                {/* Manage AgroFarms Banner (Matches profile.tsx farmHubBanner) - Only for Owner */}
+                {isOwner && (
+                  <div
+                    onClick={() => navigate('/farmer/manage')}
+                    className="flex items-center justify-between bg-[#EEF8F1] hover:bg-[#E1F3E7] border border-[#CCEBD5] p-4 rounded-2xl cursor-pointer transition"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-11 h-11 rounded-xl bg-[#4E8B3F] text-white flex items-center justify-center shadow-sm">
+                        <Warehouse size={22} />
+                      </div>
+                      <div>
+                        <div className="font-display font-bold text-[15px] text-[#173A20]">
+                          Manage AgroFarms & Publish Harvests
+                        </div>
+                        <div className="text-xs text-[#5C5245]">
+                          Register farm parcels, update live crate inventory & track cooperative sales
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="font-display font-bold text-[15px] text-[#173A20]">
-                        Manage AgroFarms & Publish Harvests
-                      </div>
-                      <div className="text-xs text-[#5C5245]">
-                        Register farm parcels, update live crate inventory & track cooperative sales
-                      </div>
+                    <div className="w-8 h-8 rounded-full bg-white border border-[#CCEBD5] flex items-center justify-center text-[#4E8B3F]">
+                      <ChevronRight size={18} />
                     </div>
                   </div>
-                  <div className="w-8 h-8 rounded-full bg-white border border-[#CCEBD5] flex items-center justify-center text-[#4E8B3F]">
-                    <ChevronRight size={18} />
-                  </div>
-                </div>
+                )}
 
                 {/* Section Header with + New Farm Button */}
                 <div className="flex items-center justify-between pt-1">
@@ -601,7 +652,7 @@ export const ProfilePage: React.FC = () => {
                   Track Your Smart Escrow Orders
                 </h3>
                 <p className="text-xs text-[#5C5245] max-w-sm mx-auto">
-                  All harvest purchases locked in Engine 3 Smart Escrow appear here with live state-machine tracking.
+                  All harvest purchases locked in Smart Escrow appear here with live tracking.
                 </p>
                 <div className="flex justify-center gap-2 pt-1">
                   <button
@@ -645,7 +696,7 @@ export const ProfilePage: React.FC = () => {
                   </div>
                   <div className="pt-2 border-t border-[#EEF8F1] flex items-center justify-between text-xs">
                     <span className="inline-flex items-center gap-1 text-[#4E8B3F] font-medium">
-                      <ShieldCheck size={14} /> Engine 3 Smart Escrow
+                      <ShieldCheck size={14} /> Smart Escrow
                     </span>
                     <span className="inline-flex items-center gap-1 bg-[#173A20] text-[#E2A63C] px-3 py-1 rounded-full text-[11px] font-bold">
                       Track FSM State <ChevronRight size={12} />

@@ -23,9 +23,10 @@ export const App: React.FC = () => {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Standalone Authentication Routes (No Header / No Sidebar / No Bottom Navbar) */}
+        {/* Standalone Authentication & Public Profile Routes (No Header / No Sidebar / No Bottom Navbar) */}
         <Route path="/auth/login" element={<LoginPage />} />
         <Route path="/auth/register" element={<RegisterPage />} />
+        <Route path="/profile/:userId" element={<ProfilePage />} />
 
         {/* Main Application Routes Wrapped in Responsive AppShell */}
         <Route
@@ -54,7 +55,6 @@ export const App: React.FC = () => {
 
                 {/* Profile & Ecosystem Command Center (100% Parity with profile.tsx) */}
                 <Route path="/profile" element={<ProfilePage />} />
-                <Route path="/profile/:userId" element={<ProfilePage />} />
 
                 {/* Ecosystem, Supply-Side & Fintech Modules */}
                 <Route path="/fintech/loans" element={<FintechAndLoansPage />} />
@@ -63,6 +63,7 @@ export const App: React.FC = () => {
                 <Route path="/orders/:id" element={<EscrowOrdersPage />} />
                 <Route path="/farmer/manage" element={<FarmManagementPage />} />
                 <Route path="/farmer/new" element={<RegisterFarmWizardPage />} />
+                <Route path="/farm/:id" element={<FarmStorefrontPage />} />
                 <Route path="/farmer/:id" element={<FarmStorefrontPage />} />
                 <Route path="/ecosystem" element={<ArchitectureOverviewPage />} />
                 <Route path="/admin" element={<AdminConsolePage />} />
