@@ -18,7 +18,6 @@ import {
   fetchFeedPostsApi,
   toggleLikePostApi,
   addPostCommentApi,
-  FALLBACK_YIELDS,
 } from '@/api';
 import { Post } from '@/types';
 import { FarmerBadge } from '@/components/MeetingLeafLogo';
@@ -73,10 +72,7 @@ export const AgroFeedPage: React.FC = () => {
       : posts;
 
   const activePost = filteredPosts[currentIndex] || filteredPosts[0];
-  const linkedYield =
-    activePost?.linkedYield ||
-    FALLBACK_YIELDS.find((y) => y.id === activePost?.linkedYieldId) ||
-    FALLBACK_YIELDS[0];
+  const linkedYield = activePost?.linkedYield || null;
 
   const handleLike = async (post: Post) => {
     const prev = Boolean(likedLocal[post.id]);

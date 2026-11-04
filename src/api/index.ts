@@ -296,6 +296,84 @@ export const FALLBACK_YIELDS: Yield[] = [
       },
     },
   },
+  {
+    id: 'yield-combo-achu',
+    farmerId: 'farmer-7',
+    farmId: 'farm-1',
+    farmerName: 'Grassland Co-op & Kitchen',
+    title: 'The Traditional Achu Soup Meal Combo',
+    frenchTitle: 'Kit Repas Traditionnel Achu & Soupe Jaune',
+    description:
+      'Complete authentic Achu meal kit: Fresh peeled Taro Coco (Colocasia), Achu yellow soup spice blend, limestone potash extract, and pure yellow palm oil. Feeds a family of 6.',
+    originRegion: 'Bamenda • Mezam',
+    price: 12500,
+    pricePerUnit: 12500,
+    oldPrice: 15000,
+    unit: 'MEAL PACK',
+    stockQuantity: 30,
+    minOrderQuantity: 1,
+    isMealCombo: true,
+    sourceType: 'COMBO',
+    comboItems: ['5kg Fresh Taro Coco', 'Achu Yellow Soup Spice Blend', '500ml Pure Palm Oil', 'Limestone Potash Extract'],
+    isOrganic: true,
+    available: true,
+    rating: 5.0,
+    image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=900&auto=format&fit=crop&q=80',
+    mediaUrls: ['https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=900&auto=format&fit=crop&q=80'],
+    category: { id: 'cat-combos', name: 'Meal Combos' },
+  },
+  {
+    id: 'yield-combo-ndole',
+    farmerId: 'farmer-1',
+    farmId: 'farm-1',
+    farmerName: 'Foumbot Volcanic Highland Farm',
+    title: 'Sunday Ndole Feast Meal Box',
+    frenchTitle: 'Panier Festin Ndolè du Dimanche',
+    description:
+      'Ready-to-cook Ndole crate: Fresh washed and pre-boiled bitterleaf, peeled white egusi (melon seeds), smoked dried crayfish, garlic-ginger aromatics, and a bunch of green plantains.',
+    originRegion: 'Littoral & West Co-op',
+    price: 15000,
+    pricePerUnit: 15000,
+    oldPrice: 18000,
+    unit: 'COMBO CRATE',
+    stockQuantity: 25,
+    minOrderQuantity: 1,
+    isMealCombo: true,
+    sourceType: 'COMBO',
+    comboItems: ['2kg Washed Bitterleaf', '1kg Peeled White Egusi', '250g Smoked Crayfish', '1 Bunch Plantains', 'Aromatics Pack'],
+    isOrganic: true,
+    available: true,
+    rating: 4.9,
+    image: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=900&auto=format&fit=crop&q=80',
+    mediaUrls: ['https://images.unsplash.com/photo-1540420773420-3366772f4999?w=900&auto=format&fit=crop&q=80'],
+    category: { id: 'cat-combos', name: 'Meal Combos' },
+  },
+  {
+    id: 'yield-combo-stew',
+    farmerId: 'farmer-1',
+    farmId: 'farm-1',
+    farmerName: 'Foumbot Volcanic Highland Farm',
+    title: 'Farm-Direct Stew & Salad Meal Basket',
+    frenchTitle: 'Panier Maraîcher Sauce & Salade Fraîche',
+    description:
+      'Farm-direct stew & salad bundle: 1 small crate Roma tomatoes, 2kg sweet red bell peppers, 1kg green beans, 1kg fresh onions, and fresh celery/parsley bouquet.',
+    originRegion: 'Foumbot • West Region',
+    price: 9500,
+    pricePerUnit: 9500,
+    oldPrice: 11000,
+    unit: 'COMBO BASKET',
+    stockQuantity: 40,
+    minOrderQuantity: 1,
+    isMealCombo: true,
+    sourceType: 'COMBO',
+    comboItems: ['1 Crate Roma Tomatoes (8kg)', '2kg Sweet Bell Peppers', '1kg Onions', 'Celery & Parsley Bouquet'],
+    isOrganic: true,
+    available: true,
+    rating: 4.9,
+    image: 'https://images.unsplash.com/photo-1518843875459-f738682238a6?w=900&auto=format&fit=crop&q=80',
+    mediaUrls: ['https://images.unsplash.com/photo-1518843875459-f738682238a6?w=900&auto=format&fit=crop&q=80'],
+    category: { id: 'cat-combos', name: 'Meal Combos' },
+  },
 ];
 
 export const FALLBACK_POSTS: Post[] = [
@@ -424,11 +502,30 @@ export const normalizeYield = (item: any): Yield => {
   const image =
     resolveMediaUrl(rawImage) ||
     'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=800&auto=format&fit=crop&q=80';
+
+  const catName = typeof item.category === 'object' ? item.category?.name : (item.category || '');
+  const isMealCombo = Boolean(
+    item.isMealCombo ||
+    catName?.toLowerCase().includes('combo') ||
+    item.title?.toLowerCase().includes('combo') ||
+    item.title?.toLowerCase().includes('meal pack') ||
+    item.title?.toLowerCase().includes('meal box') ||
+    item.title?.toLowerCase().includes('soup kit') ||
+    item.title?.toLowerCase().includes('soup combo')
+  );
+
   return {
     ...item,
     price,
     pricePerUnit: price,
     image,
+    isMealCombo,
+    comboItems: item.comboItems || (isMealCombo ? ['Farm-fresh ingredients', 'Recipe seasoning bundle', 'Direct harvest portion'] : undefined),
+    sourceType: item.sourceType || (isMealCombo ? 'COMBO' : (item.storeId ? 'STORE' : 'FARM')),
+    storeId: item.storeId,
+    storeSiteId: item.storeSiteId,
+    dispatchSiteName: item.dispatchSiteName,
+    storeName: item.storeName || item.store?.name,
     mediaUrls:
       Array.isArray(item.mediaUrls) && item.mediaUrls.length > 0
         ? item.mediaUrls.map((u: string) => resolveMediaUrl(u))
@@ -492,16 +589,14 @@ export const fetchYieldsApi = async (params?: {
   search?: string;
   isWholesale?: boolean;
   farmId?: string;
+  storeId?: string;
 }): Promise<Yield[]> => {
   try {
     const res = await apiClient.get('/yields', { params });
     const data = Array.isArray(res.data) ? res.data : [];
-    if (data.length > 0) {
-      return data.map(normalizeYield);
-    }
-    return FALLBACK_YIELDS;
+    return data.map(normalizeYield);
   } catch {
-    return FALLBACK_YIELDS;
+    return [];
   }
 };
 
@@ -515,19 +610,70 @@ export const fetchCategoriesApi = async (): Promise<Category[]> => {
 };
 
 export const fetchYieldByIdApi = async (id: string): Promise<Yield> => {
-  try {
-    const res = await apiClient.get(`/yields/${id}`);
-    return normalizeYield(res.data);
-  } catch {
-    const found = FALLBACK_YIELDS.find((y) => y.id === id);
-    if (found) return found;
-    return FALLBACK_YIELDS[0];
-  }
+  const res = await apiClient.get(`/yields/${id}`);
+  return normalizeYield(res.data);
 };
 
 export const createYieldApi = async (data: any): Promise<Yield> => {
   const res = await apiClient.post('/yields', data);
   return normalizeYield(res.data.yield || res.data);
+};
+
+// ============================================================================
+// AGROSTORE & WHOLESALER PROFILE API
+// ============================================================================
+export const fetchWholesalerProfileApi = async (): Promise<any> => {
+  try {
+    const res = await apiClient.get('/wholesaler/me');
+    return res.data;
+  } catch {
+    return null;
+  }
+};
+
+export const checkStoreSlugApi = async (
+  name: string,
+  excludeId?: string
+): Promise<{ slug: string; available: boolean; candidate: string }> => {
+  const res = await apiClient.get('/wholesaler/check-slug', { params: { name, excludeId } });
+  return res.data;
+};
+
+export const fetchMyStoresApi = async (): Promise<any[]> => {
+  try {
+    const res = await apiClient.get('/wholesaler/my-stores');
+    return Array.isArray(res.data) ? res.data : [];
+  } catch {
+    return [];
+  }
+};
+
+export const createStoreApi = async (data: any): Promise<any> => {
+  const res = await apiClient.post('/wholesaler', data);
+  return res.data?.store || res.data;
+};
+
+export const fetchStoreByIdApi = async (id: string): Promise<any> => {
+  const res = await apiClient.get(`/wholesaler/${id}`);
+  return res.data;
+};
+
+export const updateStoreApi = async (id: string, data: any): Promise<any> => {
+  const res = await apiClient.put(`/wholesaler/${id}`, data);
+  return res.data?.store || res.data;
+};
+
+export const registerOrUpdateStoreApi = async (data: {
+  businessName: string;
+  tradeLicenseNumber?: string;
+  primaryMarketCity: string;
+  buyingCapacityTons?: number;
+  preferredCommodities?: string[];
+  linkedFarmId?: string;
+  storeBio?: string;
+}): Promise<any> => {
+  const res = await apiClient.post('/wholesaler/register', data);
+  return res.data;
 };
 
 // ============================================================================
@@ -643,34 +789,17 @@ export const createFarmApi = async (farmData: Partial<Farm>): Promise<Farm> => {
   return res.data.farm || res.data;
 };
 
+export const checkFarmSlugApi = async (
+  name: string,
+  excludeId?: string
+): Promise<{ slug: string; available: boolean; candidate: string }> => {
+  const res = await apiClient.get('/farms/check-slug', { params: { name, excludeId } });
+  return res.data;
+};
+
 export const fetchFarmByIdApi = async (farmId: string): Promise<Farm> => {
-  try {
-    const res = await apiClient.get(`/farms/${farmId}?includeAllYields=true`);
-    return res.data;
-  } catch {
-    const fallbackYield = FALLBACK_YIELDS.find((y) => y.farmId === farmId || y.farm?.id === farmId);
-    if (fallbackYield?.farm) {
-      return {
-        ...fallbackYield.farm,
-        yields: FALLBACK_YIELDS.filter((y) => y.farmId === farmId),
-      };
-    }
-    return {
-      id: farmId,
-      userId: 'farmer-1',
-      name: 'Foumbot Volcanic Highland Farm',
-      category: 'CROPS',
-      description: 'Verified cooperative highland farm producing organic Roma tomatoes, sweet peppers, and highland vegetables.',
-      location: 'Foumbot, Noun Division',
-      city: 'Foumbot',
-      region: 'West Region',
-      sizeHectares: 14.5,
-      isVerified: true,
-      rating: 4.9,
-      coverPhoto: 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=1000&auto=format&fit=crop&q=80',
-      yields: FALLBACK_YIELDS.slice(0, 3),
-    };
-  }
+  const res = await apiClient.get(`/farms/${farmId}?includeAllYields=true`);
+  return res.data;
 };
 
 export const updateFarmApi = async (farmId: string, farmData: Partial<Farm>): Promise<any> => {

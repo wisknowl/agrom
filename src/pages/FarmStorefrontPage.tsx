@@ -29,8 +29,6 @@ import {
   fetchFarmByIdApi,
   createProduceApi,
   patronizeFarmApi,
-  FALLBACK_YIELDS,
-  FALLBACK_POSTS,
 } from '@/api';
 import { FarmerBadge } from '@/components/MeetingLeafLogo';
 import YieldCard from '@/components/YieldCard';
@@ -66,25 +64,7 @@ export const FarmStorefrontPage: React.FC = () => {
         setFarm(data);
       })
       .catch(() => {
-        // Fallback demo farm
-        setFarm({
-          id,
-          name: 'Foumbot Volcanic Highland Farm',
-          category: 'CROPS',
-          description:
-            'Family-run volcanic highland estate supplying Grade-A Roma tomatoes, sweet bell peppers, and highland cabbage across CEMAC with Smart Escrow protection.',
-          city: 'Foumbot',
-          region: 'West Region',
-          sizeHectares: 14.5,
-          rating: 4.9,
-          totalRatings: 38,
-          isVerified: true,
-          coverPhoto: 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=1000&auto=format&fit=crop&q=80',
-          avatarPhoto: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80',
-          userId: 'farmer-1',
-          yields: FALLBACK_YIELDS.slice(0, 4),
-          posts: FALLBACK_POSTS.slice(0, 3),
-        });
+        setFarm(null);
       })
       .finally(() => setLoading(false));
   }, [id]);
@@ -261,7 +241,7 @@ export const FarmStorefrontPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Quick Stats on Banner */}
+            {/* Quick Stats on Banner: Operational Capacity & Scale */}
             <div className="flex items-center gap-4 bg-black/45 backdrop-blur-sm px-4 py-2 rounded-2xl border border-white/20 shrink-0">
               <div className="text-center">
                 <div className="font-mono-num font-bold text-sm text-white">{farmYields.length}</div>
@@ -270,15 +250,15 @@ export const FarmStorefrontPage: React.FC = () => {
               <div className="w-px h-6 bg-white/20" />
               <div className="text-center">
                 <div className="font-mono-num font-bold text-sm text-[#E2A63C] flex items-center gap-1 justify-center">
-                  <Star size={11} className="fill-[#E2A63C]" />
-                  {farm.rating?.toFixed(1) || '4.9'}
+                  <MapPin size={11} className="text-[#E2A63C]" />
+                  {(Number(farm.totalLandArea || farm.sizeHectares || 2.5)).toFixed(1)} ha
                 </div>
-                <div className="text-[10px] text-white/70">Rating</div>
+                <div className="text-[10px] text-white/70">Total Land</div>
               </div>
               <div className="w-px h-6 bg-white/20" />
               <div className="text-center">
                 <div className="font-mono-num font-bold text-sm text-white">
-                  {farm.followersCount || 148}
+                  {farm.followersCount || farm.user?._count?.followers || 148}
                 </div>
                 <div className="text-[10px] text-white/70">AgroPatrons</div>
               </div>
@@ -303,16 +283,20 @@ export const FarmStorefrontPage: React.FC = () => {
 
         <div className="grid grid-cols-3 gap-2.5 text-center">
           <div className="bg-white rounded-xl p-2.5 border border-[#CCEBD5]">
-            <div className="font-mono-num font-bold text-sm text-[#173A20]">99.2%</div>
+            <div className="font-mono-num font-bold text-sm text-[#173A20]">
+              {farm.fulfillmentRate ? `${farm.fulfillmentRate}%` : '99.2%'}
+            </div>
             <div className="text-[10px] text-[#5C5245]">Fulfillment Rate</div>
           </div>
           <div className="bg-white rounded-xl p-2.5 border border-[#CCEBD5]">
-            <div className="font-mono-num font-bold text-sm text-[#173A20]">98.4%</div>
+            <div className="font-mono-num font-bold text-sm text-[#173A20]">
+              {farm.onTimeDispatch ? `${farm.onTimeDispatch}%` : '98.4%'}
+            </div>
             <div className="text-[10px] text-[#5C5245]">On-Time Dispatch</div>
           </div>
           <div className="bg-white rounded-xl p-2.5 border border-[#CCEBD5]">
             <div className="font-mono-num font-bold text-sm text-[#173A20]">
-              {farm.rating?.toFixed(1) || '4.9'} ★
+              {(farm.rating || 5.0).toFixed(1)} ★
             </div>
             <div className="text-[10px] text-[#5C5245]">Verified Rating</div>
           </div>

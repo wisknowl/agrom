@@ -14,6 +14,7 @@ import {
   Layers,
   Sparkles,
   ChevronRight,
+  Award,
   X,
   Check,
   Sliders,
@@ -943,8 +944,17 @@ export const FarmManagementPage: React.FC = () => {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/20" />
 
-          {/* Top Header Actions (Edit / Delete) */}
+          {/* Top Header Actions (View Storefront / Edit / Delete) */}
           <div className="absolute top-3 right-3 flex items-center gap-2">
+            {activeFarm && (
+              <button
+                type="button"
+                onClick={() => navigate(`/farm/${activeFarm.slug || activeFarm.id}`)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/95 text-[#173A20] text-xs font-bold shadow-xs hover:bg-white transition cursor-pointer"
+              >
+                <ExternalLink size={13} className="text-[#4E8B3F]" /> Public Storefront
+              </button>
+            )}
             <button
               type="button"
               onClick={openEditFarmModal}
@@ -1114,6 +1124,128 @@ export const FarmManagementPage: React.FC = () => {
         </div>
       </div>
 
+      {/* AgroFintech & Input Credit Line (Hub-and-Spoke Module) */}
+      <div className="bg-gradient-to-br from-[#FAF5FF] via-white to-[#EEF8F1] rounded-3xl border border-[#E9D5FF] p-5 sm:p-6 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-[#E9D5FF]/60">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-2xl bg-[#7C3AED] text-white flex items-center justify-center shadow-sm">
+              <TrendingUp size={22} strokeWidth={2.4} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-display font-bold text-base text-[#173A20]">
+                  Tabi Credit & Seasonal Financing
+                </h3>
+                <span className="font-mono-num text-[11px] font-bold bg-[#7C3AED] text-white px-2.5 py-0.5 rounded-full">
+                  {user?.farmerProfile?.creditTier || 'GOLD A-PRIME'}
+                </span>
+              </div>
+              <p className="text-xs text-[#5C5245]">
+                Algorithmic Engine 1 risk underwriting & 10% auto-escrow repayment
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => navigate('/fintech/loans')}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-bold transition shadow-xs cursor-pointer self-start sm:self-auto"
+          >
+            <span>Manage AgroLoans & Terms</span>
+            <ChevronRight size={14} strokeWidth={2.5} />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="bg-white/90 rounded-2xl p-3.5 border border-[#E9D5FF]/80">
+            <div className="text-[11px] font-medium text-[#6B7280]">Live Tabi FICO Score</div>
+            <div className="font-mono-num text-xl font-bold text-[#7C3AED] mt-0.5">
+              {user?.farmerProfile?.creditScore || 765} <span className="text-xs font-normal text-[#9CA3AF]">/ 1000</span>
+            </div>
+            <div className="text-[10px] text-[#4E8B3F] font-semibold mt-1">● Top 8% of Regional Co-ops</div>
+          </div>
+
+          <div className="bg-white/90 rounded-2xl p-3.5 border border-[#E9D5FF]/80">
+            <div className="text-[11px] font-medium text-[#6B7280]">Pre-Approved Input Credit</div>
+            <div className="font-mono-num text-xl font-bold text-[#173A20] mt-0.5">
+              1,500,000 <span className="text-xs font-normal text-[#5C5245]">XAF</span>
+            </div>
+            <div className="text-[10px] text-[#5C5245] mt-1">Instant MoMo / Orange Money disbursement</div>
+          </div>
+
+          <div className="bg-white/90 rounded-2xl p-3.5 border border-[#E9D5FF]/80">
+            <div className="text-[11px] font-medium text-[#6B7280]">Auto-Escrow Repayment</div>
+            <div className="font-mono-num text-xl font-bold text-[#059669] mt-0.5">
+              10% <span className="text-xs font-normal text-[#5C5245]">per harvest sale</span>
+            </div>
+            <div className="text-[10px] text-[#059669] font-semibold mt-1">✓ Smart Contract Engine 3 Active</div>
+          </div>
+        </div>
+      </div>
+
+      {/* AgroVestor Crop Lot Co-Funding Module */}
+      <div className="bg-gradient-to-br from-[#FEF7EE] via-white to-[#FEF7EE] rounded-3xl border border-[#F7D9A4] p-5 sm:p-6 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-[#F7D9A4]/60">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-2xl bg-[#E2A63C] text-white flex items-center justify-center shadow-sm">
+              <Award size={22} strokeWidth={2.4} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-display font-bold text-base text-[#173A20]">
+                  AgroVestor Co-Funding Campaigns
+                </h3>
+                <span className="font-mono-num text-[11px] font-bold bg-[#E2A63C] text-white px-2.5 py-0.5 rounded-full">
+                  DIASPORA CROWDFUNDING
+                </span>
+              </div>
+              <p className="text-xs text-[#5C5245]">
+                Crowdfund seed capital for upcoming parcel cycles in exchange for seasonal harvest share
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => navigate('/fintech/loans')}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#E2A63C] hover:bg-[#D4952B] text-white text-xs font-bold transition shadow-xs cursor-pointer self-start sm:self-auto"
+          >
+            <Plus size={14} strokeWidth={2.5} />
+            <span>Launch Co-Funding Campaign</span>
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <div className="p-4 rounded-2xl bg-white border border-[#F7D9A4] space-y-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-bold text-[#173A20]">Foumbot Roma Tomato Lot #4</span>
+              <span className="text-[#059669] font-bold bg-[#EEF8F1] px-2 py-0.5 rounded-full">75% Funded</span>
+            </div>
+            <div className="w-full bg-[#FEF7EE] rounded-full h-2 overflow-hidden border border-[#F7D9A4]/50">
+              <div className="bg-[#E2A63C] h-full rounded-full" style={{ width: '75%' }} />
+            </div>
+            <div className="flex items-center justify-between text-[11px] text-[#5C5245]">
+              <span>Raised: 900,000 XAF</span>
+              <span>Target: 1,200,000 XAF</span>
+            </div>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-white border border-[#F7D9A4] space-y-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-bold text-[#173A20]">Highland Bell Pepper Expansion</span>
+              <span className="text-[#7C3AED] font-bold bg-[#FAF5FF] px-2 py-0.5 rounded-full">Target Reached</span>
+            </div>
+            <div className="w-full bg-[#FEF7EE] rounded-full h-2 overflow-hidden border border-[#F7D9A4]/50">
+              <div className="bg-[#4E8B3F] h-full rounded-full" style={{ width: '100%' }} />
+            </div>
+            <div className="flex items-center justify-between text-[11px] text-[#5C5245]">
+              <span>Disbursed to Escrow: 1,800,000 XAF</span>
+              <span>Cycle: 90 Days</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Operating Sites & Plots Footprint Section */}
       <div className="bg-white rounded-3xl border border-[#CCEBD5] p-5 sm:p-6 space-y-4 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-3 border-b border-[#EEF8F1]">
@@ -1150,8 +1282,8 @@ export const FarmManagementPage: React.FC = () => {
               <div className="flex items-start gap-3">
                 <div
                   className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${parcel.isHeadquarters
-                      ? 'bg-[#173A20] text-[#E2A63C]'
-                      : 'bg-[#EEF8F1] text-[#4E8B3F] border border-[#CCEBD5]'
+                    ? 'bg-[#173A20] text-[#E2A63C]'
+                    : 'bg-[#EEF8F1] text-[#4E8B3F] border border-[#CCEBD5]'
                     }`}
                 >
                   <MapPin size={18} />

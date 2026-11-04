@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -10,6 +10,7 @@ import {
   MapPin,
   ShieldCheck,
   Check,
+  CheckCircle2,
   Plus,
   Trash2,
   Building2,
@@ -18,7 +19,7 @@ import {
   User,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
-import { createFarmApi, uploadMediaFileApi } from '@/api';
+import { createFarmApi, checkFarmSlugApi, uploadMediaFileApi } from '@/api';
 import { Farm, FarmCategory } from '@/types';
 import { resolveMediaUrl } from '@/utils/media';
 
@@ -62,6 +63,43 @@ export const RegisterFarmWizardPage: React.FC = () => {
   const [name, setName] = useState('');
   const [category, setCategory] = useState<FarmCategory>('CROPS');
   const [description, setDescription] = useState('');
+
+  // Real-time Slug Availability State
+  const [slugStatus, setSlugStatus] = useState<{
+    checking: boolean;
+    available: boolean | null;
+    slug: string;
+    candidate: string;
+  }>({
+    checking: false,
+    available: null,
+    slug: '',
+    candidate: '',
+  });
+
+  useEffect(() => {
+    if (!name.trim()) {
+      setSlugStatus({ checking: false, available: null, slug: '', candidate: '' });
+      return;
+    }
+
+    setSlugStatus((prev) => ({ ...prev, checking: true }));
+    const timer = setTimeout(async () => {
+      try {
+        const res = await checkFarmSlugApi(name.trim());
+        setSlugStatus({
+          checking: false,
+          available: res.available,
+          slug: res.slug,
+          candidate: res.candidate,
+        });
+      } catch {
+        setSlugStatus((prev) => ({ ...prev, checking: false }));
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [name]);
 
   // Step 2: Multi-Site Operational Parcels
   const [parcels, setParcels] = useState<
@@ -374,6 +412,26 @@ export const RegisterFarmWizardPage: React.FC = () => {
                   }`}
               />
               {errors.name && <span className="text-[11px] text-[#dc2626] mt-1 block">{errors.name}</span>}
+
+              {/* Real-time Slug Availability Indicator */}
+              {name.trim().length > 1 && (
+                <div className="mt-1.5 flex items-center gap-1.5 text-xs">
+                  {slugStatus.checking ? (
+                    <span className="text-xs text-[#8F8475] animate-pulse">Checking name availability...</span>
+                  ) : slugStatus.available === true ? (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#f0fdf4] border border-[#bbf7d0] text-[#15803d] font-semibold text-xs">
+                      <CheckCircle2 size={13} className="text-[#16a34a]" />
+                      <span>Available</span>
+                      <span className="text-[#166534] font-mono font-normal">agrom.app/farm/{slugStatus.slug}</span>
+                    </span>
+                  ) : slugStatus.available === false ? (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#fffbeb] border border-[#fde68a] text-[#b45309] font-medium text-xs">
+                      <span>Name already taken. Suggested:</span>
+                      <span className="font-mono font-bold text-[#92400e]">agrom.app/farm/{slugStatus.candidate}</span>
+                    </span>
+                  ) : null}
+                </div>
+              )}
             </div>
 
             <div>

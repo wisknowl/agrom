@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   Home,
   Sprout,
+  Store,
   MessageSquare,
   User,
   Menu,
@@ -14,21 +15,25 @@ import {
   Compass,
   PlaySquare,
   Globe,
+  Smartphone,
+  LogOut,
 } from 'lucide-react';
 import MeetingLeafLogo from './MeetingLeafLogo';
 import EcosystemDrawer from './EcosystemDrawer';
 import CreatePostModal from './CreatePostModal';
 import AgromPostButton from './AgromPostButton';
+import DownloadAppModal from './DownloadAppModal';
 import { useCartStore } from '@/store/cartStore';
 import { useAuthStore } from '@/store/authStore';
 import { useRegionalContainerStore } from '@/store/regionalContainerStore';
 import { resolveMediaUrl } from '@/utils/media';
 
 export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const cartItemCount = useCartStore((s) => s.getItemCount());
-  const { user, isAuthenticated } = useAuthStore();
+  const { user, isAuthenticated, logout } = useAuthStore();
   const {
     getContainer,
     setEcosystemDrawerOpen,
@@ -43,6 +48,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
   // Check active tab for the 5 core mobile tabs
   const isFeedActive = pathname.startsWith('/feed');
   const isMarketActive = pathname === '/' || pathname.startsWith('/yield');
+  const isStoreActive = pathname.startsWith('/store') || pathname.startsWith('/agro-store');
   const isCartActive = pathname.startsWith('/cart');
   const isInboxActive = pathname.startsWith('/inbox') || pathname.startsWith('/chat');
   const isProfileActive = pathname === '/profile';
@@ -59,6 +65,12 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
       label: 'AgroMarket',
       icon: <Sprout size={19} />,
       active: isMarketActive,
+    },
+    {
+      to: '/store',
+      label: 'Store Management',
+      icon: <Store size={19} />,
+      active: isStoreActive,
     },
     {
       to: '/fintech/loans',
@@ -105,11 +117,11 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-white text-[#241A12]">
+    <div className="h-screen flex flex-col bg-white text-[#241A12] overflow-hidden">
       {/* =====================================================================
-          TOP COMMAND BAR (Responsive Desktop & Mobile Header)
+          TOP COMMAND BAR (Responsive Desktop & Mobile Header - Never scrolls away)
       ===================================================================== */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#CCEBD5]">
+      <header className="h-16 shrink-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#CCEBD5]">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
           {/* Left: Brand Lockup (Agrom) */}
           <div className="flex items-center gap-6">
@@ -214,12 +226,23 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
               </span>
             </button>
 
-            {/* 3-Bar Ecosystem Drawer Trigger (Matches ProfileHeaderMenu.tsx) */}
+            {/* Desktop Mobile App Download Trigger (Replaces 3-bar menu on desktop) */}
+            <button
+              type="button"
+              onClick={() => setIsDownloadModalOpen(true)}
+              className="hidden md:inline-flex items-center gap-1.5 bg-[#EEF8F1] border border-[#CCEBD5] hover:border-[#4E8B3F] px-2.5 py-1.5 rounded-full text-xs font-semibold text-[#241A12] transition cursor-pointer"
+              title="Download Agrom Mobile App"
+            >
+              <Smartphone size={15} className="text-[#4E8B3F]" />
+              <span className="hidden xl:inline text-[11px] font-bold">Get App</span>
+            </button>
+
+            {/* 3-Bar Ecosystem Drawer Trigger (Only in Responsive Mobile View) */}
             <button
               type="button"
               onClick={() => setEcosystemDrawerOpen(true)}
               aria-label="Open Manage Ecosystem Drawer"
-              className="w-9 h-9 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] hover:border-[#4E8B3F] flex items-center justify-center text-[#241A12] transition cursor-pointer"
+              className="md:hidden w-9 h-9 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] hover:border-[#4E8B3F] flex items-center justify-center text-[#241A12] transition cursor-pointer"
             >
               <Menu size={19} strokeWidth={2.2} />
             </button>
@@ -230,10 +253,10 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
       {/* =====================================================================
           MAIN BODY: DESKTOP LEFT RAIL + RESPONSIVE CONTENT VIEWPORT
       ===================================================================== */}
-      <div className="flex-1 max-w-[1440px] w-full mx-auto flex">
-        {/* Desktop Left Navigation Rail (Hidden on Mobile < 768px) */}
-        <aside className="hidden md:flex flex-col w-60 lg:w-64 shrink-0 border-r border-[#CCEBD5] bg-white p-3.5 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
-          <div className="space-y-1">
+      <div className="flex-1 max-w-[1440px] w-full mx-auto flex min-h-0 overflow-hidden">
+        {/* Desktop Left Navigation Rail (Hidden on Mobile < 768px - Never scrolls away) */}
+        <aside className="hidden md:flex flex-col justify-between w-60 lg:w-64 shrink-0 border-r border-[#CCEBD5] bg-white p-3.5 h-full overflow-hidden">
+          <div className="space-y-1 overflow-y-auto flex-1 pr-1 pb-2">
             {desktopSidebarLinks.map((item) => (
               <NavLink
                 key={item.to}
@@ -260,10 +283,59 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
               </NavLink>
             ))}
           </div>
+
+          {/* Sidebar Footer with User Status & Logout Button */}
+          <div className="pt-3 border-t border-[#CCEBD5] shrink-0">
+            {isAuthenticated && user ? (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2.5 px-2 py-1.5 rounded-xl bg-[#FAF7F2] border border-[#EBE3D5]">
+                  {user.avatarUrl || user.avatar ? (
+                    <img
+                      src={resolveMediaUrl(user.avatarUrl || user.avatar)}
+                      alt={user.name || 'User'}
+                      className="w-8 h-8 rounded-full object-cover border border-[#4E8B3F] shrink-0"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] flex items-center justify-center text-[#4E8B3F] shrink-0">
+                      <User size={15} strokeWidth={2.4} />
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs font-bold text-[#241A12] truncate">
+                      {user.name || 'Agrom User'}
+                    </div>
+                    <div className="text-[10px] text-[#5C5245] truncate">
+                      {user.email || user.role || 'Member'}
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    logout();
+                    navigate('/');
+                  }}
+                  className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-[#B54A34] bg-[#FDF3F1] hover:bg-[#FAE5E1] border border-[#B54A34]/20 transition cursor-pointer"
+                >
+                  <LogOut size={15} strokeWidth={2.2} />
+                  <span>Log Out</span>
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => navigate('/auth/login')}
+                className="w-full py-2 rounded-xl text-xs font-bold text-[#173A20] bg-[#EEF8F1] hover:bg-[#CCEBD5] border border-[#CCEBD5] transition cursor-pointer text-center"
+              >
+                Sign In / Join
+              </button>
+            )}
+          </div>
         </aside>
 
-        {/* Main Content Area (Padded on mobile for bottom navbar) */}
-        <main className="flex-1 min-w-0 pb-safe-nav md:pb-10">{children}</main>
+        {/* Main Content Area (Scrolls independently while header & sidebar remain pinned) */}
+        <main className="flex-1 min-w-0 h-full overflow-y-auto pb-safe-nav md:pb-10">{children}</main>
       </div>
 
       {/* =====================================================================
@@ -404,6 +476,10 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
       {/* Modals & Drawers */}
       <EcosystemDrawer />
       <CreatePostModal />
+      <DownloadAppModal
+        isOpen={isDownloadModalOpen}
+        onClose={() => setIsDownloadModalOpen(false)}
+      />
     </div>
   );
 };

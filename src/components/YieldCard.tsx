@@ -100,12 +100,18 @@ export const YieldCard: React.FC<YieldCardProps> = ({ item }) => {
 
         {/* Bottom Badges on Image */}
         <div className="absolute bottom-2 left-2.5 right-2.5 flex items-center justify-between gap-1">
-          {item.isWholesaleBulkAvailable ? (
+          {item.isMealCombo ? (
+            <span className="font-mono-num text-[10px] font-bold uppercase tracking-wider bg-[#E2A63C] text-[#241A12] px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1">
+              🍲 Meal Combo
+            </span>
+          ) : item.isWholesaleBulkAvailable ? (
             <span className="font-mono-num text-[10px] font-bold uppercase tracking-wider bg-[#4E8B3F] text-white px-2.5 py-0.5 rounded-full shadow-sm">
               Wholesale Lot
             </span>
           ) : (
-            <span />
+            <span className="font-mono-num text-[10px] font-semibold tracking-wider bg-[#173A20]/80 backdrop-blur-xs text-white px-2 py-0.5 rounded-full">
+              🌱 Farm Direct
+            </span>
           )}
           {item.isOrganic && (
             <span className="text-[10px] font-semibold bg-[#EEF8F1]/95 text-[#173A20] border border-[#CCEBD5] px-2 py-0.5 rounded-full">
@@ -121,6 +127,12 @@ export const YieldCard: React.FC<YieldCardProps> = ({ item }) => {
           <h3 className="font-semibold text-[15px] text-[#241A12] line-clamp-1 group-hover:text-[#173A20] transition-colors">
             {item.title}
           </h3>
+
+          {item.isMealCombo && item.comboItems && item.comboItems.length > 0 && (
+            <p className="text-[11px] text-[#4E8B3F] font-medium mt-0.5 line-clamp-1">
+              <strong className="text-[#173A20]">Kit:</strong> {item.comboItems.join(' • ')}
+            </p>
+          )}
 
           {/* Price Row */}
           <div className="flex items-baseline gap-2 mt-1">

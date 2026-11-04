@@ -10,7 +10,9 @@ import InboxPage from './pages/InboxPage';
 import { LoginPage, RegisterPage } from './pages/AuthPages';
 import FarmManagementPage from './pages/FarmManagementPage';
 import RegisterFarmWizardPage from './pages/RegisterFarmWizardPage';
+import RegisterStoreWizardPage from './pages/RegisterStoreWizardPage';
 import FarmStorefrontPage from './pages/FarmStorefrontPage';
+import AgroStorePage from './pages/AgroStorePage';
 import {
   FintechAndLoansPage,
   WalletPage,
@@ -55,6 +57,12 @@ export const App: React.FC = () => {
 
                 {/* Profile & Ecosystem Command Center (100% Parity with profile.tsx) */}
                 <Route path="/profile" element={<ProfilePage />} />
+
+                {/* AgroStore & Bulk Wholesale Hub */}
+                <Route path="/store" element={<AgroStorePage />} />
+                <Route path="/stores" element={<AgroStorePage />} />
+                <Route path="/agro-store" element={<AgroStorePage />} />
+                <Route path="/store/new" element={<RegisterStoreWizardPage />} />
 
                 {/* Ecosystem, Supply-Side & Fintech Modules */}
                 <Route path="/fintech/loans" element={<FintechAndLoansPage />} />

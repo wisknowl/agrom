@@ -25,6 +25,7 @@ export const LandingMarketPage: React.FC = () => {
   const navigate = useNavigate();
   const [yieldsList, setYieldsList] = useState<Yield[]>([]);
   const [categories, setCategories] = useState<string[]>(STATIC_CATEGORIES);
+  const [sourceFilter, setSourceFilter] = useState<'all' | 'farms' | 'stores' | 'combos'>('all');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
@@ -74,7 +75,13 @@ export const LandingMarketPage: React.FC = () => {
       catName.toLowerCase().includes(selectedCategory.toLowerCase()) ||
       item.title.toLowerCase().includes(selectedCategory.toLowerCase());
 
-    return matchesSearch && matchesCategory;
+    const matchesSource =
+      sourceFilter === 'all' ||
+      (sourceFilter === 'farms' && (item.sourceType === 'FARM' || (!item.isMealCombo && !item.isWholesaleBulkAvailable))) ||
+      (sourceFilter === 'stores' && (item.sourceType === 'STORE' || item.isWholesaleBulkAvailable || item.storeId)) ||
+      (sourceFilter === 'combos' && (item.sourceType === 'COMBO' || item.isMealCombo));
+
+    return matchesSearch && matchesCategory && matchesSource;
   });
 
   return (
@@ -106,6 +113,53 @@ export const LandingMarketPage: React.FC = () => {
               </button>
             )}
           </div>
+        </div>
+
+        {/* Master Source Segment: All | Direct Farms | AgroStores | Meal Combos */}
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+          <button
+            type="button"
+            onClick={() => setSourceFilter('all')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${sourceFilter === 'all'
+              ? 'bg-[#173A20] text-white shadow-xs'
+              : 'bg-[#EEF8F1] text-[#241A12] border border-[#CCEBD5] hover:bg-[#E1F3E7]'
+            }`}
+          >
+            <span>All Harvests</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setSourceFilter('farms')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${sourceFilter === 'farms'
+              ? 'bg-[#173A20] text-white shadow-xs'
+              : 'bg-[#EEF8F1] text-[#241A12] border border-[#CCEBD5] hover:bg-[#E1F3E7]'
+            }`}
+          >
+            <span>🚜 Direct Farms</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setSourceFilter('stores')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${sourceFilter === 'stores'
+              ? 'bg-[#173A20] text-white shadow-xs'
+              : 'bg-[#EEF8F1] text-[#241A12] border border-[#CCEBD5] hover:bg-[#E1F3E7]'
+            }`}
+          >
+            <span>🏪 AgroStores & Depots</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setSourceFilter('combos')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${sourceFilter === 'combos'
+              ? 'bg-[#E2A63C] text-[#241A12] shadow-xs'
+              : 'bg-[#FEF6E8] text-[#7A4A2D] border border-[#F2DCAA] hover:bg-[#FEF2D8]'
+            }`}
+          >
+            <span>🍲 Meal Combos</span>
+          </button>
         </div>
 
         {/* Category Filter Chips (Profile Mint/Cultivated Palette) */}

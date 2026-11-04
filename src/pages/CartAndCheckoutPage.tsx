@@ -192,6 +192,12 @@ export const CartAndCheckoutPage: React.FC = () => {
                     <div className="text-xs text-[#5C5245] truncate">
                       {cartItem.yield.originRegion || 'Verified Cooperative'}
                     </div>
+                    {cartItem.yield.dispatchSiteName && (
+                      <div className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-md bg-[#FEF6E8] border border-[#F2DCAA] text-[10px] font-bold text-[#7A4A2D]">
+                        <Building2 size={11} className="text-[#E2A63C]" />
+                        <span>Dispatch Depot: {cartItem.yield.dispatchSiteName}</span>
+                      </div>
+                    )}
                     <div className="font-mono-num text-xs font-bold text-[#B87D1E] mt-1">
                       {formatXaf(cartItem.yield.price)} / {cartItem.yield.unit}
                     </div>
@@ -316,6 +322,26 @@ export const CartAndCheckoutPage: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {/* Depot Dispatch Points Summary */}
+            {items.some((i) => i.yield.dispatchSiteName) && (
+              <div className="p-3.5 rounded-2xl bg-[#FEF6E8] border border-[#F2DCAA] text-xs space-y-1.5">
+                <div className="font-bold flex items-center gap-1.5 text-[#7A4A2D]">
+                  <Building2 size={13} className="text-[#E2A63C]" />
+                  <span>Physical Dispatch Depot Sites</span>
+                </div>
+                {items
+                  .filter((i) => i.yield.dispatchSiteName)
+                  .map((i) => (
+                    <div key={i.id} className="text-[11px] flex items-center justify-between">
+                      <span className="font-medium text-[#241A12] truncate max-w-[60%]">• {i.yield.title}</span>
+                      <span className="font-bold text-[#7A4A2D] bg-white px-2 py-0.5 rounded-md border border-[#F2DCAA]">
+                        {i.yield.dispatchSiteName}
+                      </span>
+                    </div>
+                  ))}
+              </div>
+            )}
 
             {/* Order Totals */}
             <div className="bg-[#FFF9EE] border border-[#F2DCAA] rounded-2xl p-4 space-y-2 text-xs">
