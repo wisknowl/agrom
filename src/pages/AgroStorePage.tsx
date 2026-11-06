@@ -21,6 +21,7 @@ import {
   Check,
   Warehouse,
   Snowflake,
+  ExternalLink,
 } from 'lucide-react';
 import { Yield } from '@/types';
 import {
@@ -319,7 +320,19 @@ export const AgroStorePage: React.FC = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            {activeStore && (
+              <button
+                type="button"
+                onClick={() => navigate(`/store/${activeStore.slug || activeStore.id}`)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#FFF9EE] hover:bg-[#FEF2D8] border border-[#F2DCAA] text-xs font-bold text-[#241A12] transition cursor-pointer"
+                title="Preview Public Storefront"
+              >
+                <ExternalLink size={14} className="text-[#B87D1E]" />
+                <span>View Public Storefront</span>
+              </button>
+            )}
+
             <button
               type="button"
               onClick={() => navigate('/store/new')}

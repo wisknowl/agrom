@@ -50,7 +50,7 @@ const SAMPLE_COVERS = [
 
 export const RegisterStoreWizardPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
 
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -273,6 +273,48 @@ export const RegisterStoreWizardPage: React.FC = () => {
       setSubmitting(false);
     }
   };
+
+  // If in Guest Mode, prompt to sign in (matches Farm Wizard behavior)
+  if (!isAuthenticated) {
+    return (
+      <div className="max-w-xl mx-auto px-4 py-12 sm:py-16">
+        <div className="bg-white rounded-3xl border border-[#CCEBD5] p-6 sm:p-8 text-center space-y-5 shadow-[0_8px_30px_rgba(23,58,32,0.06)]">
+          <div className="w-16 h-16 rounded-full bg-[#FFF9EE] border border-[#F2DCAA] flex items-center justify-center mx-auto text-[#E2A63C]">
+            <Building2 size={30} strokeWidth={2.2} />
+          </div>
+
+          <div className="space-y-1.5">
+            <span className="inline-block px-3 py-0.5 rounded-full bg-[#FFF9EE] border border-[#F2DCAA] text-[11px] font-semibold text-[#B87D18]">
+              Commercial Store & Depot Gateway
+            </span>
+            <h1 className="font-display-italic text-2xl sm:text-[26px] font-semibold text-[#173A20]">
+              Sign in to Register your AgroStore
+            </h1>
+            <p className="text-xs sm:text-sm text-[#5C5245] max-w-md mx-auto leading-relaxed">
+              Registering an AgroStore enterprise unlocks wholesale lot publishing, multi-depot inventory tracking, and Smart Escrow pickup settlement. Please sign in or create an account to begin.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <button
+              type="button"
+              onClick={() => navigate('/auth/login')}
+              className="w-full py-3 px-5 rounded-full bg-[#4E8B3F] hover:bg-[#3D7030] text-white text-sm font-bold shadow-xs transition cursor-pointer"
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/auth/register')}
+              className="w-full py-3 px-5 rounded-full bg-[#EEF8F1] hover:bg-[#E1F3E7] border border-[#CCEBD5] text-[#173A20] text-sm font-bold transition cursor-pointer"
+            >
+              Create Account
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 min-h-[calc(100vh-4rem)] bg-white p-4 sm:p-6 lg:p-8">

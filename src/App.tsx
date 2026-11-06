@@ -12,6 +12,7 @@ import FarmManagementPage from './pages/FarmManagementPage';
 import RegisterFarmWizardPage from './pages/RegisterFarmWizardPage';
 import RegisterStoreWizardPage from './pages/RegisterStoreWizardPage';
 import FarmStorefrontPage from './pages/FarmStorefrontPage';
+import StoreStorefrontPage from './pages/StoreStorefrontPage';
 import AgroStorePage from './pages/AgroStorePage';
 import {
   FintechAndLoansPage,
@@ -59,10 +60,14 @@ export const App: React.FC = () => {
                 <Route path="/profile" element={<ProfilePage />} />
 
                 {/* AgroStore & Bulk Wholesale Hub */}
+                <Route path="/store/new" element={<RegisterStoreWizardPage />} />
+                <Route path="/store/manage" element={<AgroStorePage />} />
                 <Route path="/store" element={<AgroStorePage />} />
                 <Route path="/stores" element={<AgroStorePage />} />
                 <Route path="/agro-store" element={<AgroStorePage />} />
-                <Route path="/store/new" element={<RegisterStoreWizardPage />} />
+                <Route path="/store/:id" element={<StoreStorefrontPage />} />
+                <Route path="/stores/:id" element={<StoreStorefrontPage />} />
+                <Route path="/depot/:id" element={<StoreStorefrontPage />} />
 
                 {/* Ecosystem, Supply-Side & Fintech Modules */}
                 <Route path="/fintech/loans" element={<FintechAndLoansPage />} />

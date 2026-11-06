@@ -22,6 +22,7 @@ import {
   User,
   Plus,
   ArrowLeft,
+  Store,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useFavoritesStore } from '@/store/favoritesStore';
@@ -33,6 +34,7 @@ import {
   fetchYieldsApi,
   fetchMyOrdersApi,
   fetchMyFarmsApi,
+  fetchMyStoresApi,
   patronizeFarmApi,
   FALLBACK_POSTS,
 } from '@/api';
@@ -50,12 +52,13 @@ export const ProfilePage: React.FC = () => {
 
   const isOwner = Boolean(!userId || (currentUser?.id && userId === currentUser.id));
 
-  const [activeTab, setActiveTab] = useState<'farms' | 'orders' | 'posts' | 'wishlist'>('farms');
+  const [activeTab, setActiveTab] = useState<'farms' | 'stores' | 'orders' | 'posts' | 'wishlist'>('farms');
   const [wishlistFilter, setWishlistFilter] = useState<'all' | 'harvests' | 'stories'>('all');
   const [profileData, setProfileData] = useState<any>(null);
   const [profileLoading, setProfileLoading] = useState<boolean>(Boolean(userId && !isOwner));
   const [userPosts, setUserPosts] = useState<Post[]>([]);
   const [ordersList, setOrdersList] = useState<Order[]>([]);
+  const [userStoresList, setUserStoresList] = useState<any[]>([]);
   const [savedYieldsList, setSavedYieldsList] = useState<Yield[]>([]);
   const [savedPostsList, setSavedPostsList] = useState<Post[]>([]);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -118,31 +121,46 @@ export const ProfilePage: React.FC = () => {
       farms:
         currentUser?.farms && currentUser.farms.length > 0
           ? currentUser.farms
-          : profileData?.farms || fallbackDemoProfile.farms,
+          : profileData?.farms || [],
+      stores:
+        currentUser?.stores && currentUser.stores.length > 0
+          ? currentUser.stores
+          : userStoresList.length > 0
+            ? userStoresList
+            : profileData?.stores || [],
     }
     : profileData || {
-        id: userId,
-        name: 'Agrom Producer',
-        email: 'producer@agrom.app',
-        avatarUrl: '',
-        bio: 'Verified Agricultural Producer on Agrom',
-        farms: [],
-      };
+      id: userId,
+      name: 'Agrom Producer',
+      email: 'producer@agrom.app',
+      avatarUrl: '',
+      bio: 'Verified Agricultural Producer on Agrom',
+      farms: [],
+      stores: [],
+    };
 
   const userHasFarm = Boolean(targetUser?.farms && targetUser.farms.length > 0);
+  const userHasStore = Boolean((targetUser?.stores && targetUser.stores.length > 0) || userStoresList.length > 0);
 
   useEffect(() => {
     const load = async () => {
       if (isOwner && isAuthenticated) {
         try {
-          const [freshUser, freshFarms, myOrders] = await Promise.all([
+          const [freshUser, freshFarms, freshStores, myOrders] = await Promise.all([
             fetchCurrentUserApi().catch(() => null),
             fetchMyFarmsApi().catch(() => []),
+            fetchMyStoresApi().catch(() => []),
             fetchMyOrdersApi().catch(() => []),
           ]);
+          if (freshStores.length > 0) {
+            setUserStoresList(freshStores);
+          }
           if (freshUser) {
-            const combined =
-              freshFarms.length > 0 ? { ...freshUser, farms: freshFarms } : freshUser;
+            const combined = {
+              ...freshUser,
+              ...(freshFarms.length > 0 ? { farms: freshFarms } : {}),
+              ...(freshStores.length > 0 ? { stores: freshStores } : {}),
+            };
             updateUser(combined);
             setProfileData(combined);
           }
@@ -222,12 +240,29 @@ export const ProfilePage: React.FC = () => {
     }
   };
 
+  // Intelligent Tabs:
+  // - Shopper without farm or store: Orders & Wishlist only
+  // - Creator with farm: Farms & Stories
+  // - Creator with store: Stores
   const allTabs = [
-    { key: 'farms', label: 'Farms', icon: Warehouse },
+    ...(userHasFarm ? [{ key: 'farms', label: 'Farms', icon: Warehouse }] : []),
+    ...(userHasStore ? [{ key: 'stores', label: 'Stores', icon: Store }] : []),
+    ...(userHasFarm || userHasStore ? [{ key: 'posts', label: 'Stories', icon: Sparkles }] : []),
     ...(isOwner ? [{ key: 'orders', label: 'Orders', icon: ShoppingBag }] : []),
-    { key: 'posts', label: 'Posts', icon: Sparkles },
     ...(isOwner ? [{ key: 'wishlist', label: 'Wishlist', icon: BookmarkCheck }] : []),
-  ] as const;
+  ];
+
+  // Auto-switch to first valid tab if activeTab is not available
+  useEffect(() => {
+    const validKeys = allTabs.map((t) => t.key);
+    if (!validKeys.includes(activeTab)) {
+      if (validKeys.includes('orders')) {
+        setActiveTab('orders' as any);
+      } else if (validKeys.length > 0) {
+        setActiveTab(validKeys[0] as any);
+      }
+    }
+  }, [userHasFarm, userHasStore, isOwner]);
 
   // If viewing /profile/:userId where userId is actually the logged in user, redirect to /profile
   if (userId && currentUser?.id && userId === currentUser.id) {
@@ -336,37 +371,49 @@ export const ProfilePage: React.FC = () => {
           Pure White (#FFFFFF) + Mint (#EEF8F1) + Sage Border (#CCEBD5)
       ===================================================================== */}
       <div className="px-4 sm:px-6 pt-5 pb-0 bg-white border-b border-[#CCEBD5]">
-        {/* 1. Top Bar Navigation: Back on Left (if visiting another profile), Edit Profile on Top Right */}
+        {/* 1. Top Bar Navigation: Back & Brand on Left (if visiting another profile), Message / Edit Profile on Top Right */}
         <div className="flex items-center justify-between mb-4">
           {!isOwner ? (
-            <button
-              type="button"
-              onClick={() => navigate(-1)}
-              className="px-3.5 py-1.5 rounded-full bg-[#EEF8F1] hover:bg-[#E1F3E7] border border-[#CCEBD5] text-xs font-semibold text-[#241A12] cursor-pointer inline-flex items-center gap-1.5 transition"
-            >
-              <ArrowLeft size={14} />
-              <span>Back</span>
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => navigate(-1)}
+                className="px-3.5 py-1.5 rounded-full bg-[#EEF8F1] hover:bg-[#E1F3E7] border border-[#CCEBD5] text-xs font-semibold text-[#241A12] cursor-pointer inline-flex items-center gap-1.5 transition"
+              >
+                <ArrowLeft size={14} />
+                <span>Back</span>
+              </button>
+              <NavLink to="/" className="inline-flex items-center gap-1.5">
+                <MeetingLeafLogo size={26} showWordmark variant="light" />
+              </NavLink>
+            </div>
           ) : (
             <div />
           )}
 
-          {!isOwner && (
-            <NavLink to="/" className="inline-flex items-center gap-1.5">
-              <MeetingLeafLogo size={26} showWordmark variant="light" />
-            </NavLink>
-          )}
+          <div className="flex items-center gap-2">
+            {!isOwner && (
+              <button
+                type="button"
+                onClick={() => navigate(`/inbox?userId=${targetUser.id}`)}
+                className="inline-flex items-center gap-1.5 bg-[#4E8B3F] hover:bg-[#3D7030] text-white px-4 py-1.5 rounded-full text-xs font-bold transition shadow-xs cursor-pointer"
+              >
+                <MessageCircle size={15} strokeWidth={2.2} />
+                <span>Message</span>
+              </button>
+            )}
 
-          {isOwner && (
-            <button
-              type="button"
-              onClick={openEditModal}
-              className="inline-flex items-center gap-1.5 bg-[#EEF8F1] hover:bg-[#E1F3E7] border border-[#CCEBD5] px-4 py-1.5 rounded-full text-[13.5px] font-semibold text-[#4E8B3F] transition cursor-pointer"
-            >
-              <Edit3 size={15} strokeWidth={2.2} />
-              <span>Edit Profile</span>
-            </button>
-          )}
+            {isOwner && (
+              <button
+                type="button"
+                onClick={openEditModal}
+                className="inline-flex items-center gap-1.5 bg-[#EEF8F1] hover:bg-[#E1F3E7] border border-[#CCEBD5] px-4 py-1.5 rounded-full text-[13.5px] font-semibold text-[#4E8B3F] transition cursor-pointer"
+              >
+                <Edit3 size={15} strokeWidth={2.2} />
+                <span>Edit Profile</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* 2. Profile Info Row: Avatar on Left, Large Name, Email, Bio, Credit Badge on Right */}
@@ -415,80 +462,49 @@ export const ProfilePage: React.FC = () => {
           </div>
         </div>
 
-        {/* 3. Realtime Stats Bar (Farms, AgroPatrons, Patronized Farms, AgroVestors) */}
-        <div className="grid grid-cols-4 items-center bg-[#EEF8F1] border border-[#CCEBD5] rounded-2xl py-3.5 px-2 mb-4">
-          <div className="text-center border-r border-[#CCEBD5] px-1">
-            <div className="font-mono-num font-bold text-[17px] text-[#241A12]">
-              {targetUser?.farms?.length ?? 1}
+        {/* 3. Realtime Stats Bar - ONLY for Creator profiles with farms or stores */}
+        {(userHasFarm || userHasStore) && (
+          <div className="grid grid-cols-4 items-center bg-[#EEF8F1] border border-[#CCEBD5] rounded-2xl py-3.5 px-2 mb-4">
+            <div className="text-center border-r border-[#CCEBD5] px-1">
+              <div className="font-mono-num font-bold text-[17px] text-[#241A12]">
+                {targetUser?.farms?.length ?? 0}
+              </div>
+              <div className="text-[11.5px] font-medium text-[#5C5245] mt-0.5">Farms</div>
             </div>
-            <div className="text-[11.5px] font-medium text-[#5C5245] mt-0.5">Farms</div>
+
+            <div
+              onClick={() => setPatronModalVisible(true)}
+              className="text-center border-r border-[#CCEBD5] px-1 cursor-pointer hover:opacity-80"
+            >
+              <div className="font-mono-num font-bold text-[17px] text-[#241A12]">
+                {targetUser?.followersCount ?? 0}
+              </div>
+              <div className="text-[11.5px] font-medium text-[#5C5245] mt-0.5">AgroPatrons</div>
+            </div>
+
+            <div
+              onClick={() => navigate('/feed?tab=patronized')}
+              className="text-center border-r border-[#CCEBD5] px-1 cursor-pointer hover:opacity-80"
+            >
+              <div className="font-mono-num font-bold text-[17px] text-[#241A12]">
+                {targetUser?.followingCount ?? 0}
+              </div>
+              <div className="text-[11.5px] font-medium text-[#5C5245] mt-0.5">
+                Patronized Farms
+              </div>
+            </div>
+
+            <div
+              onClick={() => navigate('/fintech/loans')}
+              className="text-center px-1 cursor-pointer hover:opacity-80"
+            >
+              <div className="font-mono-num font-bold text-[17px] text-[#241A12]">
+                {targetUser?.agroVestorsCount ?? 0}
+              </div>
+              <div className="text-[11.5px] font-medium text-[#5C5245] mt-0.5">AgroVestors</div>
+            </div>
           </div>
-
-          <div
-            onClick={() => setPatronModalVisible(true)}
-            className="text-center border-r border-[#CCEBD5] px-1 cursor-pointer hover:opacity-80"
-          >
-            <div className="font-mono-num font-bold text-[17px] text-[#241A12]">
-              {targetUser?.followersCount ?? 148}
-            </div>
-            <div className="text-[11.5px] font-medium text-[#5C5245] mt-0.5">AgroPatrons</div>
-          </div>
-
-          <div
-            onClick={() => navigate('/feed?tab=patronized')}
-            className="text-center border-r border-[#CCEBD5] px-1 cursor-pointer hover:opacity-80"
-          >
-            <div className="font-mono-num font-bold text-[17px] text-[#241A12]">
-              {targetUser?.followingCount ?? 19}
-            </div>
-            <div className="text-[11.5px] font-medium text-[#5C5245] mt-0.5">
-              Patronized Farms
-            </div>
-          </div>
-
-          <div
-            onClick={() => navigate('/fintech/loans')}
-            className="text-center px-1 cursor-pointer hover:opacity-80"
-          >
-            <div className="font-mono-num font-bold text-[17px] text-[#241A12]">
-              {targetUser?.agroVestorsCount ?? 12}
-            </div>
-            <div className="text-[11.5px] font-medium text-[#5C5245] mt-0.5">AgroVestors</div>
-          </div>
-        </div>
-
-        {/* 4. Visitor Action Bar (Become an AgroPatron $2 & Message) */}
-        <div className="flex items-center gap-2.5 mb-3">
-          <button
-            type="button"
-            onClick={() => setPatronModalVisible(true)}
-            className={`flex-1 py-2.5 px-4 rounded-full text-xs sm:text-[13px] font-semibold inline-flex items-center justify-center gap-2 transition cursor-pointer ${isFollowing
-              ? 'bg-[#EEF8F1] border border-[#4E8B3F] text-[#4E8B3F]'
-              : 'bg-[#4E8B3F] hover:bg-[#3D7030] text-white'
-              }`}
-          >
-            {isFollowing ? (
-              <>
-                <UserCheck size={16} />
-                <span>AgroPatron Active ⭐ (8% Off)</span>
-              </>
-            ) : (
-              <>
-                <UserPlus size={16} />
-                <span>Become an AgroPatron ($2 / 1,200 FCFA)</span>
-              </>
-            )}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => navigate(`/inbox?userId=${targetUser.id}`)}
-            className="flex-1 py-2.5 px-4 rounded-full bg-[#EEF8F1] hover:bg-[#E1F3E7] border border-[#CCEBD5] text-[#241A12] text-xs sm:text-[13px] font-semibold inline-flex items-center justify-center gap-2 transition cursor-pointer"
-          >
-            <MessageCircle size={16} />
-            <span>Direct Message</span>
-          </button>
-        </div>
+        )}
 
         {/* 5. 4-Tab Bar (Farms, Orders, Posts, Wishlist) */}
         <div className="flex items-center border-t border-[#EEF8F1]">
@@ -642,7 +658,123 @@ export const ProfilePage: React.FC = () => {
           </div>
         )}
 
-        {/* TAB 2: ORDERS */}
+        {/* TAB: STORES */}
+        {activeTab === 'stores' && (
+          <div className="space-y-4">
+            {!userHasStore ? (
+              <div className="p-8 sm:p-10 rounded-3xl bg-[#FFF9EE] border border-[#F2DCAA] text-center space-y-3">
+                <div className="w-14 h-14 rounded-2xl bg-white border border-[#F2DCAA] flex items-center justify-center mx-auto text-[#E2A63C] shadow-xs">
+                  <Store size={28} strokeWidth={2} />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="font-bold text-base text-[#241A12]">No AgroStore Created Yet</h3>
+                  <p className="text-xs text-[#5C5245] max-w-sm mx-auto leading-relaxed">
+                    {isOwner
+                      ? 'Register your commercial depot to aggregate wholesale harvests, manage dispatch sheds, and sell bulk lots.'
+                      : 'This user does not currently manage any public commercial stores.'}
+                  </p>
+                </div>
+                {isOwner && (
+                  <button
+                    type="button"
+                    onClick={() => navigate('/store/new')}
+                    className="mt-2 inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#E2A63C] hover:bg-[#C68F30] text-[#241A12] text-xs font-bold transition shadow-xs cursor-pointer"
+                  >
+                    <Plus size={16} strokeWidth={2.5} />
+                    <span>+ Register Your AgroStore</span>
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Manage Stores Hub Banner - Only for Owner */}
+                {isOwner && (
+                  <div
+                    onClick={() => navigate('/store')}
+                    className="flex items-center justify-between bg-[#FFF9EE] hover:bg-[#FEF2D8] border border-[#F2DCAA] p-4 rounded-2xl cursor-pointer transition"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-11 h-11 rounded-xl bg-[#E2A63C] text-[#241A12] flex items-center justify-center shadow-sm">
+                        <Store size={22} />
+                      </div>
+                      <div>
+                        <div className="font-display font-bold text-[15px] text-[#241A12]">
+                          Manage AgroStores & Depot Lots
+                        </div>
+                        <div className="text-xs text-[#5C5245]">
+                          Manage bulk lots, tenders, cold storage sheds and dispatch hubs
+                        </div>
+                      </div>
+                    </div>
+                    <div className="w-8 h-8 rounded-full bg-white border border-[#F2DCAA] flex items-center justify-center text-[#B87D1E]">
+                      <ChevronRight size={18} />
+                    </div>
+                  </div>
+                )}
+
+                {/* Section Header with + New Store Button */}
+                <div className="flex items-center justify-between pt-1">
+                  <h3 className="font-bold text-sm text-[#241A12]">
+                    Registered AgroStores ({((targetUser?.stores || userStoresList) || []).length})
+                  </h3>
+                  {isOwner && (
+                    <button
+                      type="button"
+                      onClick={() => navigate('/store/new')}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#E2A63C] hover:bg-[#C68F30] text-[#241A12] text-xs font-bold shadow-xs transition cursor-pointer"
+                    >
+                      <Plus size={14} strokeWidth={2.5} />
+                      <span>+ New Store</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Store Cards List */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {((targetUser?.stores || userStoresList) || []).map((st: any) => (
+                    <div
+                      key={st.id}
+                      onClick={() => navigate(`/store/${st.slug || st.id}`)}
+                      className="bg-white rounded-2xl border border-[#F2DCAA] hover:border-[#E2A63C] overflow-hidden shadow-xs transition cursor-pointer"
+                    >
+                      <div className="h-36 bg-[#FFF9EE] relative">
+                        <img
+                          src={
+                            st.coverPhoto ||
+                            'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800'
+                          }
+                          alt={st.name}
+                          className="w-full h-full object-cover"
+                        />
+                        <span className="absolute top-3 left-3 bg-[#FFF9EE]/95 text-[#241A12] border border-[#F2DCAA] text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+                          {st.storeType || 'WHOLESALE_DEPOT'} • {st.storageCapacityTons || 5} Tons
+                        </span>
+                      </div>
+                      <div className="p-4 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-bold text-base text-[#241A12]">{st.name}</h3>
+                          <span className="inline-flex items-center gap-1 text-xs font-mono-num font-bold text-[#241A12]">
+                            <Star size={13} className="fill-[#E2A63C] text-[#E2A63C]" />
+                            {st.rating || 5.0}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs text-[#5C5245]">
+                          <div className="flex items-center gap-1">
+                            <MapPin size={13} className="text-[#B87D1E]" />
+                            <span>
+                              {st.marketZone ? `${st.marketZone}, ` : ''}{st.city}
+                            </span>
+                          </div>
+                          <span className="text-[#B87D1E] font-bold">View Store Profile →</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
         {activeTab === 'orders' && (
           <div className="space-y-3">
             {ordersList.length === 0 ? (

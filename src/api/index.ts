@@ -622,6 +622,24 @@ export const createYieldApi = async (data: any): Promise<Yield> => {
 // ============================================================================
 // AGROSTORE & WHOLESALER PROFILE API
 // ============================================================================
+export const fetchPublicFarmsApi = async (params?: { search?: string; region?: string; category?: string }): Promise<any[]> => {
+  try {
+    const res = await apiClient.get('/farms', { params });
+    return Array.isArray(res.data) ? res.data : [];
+  } catch {
+    return [];
+  }
+};
+
+export const fetchPublicStoresApi = async (params?: { search?: string; region?: string }): Promise<any[]> => {
+  try {
+    const res = await apiClient.get('/wholesaler', { params });
+    return Array.isArray(res.data) ? res.data : [];
+  } catch {
+    return [];
+  }
+};
+
 export const fetchWholesalerProfileApi = async (): Promise<any> => {
   try {
     const res = await apiClient.get('/wholesaler/me');

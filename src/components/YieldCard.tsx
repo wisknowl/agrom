@@ -35,9 +35,14 @@ export const YieldCard: React.FC<YieldCardProps> = ({ item }) => {
   const farmer = item.farmer || (farm as any)?.farmerProfile;
   const farmerUser = farmer?.user || (farm as any)?.user;
   const farmerTargetId = farmerUser?.id || (farm as any)?.userId || item.farmerId;
+  const isStoreOrigin = Boolean(item.storeId || item.sourceType === 'STORE');
+  const storeDisplay = item.storeName || (item as any).store?.name;
+  const storeSlugOrId = (item as any).store?.slug || item.storeId;
+  const farmSlugOrId = farm?.slug || farm?.id;
   const provenanceLocation =
-    item.originRegion ||
-    (farm?.name ? `${farm.name} • ${farm.city || farm.region}` : farm?.city || 'Cameroon');
+    storeDisplay
+      ? `${storeDisplay} • Depot`
+      : (farm?.name ? `${farm.name} • ${farm.city || farm.region}` : (item.originRegion || farm?.city || 'Cameroon'));
   const creditTier = farmer?.creditTier || 'GOLD';
 
   const handleAddToCart = (e: React.MouseEvent) => {
@@ -149,10 +154,21 @@ export const YieldCard: React.FC<YieldCardProps> = ({ item }) => {
             )}
           </div>
 
-          {/* Provenance / Farm Location */}
-          <div className="flex items-center gap-1 text-xs text-[#5C5245] mt-1.5">
-            <MapPin size={12} className="text-[#4E8B3F] shrink-0" />
-            <span className="truncate">{provenanceLocation}</span>
+          {/* Provenance / Farm / Store Location */}
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              if (isStoreOrigin && storeSlugOrId) {
+                navigate(`/store/${storeSlugOrId}`);
+              } else if (farmSlugOrId) {
+                navigate(`/farm/${farmSlugOrId}`);
+              }
+            }}
+            className="flex items-center gap-1 text-xs text-[#5C5245] hover:text-[#173A20] mt-1.5 cursor-pointer"
+            title={isStoreOrigin ? 'View Store Profile' : 'View Farm Storefront'}
+          >
+            <MapPin size={12} className={isStoreOrigin ? 'text-[#E2A63C] shrink-0' : 'text-[#4E8B3F] shrink-0'} />
+            <span className="truncate hover:underline">{provenanceLocation}</span>
           </div>
         </div>
 

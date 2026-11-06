@@ -120,17 +120,20 @@ export interface User {
   isAdmin?: boolean;
   isVerified?: boolean;
   farms?: Farm[];
+  stores?: any[];
   creditScore?: number | string;
   farmerProfile?: FarmerProfile;
   followersCount?: number;
   followingCount?: number;
   farmsCount?: number;
+  storesCount?: number;
   postsCount?: number;
   agroVestorsCount?: number;
   _count?: {
     followers?: number;
     following?: number;
     farms?: number;
+    stores?: number;
     posts?: number;
   };
 }
