@@ -3,17 +3,23 @@ import { useNavigate } from 'react-router-dom';
 import {
   X,
   Sparkles,
+  Home,
+  Sprout,
   Wallet,
   ShieldCheck,
-  Plus,
-  Truck,
-  TrendingUp,
-  Crown,
-  ShieldAlert,
+  Warehouse,
   Store,
+  MessageSquare,
+  User,
   ChevronRight,
   LogOut,
+  /*
+  TrendingUp,
+  Crown,
+  Truck,
+  */
 } from 'lucide-react';
+import MeetingLeafLogo from './MeetingLeafLogo';
 import { useRegionalContainerStore } from '@/store/regionalContainerStore';
 import { useAuthStore } from '@/store/authStore';
 
@@ -29,6 +35,9 @@ export const EcosystemDrawer: React.FC = () => {
 
   if (!isEcosystemDrawerOpen) return null;
 
+  const hasFarms = Boolean(user?.farms && user.farms.length > 0);
+  const hasStores = Boolean(user?.stores && user.stores.length > 0);
+
   const go = (path: string) => {
     setEcosystemDrawerOpen(false);
     navigate(path);
@@ -36,29 +45,50 @@ export const EcosystemDrawer: React.FC = () => {
 
   const menuItems = [
     {
-      path: '/wallet',
-      icon: <Wallet size={18} className="text-[#4E8B3F]" />,
+      path: '/',
+      icon: <Sprout size={18} className="text-[#4E8B3F]" />,
       bg: 'bg-[#EEF8F1]',
-      title: 'AgroWallet',
+      title: 'AgroMarket',
+    },
+    {
+      path: '/feed',
+      icon: <Home size={18} className="text-[#4E8B3F]" />,
+      bg: 'bg-[#EEF8F1]',
+      title: 'AgroFeed',
     },
     {
       path: '/orders',
       icon: <ShieldCheck size={18} className="text-[#4E8B3F]" />,
       bg: 'bg-[#EEF8F1]',
-      title: 'Smart Escrow',
+      title: 'My Orders & Escrow',
     },
     {
-      path: '/store',
-      icon: <Store size={18} className="text-[#E2A63C]" />,
-      bg: 'bg-[#FEF6E8]',
-      title: 'Store Management',
-    },
-    {
-      path: '/farmer/manage',
-      icon: <Plus size={18} className="text-[#4E8B3F]" />,
+      path: '/wallet',
+      icon: <Wallet size={18} className="text-[#4E8B3F]" />,
       bg: 'bg-[#EEF8F1]',
-      title: 'My AgroFarms',
+      title: 'AgroWallet',
     },
+    ...(hasFarms || user?.role === 'FARMER'
+      ? [
+        {
+          path: '/farmer/manage',
+          icon: <Warehouse size={18} className="text-[#4E8B3F]" />,
+          bg: 'bg-[#EEF8F1]',
+          title: 'My AgroFarms',
+        },
+      ]
+      : []),
+    ...(hasStores || user?.role === 'WHOLESALER'
+      ? [
+        {
+          path: '/store',
+          icon: <Store size={18} className="text-[#E2A63C]" />,
+          bg: 'bg-[#FEF6E8]',
+          title: 'My AgroStores',
+        },
+      ]
+      : []),
+    /*
     {
       path: '/fintech/loans',
       icon: <TrendingUp size={18} className="text-[#4E8B3F]" />,
@@ -77,11 +107,18 @@ export const EcosystemDrawer: React.FC = () => {
       bg: 'bg-[#EEF8F1]',
       title: 'Platform Architecture',
     },
+    */
     {
-      path: '/admin',
-      icon: <ShieldAlert size={18} className="text-[#B54A34]" />,
-      bg: 'bg-[#FDF3F1]',
-      title: 'Admin Console',
+      path: '/inbox',
+      icon: <MessageSquare size={18} className="text-[#4E8B3F]" />,
+      bg: 'bg-[#EEF8F1]',
+      title: 'AgroInbox',
+    },
+    {
+      path: '/profile',
+      icon: <User size={18} className="text-[#4E8B3F]" />,
+      bg: 'bg-[#EEF8F1]',
+      title: 'My Profile',
     },
   ];
 
@@ -96,13 +133,16 @@ export const EcosystemDrawer: React.FC = () => {
       {/* Right-to-Left Sliding Panel */}
       <div className="relative z-10 w-full max-w-[360px] bg-white h-full shadow-2xl border-l border-[#CCEBD5] flex flex-col justify-between overflow-y-auto">
         <div className="p-5">
-          {/* Header */}
-          <div className="flex items-center justify-between pb-4 border-b border-[#CCEBD5]">
-            <div className="flex items-center gap-2">
-              <Sparkles size={18} className="text-[#E2A63C]" />
-              <span className="font-display-italic text-lg text-[#173A20] font-medium">
-                Manage Ecosystem
-              </span>
+          {/* Header (No 'Manage Ecosystem' text, no star icon) */}
+          <div className="flex items-center justify-between pb-4 border-b border-[#CCEBD5] mb-3">
+            <div
+              onClick={() => {
+                setEcosystemDrawerOpen(false);
+                navigate('/');
+              }}
+              className="cursor-pointer"
+            >
+              <MeetingLeafLogo size={32} showWordmark variant="light" />
             </div>
 
             <div className="flex items-center gap-2">
@@ -125,8 +165,17 @@ export const EcosystemDrawer: React.FC = () => {
             </div>
           </div>
 
-          {/* Ecosystem Navigation Items */}
-          <div className="mt-4 space-y-1">
+          {/* Prominent Mobile CTA: Publish Your AgroProduce (Navigates to /publish with Growth-to-Harvest & Vibration Animation, No Star Icon) */}
+          <button
+            type="button"
+            onClick={() => go('/publish')}
+            className="w-full flex items-center justify-center py-3 rounded-xl text-white font-bold text-xs shadow-xs mb-3 transition cursor-pointer btn-growth-harvest-animated border"
+          >
+            <span>Publish Your AgroProduce</span>
+          </button>
+
+          {/* Intelligent Navigation Items matching Sidebar */}
+          <div className="space-y-1">
             {menuItems.map((item) => (
               <button
                 key={item.path}
@@ -156,7 +205,7 @@ export const EcosystemDrawer: React.FC = () => {
             <div className="flex items-center justify-between gap-2">
               <div className="min-w-0">
                 <div className="text-xs font-bold text-[#241A12] truncate">{user.name}</div>
-                <div className="text-[11px] text-[#5C5245] truncate">{user.email}</div>
+                <div className="text-[11px] text-[#5C5245] truncate">{user.email || user.phone}</div>
               </div>
               <button
                 type="button"

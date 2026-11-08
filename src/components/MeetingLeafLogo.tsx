@@ -9,19 +9,25 @@ export const MeetingLeafLogo: React.FC<{
 }> = ({ size = 36, showWordmark = true, variant = 'light' }) => {
   const wordmarkColor = variant === 'dark' ? '#F6EEDD' : '#173A20';
 
+  // Natural leaf aspect ratio is 516/839 (~0.615).
+  // Set exact slim width matching the visual contours so it sits directly against 'Agrom'
+  // like a stylized leading emblem letter (leafAgrom) without any whitespace or gutter.
+  const leafHeight = size;
+  const leafWidth = Math.round(leafHeight * 0.50);
+
   return (
-    <div className="inline-flex items-center gap-2.5 select-none">
+    <div className="inline-flex items-center gap-0 select-none">
       <img
         src="/assets/agromarket.png"
-        alt="Agrom Logo"
-        style={{ width: size, height: size }}
-        className="shrink-0 object-contain"
+        alt="Agrom Leaf"
+        style={{ width: leafWidth, height: leafHeight }}
+        className="shrink-0 object-contain -mr-[1px]"
       />
 
       {showWordmark && (
         <span
-          className="font-display font-semibold tracking-tight leading-none"
-          style={{ color: wordmarkColor, fontSize: Math.max(size * 0.68, 20) }}
+          className="font-display font-bold tracking-tight leading-none"
+          style={{ color: wordmarkColor, fontSize: Math.max(size * 0.72, 21) }}
         >
           Agrom
         </span>

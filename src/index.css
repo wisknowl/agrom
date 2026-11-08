@@ -92,3 +92,73 @@ body {
 .pb-safe-nav {
   padding-bottom: calc(74px + env(safe-area-inset-bottom, 0px));
 }
+
+/* =====================================================================
+   Growth-to-Harvest Color Shift & Alarm-Clock Vibration Animation
+   Transitions from lush vegetative green to ripe golden harvest amber,
+   and violently shakes like a vibrating alarm clock / disturbing child.
+===================================================================== */
+@keyframes growthHarvestCycle {
+
+  0%,
+  77%,
+  100% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+
+  0%,
+  100% {
+    background-color: #38762D;
+    border-color: #2D6124;
+    box-shadow: 0 4px 14px rgba(56, 118, 45, 0.35);
+  }
+
+  48%,
+  56% {
+    background-color: #D48B1E;
+    border-color: #B57414;
+    box-shadow: 0 4px 14px rgba(212, 139, 30, 0.40);
+  }
+
+  /* Violent alarm-clock shake between 78% and 94% */
+  78% {
+    transform: translate(-3px, -2px) rotate(-4deg) scale(1.05);
+  }
+
+  80% {
+    transform: translate(3px, 2px) rotate(4deg) scale(1.05);
+  }
+
+  82% {
+    transform: translate(-4px, 1px) rotate(-5deg) scale(1.06);
+  }
+
+  84% {
+    transform: translate(4px, -1px) rotate(5deg) scale(1.06);
+  }
+
+  86% {
+    transform: translate(-3px, 2px) rotate(-4deg) scale(1.05);
+  }
+
+  88% {
+    transform: translate(3px, -2px) rotate(4deg) scale(1.05);
+  }
+
+  90% {
+    transform: translate(-2px, 1px) rotate(-2deg) scale(1.03);
+  }
+
+  92% {
+    transform: translate(2px, -1px) rotate(2deg) scale(1.02);
+  }
+
+  94% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+}
+
+.btn-growth-harvest-animated {
+  animation: growthHarvestCycle 5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  will-change: background-color, border-color, box-shadow, transform;
+}

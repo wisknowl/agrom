@@ -6,12 +6,15 @@ import {
   ShoppingBag,
   Warehouse,
   Store,
+  MapPin,
+  X,
 } from 'lucide-react';
 import { fetchYieldsApi, fetchCategoriesApi, fetchPublicFarmsApi, fetchPublicStoresApi } from '@/api';
 import { Yield } from '@/types';
 import YieldCard from '@/components/YieldCard';
 import { useCartStore } from '@/store/cartStore';
 import { useRegionalContainerStore } from '@/store/regionalContainerStore';
+import { useSearchStore } from '@/store/searchStore';
 import { formatXaf } from '@/utils/media';
 
 const STATIC_CATEGORIES = [
@@ -32,7 +35,7 @@ export const LandingMarketPage: React.FC = () => {
   const [categories, setCategories] = useState<string[]>(STATIC_CATEGORIES);
   const [produceSourceFilter, setProduceSourceFilter] = useState<'all' | 'direct' | 'instore'>('all');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [searchQuery, setSearchQuery] = useState('');
+  const { searchQuery, setSearchQuery, selectedRegion, setSelectedRegion } = useSearchStore();
   const [loading, setLoading] = useState(true);
 
   const cartItemCount = useCartStore((s) => s.getItemCount());
@@ -78,7 +81,7 @@ export const LandingMarketPage: React.FC = () => {
       item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       catName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       farmName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (item.originRegion && item.originRegion.toLowerCase().includes(searchQuery.toLowerCase()));
+      Boolean(item.originRegion && item.originRegion.toLowerCase().includes(searchQuery.toLowerCase()));
 
     const matchesCategory =
       selectedCategory === 'All' ||
@@ -92,63 +95,81 @@ export const LandingMarketPage: React.FC = () => {
       (produceSourceFilter === 'direct' && !isStoreProduce) ||
       (produceSourceFilter === 'instore' && isStoreProduce);
 
-    return matchesSearch && matchesCategory && matchesSource;
+    const matchesRegion =
+      !selectedRegion ||
+      Boolean(item.originRegion && item.originRegion.toLowerCase().includes(selectedRegion.toLowerCase())) ||
+      Boolean(item.farm?.region && item.farm.region.toLowerCase().includes(selectedRegion.toLowerCase())) ||
+      Boolean(item.farm?.city && item.farm.city.toLowerCase().includes(selectedRegion.toLowerCase()));
+
+    return matchesSearch && matchesCategory && matchesSource && matchesRegion;
   });
 
   // Filtered Farms Directory
   const filteredFarms = farmsList.filter((farm) => {
-    return (
+    const matchesSearch =
       searchQuery.trim() === '' ||
       farm.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       farm.city?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       farm.region?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      farm.category?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+      farm.category?.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesRegion =
+      !selectedRegion ||
+      Boolean(farm.region && farm.region.toLowerCase().includes(selectedRegion.toLowerCase())) ||
+      Boolean(farm.city && farm.city.toLowerCase().includes(selectedRegion.toLowerCase()));
+
+    return matchesSearch && matchesRegion;
   });
 
   // Filtered Stores Directory
   const filteredStores = storesList.filter((st) => {
-    return (
+    const matchesSearch =
       searchQuery.trim() === '' ||
       st.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       st.city?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       st.region?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      st.marketZone?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+      st.marketZone?.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesRegion =
+      !selectedRegion ||
+      Boolean(st.region && st.region.toLowerCase().includes(selectedRegion.toLowerCase())) ||
+      Boolean(st.city && st.city.toLowerCase().includes(selectedRegion.toLowerCase())) ||
+      Boolean(st.marketZone && st.marketZone.toLowerCase().includes(selectedRegion.toLowerCase()));
+
+    return matchesSearch && matchesRegion;
   });
 
   return (
-    <div className="px-8 py-5 space-y-4 w-full">
+    <div className="px-[11px] py-4 space-y-4 w-full">
       {/* =====================================================================
-          COMPACT CENTERED SEARCH BAR (No Exaggerated Padding)
+          COMPACT SEARCH BAR (Mobile Viewport Only - Desktop Uses Header Command Bar)
       ===================================================================== */}
       <section className="space-y-3.5">
-        <div className="flex justify-center w-full">
-          <div className="relative w-full max-w-xl">
-            <Search
-              size={16}
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#4E8B3F]"
-            />
+        <div className="flex md:hidden justify-center w-full">
+          <div className="relative w-full flex items-center bg-[#F9FBF9] focus-within:bg-white border border-[#CCEBD5] focus-within:border-[#4E8B3F] rounded-xl overflow-hidden shadow-2xs transition">
+            <div className="h-11 w-11 shrink-0 bg-[#4E8B3F] flex items-center justify-center text-white pointer-events-none">
+              <Search size={18} strokeWidth={2.4} />
+            </div>
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search fresh harvests, Foumbot tomatoes, Santa potatoes, Penja pepper..."
-              className="w-full pl-9 pr-14 py-2 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] text-xs sm:text-[13px] text-[#241A12] placeholder:text-[#5C5245]/70 focus:outline-none focus:border-[#4E8B3F] focus:bg-white transition"
+              placeholder="Search fresh harvests, Foumbot tomatoes, Santa potatoes..."
+              className="w-full h-11 px-3 bg-transparent text-xs sm:text-sm font-medium text-[#241A12] placeholder-[#8F8475] outline-none"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#4E8B3F] hover:underline cursor-pointer"
+                className="pr-3 flex items-center text-[#8F8475] hover:text-[#241A12] text-xs font-semibold cursor-pointer"
               >
-                Clear
+                <X size={15} />
               </button>
             )}
           </div>
         </div>
 
-        {/* Market Scope Selector: Harvest Produce | Direct Farms | AgroStores */}
+        {/* Market Scope Selector: AgroProduce | Direct Farms | AgroStores */}
         <div className="flex flex-wrap items-center justify-center gap-2">
           {/* Level 1: Market Catalog Mode */}
           <div className="flex items-center gap-1.5 p-1 bg-[#EEF8F1] rounded-full border border-[#CCEBD5]">
@@ -158,10 +179,9 @@ export const LandingMarketPage: React.FC = () => {
               className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${marketView === 'produce'
                 ? 'bg-[#173A20] text-white shadow-xs'
                 : 'text-[#241A12] hover:text-[#4E8B3F]'
-              }`}
+                }`}
             >
-              <Sparkles size={13} className="text-[#F5C77E]" />
-              <span>Harvest Produce</span>
+              <span>AgroProduce</span>
             </button>
 
             <button
@@ -170,10 +190,10 @@ export const LandingMarketPage: React.FC = () => {
               className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${marketView === 'farms'
                 ? 'bg-[#4E8B3F] text-white shadow-xs'
                 : 'text-[#241A12] hover:text-[#4E8B3F]'
-              }`}
+                }`}
             >
               <Warehouse size={13} />
-              <span>AgroFarms ({farmsList.length})</span>
+              <span>AgroFarms</span>
             </button>
 
             <button
@@ -182,10 +202,10 @@ export const LandingMarketPage: React.FC = () => {
               className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${marketView === 'stores'
                 ? 'bg-[#E2A63C] text-[#241A12] shadow-xs'
                 : 'text-[#241A12] hover:text-[#B87D18]'
-              }`}
+                }`}
             >
               <Store size={13} />
-              <span>AgroStores ({storesList.length})</span>
+              <span>AgroStores</span>
             </button>
           </div>
 
@@ -200,7 +220,7 @@ export const LandingMarketPage: React.FC = () => {
                   className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition cursor-pointer ${produceSourceFilter === 'all'
                     ? 'bg-[#241A12] text-white'
                     : 'text-[#5C5245] hover:text-[#241A12]'
-                  }`}
+                    }`}
                 >
                   All
                 </button>
@@ -210,7 +230,7 @@ export const LandingMarketPage: React.FC = () => {
                   className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition cursor-pointer ${produceSourceFilter === 'direct'
                     ? 'bg-[#4E8B3F] text-white'
                     : 'text-[#5C5245] hover:text-[#4E8B3F]'
-                  }`}
+                    }`}
                 >
                   Direct Farms
                 </button>
@@ -220,7 +240,7 @@ export const LandingMarketPage: React.FC = () => {
                   className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition cursor-pointer ${produceSourceFilter === 'instore'
                     ? 'bg-[#E2A63C] text-[#241A12]'
                     : 'text-[#5C5245] hover:text-[#B87D18]'
-                  }`}
+                    }`}
                 >
                   In Stores
                 </button>
@@ -241,8 +261,8 @@ export const LandingMarketPage: React.FC = () => {
                       type="button"
                       onClick={() => setSelectedCategory(cat)}
                       className={`px-3 py-1 rounded-full text-xs font-semibold border whitespace-nowrap transition cursor-pointer ${active
-                          ? 'bg-[#4E8B3F] text-white border-[#4E8B3F] shadow-xs'
-                          : 'bg-[#EEF8F1] text-[#241A12] border-[#CCEBD5] hover:border-[#4E8B3F]'
+                        ? 'bg-[#4E8B3F] text-white border-[#4E8B3F] shadow-xs'
+                        : 'bg-[#EEF8F1] text-[#241A12] border-[#CCEBD5] hover:border-[#4E8B3F]'
                         }`}
                     >
                       {cat}
@@ -252,13 +272,29 @@ export const LandingMarketPage: React.FC = () => {
               </div>
             </>
           )}
+
+          {/* Active Region Filter Pill (when selected via header location button) */}
+          {selectedRegion && (
+            <div className="flex items-center gap-1.5 bg-[#EEF8F1] border border-[#4E8B3F] pl-2.5 pr-1.5 py-1 rounded-full text-xs font-bold text-[#173A20] shrink-0">
+              <MapPin size={12} className="text-[#4E8B3F]" />
+              <span>{selectedRegion}</span>
+              <button
+                type="button"
+                onClick={() => setSelectedRegion('')}
+                className="w-4 h-4 rounded-full bg-[#CCEBD5] hover:bg-[#4E8B3F] hover:text-white flex items-center justify-center text-[#173A20] text-[10px] ml-0.5 transition cursor-pointer"
+                title="Clear region filter"
+              >
+                ×
+              </button>
+            </div>
+          )}
         </div>
 
         {/* ===================================================================
             AGROMARKET DYNAMIC CONTENT (Produce | Farms Directory | Stores Directory)
         =================================================================== */}
         {loading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-[11px] sm:gap-4 lg:gap-5">
             {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
               <div
                 key={n}
@@ -291,7 +327,7 @@ export const LandingMarketPage: React.FC = () => {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-[11px] sm:gap-4 lg:gap-5">
               {filteredYields.map((item) => (
                 <YieldCard key={item.id} item={item} />
               ))}
@@ -309,7 +345,7 @@ export const LandingMarketPage: React.FC = () => {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[11px] sm:gap-4 lg:gap-5">
               {filteredFarms.map((farm: any) => (
                 <div
                   key={farm.id}
@@ -342,9 +378,9 @@ export const LandingMarketPage: React.FC = () => {
           )
         ) : (
           filteredStores.length === 0 ? (
-            <div className="bg-[#FFF9EE] border border-[#F2DCAA] rounded-2xl p-10 text-center space-y-2">
-              <Store size={36} className="text-[#E2A63C] mx-auto" />
-              <h3 className="font-display-italic text-lg text-[#241A12] font-semibold">
+            <div className="bg-[#EEF8F1] border border-[#CCEBD5] rounded-2xl p-10 text-center space-y-2">
+              <Store size={36} className="text-[#4E8B3F] mx-auto" />
+              <h3 className="font-display-italic text-lg text-[#173A20] font-semibold">
                 No Commercial AgroStores Match Your Search
               </h3>
               <p className="text-xs text-[#5C5245] max-w-sm mx-auto">
@@ -352,31 +388,31 @@ export const LandingMarketPage: React.FC = () => {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[11px] sm:gap-4 lg:gap-5">
               {filteredStores.map((st: any) => (
                 <div
                   key={st.id}
                   onClick={() => navigate(`/store/${st.slug || st.id}`)}
-                  className="bg-white rounded-2xl border border-[#F2DCAA] hover:border-[#E2A63C] overflow-hidden shadow-xs hover:shadow-md transition cursor-pointer flex flex-col"
+                  className="bg-white rounded-2xl border border-[#CCEBD5] hover:border-[#4E8B3F] overflow-hidden shadow-xs hover:shadow-md transition cursor-pointer flex flex-col"
                 >
-                  <div className="h-40 bg-[#FFF9EE] relative">
+                  <div className="h-40 bg-[#EEF8F1] relative">
                     <img
                       src={st.coverPhoto || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800'}
                       alt={st.name}
                       className="w-full h-full object-cover"
                     />
-                    <span className="absolute top-3 left-3 bg-[#FFF9EE]/95 text-[#241A12] border border-[#F2DCAA] text-[11px] font-bold px-2.5 py-0.5 rounded-full">
-                      {st.storeType || 'WHOLESALE_DEPOT'} • {st.storageCapacityTons || 10} Tons
+                    <span className="absolute top-3 left-3 bg-[#EEF8F1]/95 text-[#173A20] border border-[#CCEBD5] text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+                      {(st.storeType || 'WHOLESALE_DEPOT').replace('_', ' ')} • {st.storageCapacityTons || 10} Tons
                     </span>
                   </div>
                   <div className="p-4 flex-1 flex flex-col justify-between space-y-2">
                     <div>
-                      <h4 className="font-bold text-base text-[#241A12] leading-snug">{st.name}</h4>
+                      <h4 className="font-bold text-base text-[#173A20] leading-snug">{st.name}</h4>
                       <p className="text-xs text-[#5C5245] line-clamp-2 mt-1">{st.description || 'Verified commercial depot hub.'}</p>
                     </div>
-                    <div className="pt-2 border-t border-[#FFF9EE] flex items-center justify-between text-xs text-[#5C5245]">
-                      <span className="font-semibold">{st.marketZone || st.city || 'Depot'}</span>
-                      <span className="text-[#B87D18] font-bold">View Store Profile →</span>
+                    <div className="pt-2 border-t border-[#EEF8F1] flex items-center justify-between text-xs text-[#5C5245]">
+                      <span className="font-semibold">{st.marketZone || st.city || 'Commercial Depot'}</span>
+                      <span className="text-[#4E8B3F] font-bold">View Store Profile →</span>
                     </div>
                   </div>
                 </div>

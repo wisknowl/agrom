@@ -14,6 +14,7 @@ import RegisterStoreWizardPage from './pages/RegisterStoreWizardPage';
 import FarmStorefrontPage from './pages/FarmStorefrontPage';
 import StoreStorefrontPage from './pages/StoreStorefrontPage';
 import AgroStorePage from './pages/AgroStorePage';
+import PublishChannelChooserPage from './pages/PublishChannelChooserPage';
 import {
   FintechAndLoansPage,
   WalletPage,
@@ -27,6 +28,7 @@ export const App: React.FC = () => {
     <BrowserRouter>
       <Routes>
         {/* Standalone Authentication & Public Profile Routes (No Header / No Sidebar / No Bottom Navbar) */}
+        <Route path="/auth" element={<Navigate to="/auth/login" replace />} />
         <Route path="/auth/login" element={<LoginPage />} />
         <Route path="/auth/register" element={<RegisterPage />} />
         <Route path="/profile/:userId" element={<ProfilePage />} />
@@ -58,6 +60,7 @@ export const App: React.FC = () => {
 
                 {/* Profile & Ecosystem Command Center (100% Parity with profile.tsx) */}
                 <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/publish" element={<PublishChannelChooserPage />} />
 
                 {/* AgroStore & Bulk Wholesale Hub */}
                 <Route path="/store/new" element={<RegisterStoreWizardPage />} />

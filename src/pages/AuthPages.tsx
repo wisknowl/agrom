@@ -156,7 +156,7 @@ export const LoginPage: React.FC = () => {
               disabled={loading}
               className="w-full mt-2 py-3.5 rounded-full bg-[#4E8B3F] hover:bg-[#3D7030] disabled:opacity-60 text-white text-sm font-bold shadow-xs transition cursor-pointer"
             >
-              {loading ? 'Verifying with Database...' : 'Sign In'}
+              {loading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
 
@@ -306,7 +306,7 @@ export const RegisterPage: React.FC = () => {
     <div className="min-h-screen bg-white text-[#241A12] flex flex-col items-center justify-center px-4 py-8 sm:py-12">
       <div className="w-full max-w-[430px] flex flex-col items-center">
         {/* Top Header Row (Back Button + Centered Logo) */}
-        <div className="w-full flex items-center justify-between mb-4">
+        <div className="w-full flex items-center justify-between mb-5">
           <button
             type="button"
             onClick={() => navigate('/auth/login')}
@@ -316,7 +316,7 @@ export const RegisterPage: React.FC = () => {
             <ArrowLeft size={20} strokeWidth={2.2} />
           </button>
           <div onClick={() => navigate('/')} className="cursor-pointer">
-            <MeetingLeafLogo size={38} showWordmark variant="light" />
+            <MeetingLeafLogo size={56} showWordmark variant="light" />
           </div>
           <div className="w-10" />
         </div>
@@ -436,7 +436,7 @@ export const RegisterPage: React.FC = () => {
               disabled={loading}
               className="w-full mt-2 py-3.5 rounded-full bg-[#4E8B3F] hover:bg-[#3D7030] disabled:opacity-60 text-white text-sm font-bold shadow-xs transition cursor-pointer"
             >
-              {loading ? 'Registering in Database...' : 'Create Account'}
+              {loading ? 'Creating account...' : 'Create Account'}
             </button>
           </form>
         </div>

@@ -279,12 +279,12 @@ export const RegisterStoreWizardPage: React.FC = () => {
     return (
       <div className="max-w-xl mx-auto px-4 py-12 sm:py-16">
         <div className="bg-white rounded-3xl border border-[#CCEBD5] p-6 sm:p-8 text-center space-y-5 shadow-[0_8px_30px_rgba(23,58,32,0.06)]">
-          <div className="w-16 h-16 rounded-full bg-[#FFF9EE] border border-[#F2DCAA] flex items-center justify-center mx-auto text-[#E2A63C]">
-            <Building2 size={30} strokeWidth={2.2} />
+          <div className="w-16 h-16 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] flex items-center justify-center mx-auto text-[#4E8B3F]">
+            <Store size={30} strokeWidth={2.2} />
           </div>
 
           <div className="space-y-1.5">
-            <span className="inline-block px-3 py-0.5 rounded-full bg-[#FFF9EE] border border-[#F2DCAA] text-[11px] font-semibold text-[#B87D18]">
+            <span className="inline-block px-3 py-0.5 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] text-[11px] font-semibold text-[#173A20]">
               Commercial Store & Depot Gateway
             </span>
             <h1 className="font-display-italic text-2xl sm:text-[26px] font-semibold text-[#173A20]">
@@ -317,531 +317,523 @@ export const RegisterStoreWizardPage: React.FC = () => {
   }
 
   return (
-    <div className="flex-1 min-h-[calc(100vh-4rem)] bg-white p-4 sm:p-6 lg:p-8">
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* Navigation & Progress Header */}
-        <div className="flex items-center justify-between gap-4 pb-4 border-b border-[#CCEBD5]">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => navigate('/store')}
-              className="w-9 h-9 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] flex items-center justify-center text-[#173A20] hover:bg-[#CCEBD5] transition cursor-pointer"
-            >
-              <ArrowLeft size={18} />
-            </button>
-            <div>
-              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#FEF6E8] border border-[#F2DCAA] text-[11px] font-mono-num font-bold text-[#7A4A2D]">
-                <Store size={12} className="text-[#E2A63C]" />
-                Store Creation Wizard
-              </div>
-              <h1 className="font-display-italic text-2xl font-bold text-[#173A20]">
-                Register New AgroStore & Depot
-              </h1>
-            </div>
-          </div>
-
-          {/* Stepper Progress Badges */}
-          <div className="hidden sm:flex items-center gap-2">
-            {[
-              { num: 1, label: 'Identity' },
-              { num: 2, label: 'Location' },
-              { num: 3, label: 'Depot Sites' },
-              { num: 4, label: 'Specs & Review' },
-            ].map((s) => (
-              <div
-                key={s.num}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition ${step === s.num
-                  ? 'bg-[#173A20] text-white shadow-xs'
-                  : step > s.num
-                    ? 'bg-[#EEF8F1] text-[#4E8B3F] border border-[#CCEBD5]'
-                    : 'bg-[#FAF7F2] text-[#8F8475] border border-[#EBE3D5]'
-                  }`}
-              >
-                <span>{step > s.num ? '✓' : s.num}</span>
-                <span>{s.label}</span>
-              </div>
-            ))}
-          </div>
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+      {/* Navigation & Progress Header */}
+      <div className="flex items-center justify-between pb-3 border-b border-[#CCEBD5]">
+        <button
+          type="button"
+          onClick={() => (step > 1 ? handleBack() : navigate(-1))}
+          className="w-10 h-10 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] flex items-center justify-center text-[#173A20] hover:border-[#4E8B3F] transition cursor-pointer"
+        >
+          <ArrowLeft size={18} strokeWidth={2.2} />
+        </button>
+        <div className="text-center">
+          <h1 className="font-display-italic text-xl font-bold text-[#173A20]">Register AgroStore Depot</h1>
+          <p className="font-mono-num text-xs text-[#5C5245]">Step {step} of 4</p>
         </div>
+        <div className="w-10" />
+      </div>
 
-        {/* =====================================================================
-            STEP 1: IDENTITY & STORE TYPE
-        ===================================================================== */}
-        {step === 1 && (
-          <div className="space-y-6 bg-[#FAF7F2] border border-[#EBE3D5] rounded-3xl p-6 sm:p-8">
+      {/* Stepper Progress Badges */}
+      <div className="grid grid-cols-4 gap-2">
+        {[
+          { num: 1, label: 'Identity' },
+          { num: 2, label: 'Location' },
+          { num: 3, label: 'Depot Sites' },
+          { num: 4, label: 'Review' },
+        ].map((s) => (
+          <div
+            key={s.num}
+            className={`py-2 px-1 text-center rounded-2xl text-xs font-bold transition border ${step === s.num
+              ? 'bg-[#173A20] text-white border-[#173A20] shadow-xs'
+              : step > s.num
+                ? 'bg-[#EEF8F1] text-[#4E8B3F] border-[#CCEBD5]'
+                : 'bg-white text-[#5C5245] border-[#CCEBD5]/50'
+              }`}
+          >
+            <span className="block text-[11px] font-mono-num">{step > s.num ? '✓' : `0${s.num}`}</span>
+            <span className="truncate block text-[11px]">{s.label}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* =====================================================================
+          STEP 1: IDENTITY & STORE TYPE
+      ===================================================================== */}
+      {step === 1 && (
+        <div className="space-y-6 bg-[#EEF8F1] border border-[#CCEBD5] rounded-3xl p-6 sm:p-8">
+          <div>
+            <h2 className="text-lg font-bold text-[#173A20]">1. Store & Depot Identity</h2>
+            <p className="text-xs sm:text-sm text-[#5C5245]">
+              Define your commercial storefront identity, trading classification, and operational overview.
+            </p>
+          </div>
+
+          <div className="space-y-4">
             <div>
-              <h2 className="text-lg font-bold text-[#241A12]">1. Store & Depot Identity</h2>
-              <p className="text-xs sm:text-sm text-[#5C5245]">
-                Define your commercial storefront identity, trading classification, and operational overview.
-              </p>
+              <label className="block text-xs font-bold text-[#173A20] mb-1">
+                AgroStore / Depot Name *
+              </label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  if (errors.name) setErrors({ ...errors, name: '' });
+                }}
+                placeholder="e.g., Marché Sandaga Wholesale Hub, Mokolo Highland Aggregation Depot"
+                className={`w-full px-4 py-3 rounded-2xl border bg-white text-sm font-semibold text-[#173A20] placeholder-[#5C5245] focus:outline-none focus:border-[#4E8B3F] ${errors.name ? 'border-red-500' : 'border-[#CCEBD5]'
+                  }`}
+              />
+              {errors.name && <p className="text-xs text-red-500 mt-1 font-semibold">{errors.name}</p>}
+
+              {/* Real-time Slug Availability Indicator */}
+              {name.trim().length > 1 && (
+                <div className="mt-1.5 flex items-center gap-1.5 text-xs">
+                  {slugStatus.checking ? (
+                    <span className="text-xs text-[#5C5245] animate-pulse">Checking handle availability...</span>
+                  ) : slugStatus.available === true ? (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#f0fdf4] border border-[#bbf7d0] text-[#15803d] font-semibold text-xs">
+                      <CheckCircle2 size={13} className="text-[#16a34a]" />
+                      <span>Available</span>
+                      <span className="text-[#166534] font-mono font-normal">agrom.app/store/{slugStatus.slug}</span>
+                    </span>
+                  ) : slugStatus.available === false ? (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#fffbeb] border border-[#fde68a] text-[#b45309] font-medium text-xs">
+                      <span>Store name taken. Suggested:</span>
+                      <span className="font-mono font-bold text-[#92400e]">agrom.app/store/{slugStatus.candidate}</span>
+                    </span>
+                  ) : null}
+                </div>
+              )}
             </div>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-[#241A12] mb-1">
-                  AgroStore / Depot Name *
-                </label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => {
-                    setName(e.target.value);
-                    if (errors.name) setErrors({ ...errors, name: '' });
-                  }}
-                  placeholder="e.g., Marché Sandaga Wholesale Hub, Mokolo Highland Aggregation Depot"
-                  className={`w-full px-4 py-3 rounded-2xl border bg-white text-sm font-semibold text-[#241A12] placeholder-[#8F8475] focus:outline-none focus:border-[#4E8B3F] ${errors.name ? 'border-red-500' : 'border-[#CCEBD5]'
-                    }`}
-                />
-                {errors.name && <p className="text-xs text-red-500 mt-1 font-semibold">{errors.name}</p>}
-
-                {/* Real-time Slug Availability Indicator */}
-                {name.trim().length > 1 && (
-                  <div className="mt-1.5 flex items-center gap-1.5 text-xs">
-                    {slugStatus.checking ? (
-                      <span className="text-xs text-[#8F8475] animate-pulse">Checking handle availability...</span>
-                    ) : slugStatus.available === true ? (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#f0fdf4] border border-[#bbf7d0] text-[#15803d] font-semibold text-xs">
-                        <CheckCircle2 size={13} className="text-[#16a34a]" />
-                        <span>Available</span>
-                        <span className="text-[#166534] font-mono font-normal">agrom.app/store/{slugStatus.slug}</span>
-                      </span>
-                    ) : slugStatus.available === false ? (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#fffbeb] border border-[#fde68a] text-[#b45309] font-medium text-xs">
-                        <span>Store name taken. Suggested:</span>
-                        <span className="font-mono font-bold text-[#92400e]">agrom.app/store/{slugStatus.candidate}</span>
-                      </span>
-                    ) : null}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[#241A12] mb-2">
-                  Store / Commercial Classification *
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {STORE_TYPES.map((type) => {
-                    const isSelected = storeType === type.key;
-                    return (
+            <div>
+              <label className="block text-xs font-bold text-[#173A20] mb-2">
+                Store / Commercial Classification *
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {STORE_TYPES.map((type) => {
+                  const isSelected = storeType === type.key;
+                  return (
+                    <div
+                      key={type.key}
+                      onClick={() => setStoreType(type.key)}
+                      className={`p-4 rounded-2xl border transition cursor-pointer flex items-start gap-3 ${isSelected
+                        ? 'bg-white border-2 border-[#4E8B3F] shadow-xs'
+                        : 'bg-white border-[#CCEBD5] hover:border-[#4E8B3F]/50'
+                        }`}
+                    >
                       <div
-                        key={type.key}
-                        onClick={() => setStoreType(type.key)}
-                        className={`p-4 rounded-2xl border transition cursor-pointer flex items-start gap-3 ${isSelected
-                          ? 'bg-[#EEF8F1] border-[#4E8B3F] shadow-xs'
-                          : 'bg-white border-[#CCEBD5] hover:border-[#4E8B3F]/50'
+                        className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${isSelected ? 'bg-[#173A20] text-white' : 'bg-[#EEF8F1] text-[#173A20]'
                           }`}
                       >
-                        <div
-                          className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${isSelected ? 'bg-[#173A20] text-white' : 'bg-[#FAF7F2] text-[#8F8475]'
-                            }`}
-                        >
-                          <Building2 size={16} />
-                        </div>
-                        <div>
-                          <div className="text-xs font-bold text-[#241A12]">{type.label}</div>
-                          <div className="text-[11px] text-[#5C5245] leading-relaxed mt-0.5">{type.sub}</div>
-                        </div>
+                        <Store size={16} />
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[#241A12] mb-1">
-                  Store Overview & Wholesale Terms
-                </label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  rows={3}
-                  placeholder="Describe warehouse facilities, daily trading volume, acceptance of cooperative crates, return policies..."
-                  className="w-full px-4 py-3 rounded-2xl border border-[#CCEBD5] bg-white text-xs font-medium text-[#241A12] placeholder-[#8F8475] focus:outline-none focus:border-[#4E8B3F]"
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* =====================================================================
-            STEP 2: LOCATION & MARKET HUB
-        ===================================================================== */}
-        {step === 2 && (
-          <div className="space-y-6 bg-[#FAF7F2] border border-[#EBE3D5] rounded-3xl p-6 sm:p-8">
-            <div>
-              <h2 className="text-lg font-bold text-[#241A12]">2. Commercial Hub & Market Location</h2>
-              <p className="text-xs sm:text-sm text-[#5C5245]">
-                Specify where buyers, transporters, and institutional clients dispatch and pick up bulk inventory.
-              </p>
-            </div>
-
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-[#241A12] mb-1">Economic Region *</label>
-                  <select
-                    value={region}
-                    onChange={(e) => setRegion(e.target.value)}
-                    className="w-full px-4 py-3 rounded-2xl border border-[#CCEBD5] bg-white text-xs font-semibold text-[#241A12] focus:outline-none focus:border-[#4E8B3F]"
-                  >
-                    {CAMEROON_REGIONS.map((r) => (
-                      <option key={r} value={r}>
-                        {r}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-[#241A12] mb-1">Division / County</label>
-                  <input
-                    type="text"
-                    value={division}
-                    onChange={(e) => setDivision(e.target.value)}
-                    placeholder="e.g., Wouri, Mfoundi, Noun, Mezam, Fako"
-                    className="w-full px-4 py-3 rounded-2xl border border-[#CCEBD5] bg-white text-xs font-semibold text-[#241A12] focus:outline-none focus:border-[#4E8B3F]"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-[#241A12] mb-1">Primary Market City *</label>
-                  <input
-                    type="text"
-                    value={city}
-                    onChange={(e) => {
-                      setCity(e.target.value);
-                      if (errors.city) setErrors({ ...errors, city: '' });
-                    }}
-                    placeholder="e.g., Douala, Yaoundé, Bafoussam, Bamenda, Buea"
-                    className={`w-full px-4 py-3 rounded-2xl border bg-white text-xs font-semibold text-[#241A12] focus:outline-none focus:border-[#4E8B3F] ${errors.city ? 'border-red-500' : 'border-[#CCEBD5]'
-                      }`}
-                  />
-                  {errors.city && <p className="text-xs text-red-500 mt-1 font-semibold">{errors.city}</p>}
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-[#241A12] mb-1">
-                    Market Zone / Dock Stall *
-                  </label>
-                  <input
-                    type="text"
-                    value={marketZone}
-                    onChange={(e) => {
-                      setMarketZone(e.target.value);
-                      if (errors.marketZone) setErrors({ ...errors, marketZone: '' });
-                    }}
-                    placeholder="e.g., Marché Sandaga - Quai 4, Marché Mokolo Hall 3"
-                    className={`w-full px-4 py-3 rounded-2xl border bg-white text-xs font-semibold text-[#241A12] focus:outline-none focus:border-[#4E8B3F] ${errors.marketZone ? 'border-red-500' : 'border-[#CCEBD5]'
-                      }`}
-                  />
-                  {errors.marketZone && <p className="text-xs text-red-500 mt-1 font-semibold">{errors.marketZone}</p>}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[#241A12] mb-1">
-                  Full Physical Warehouse Address
-                </label>
-                <input
-                  type="text"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  placeholder="e.g., Boulevard de la Liberté, Entry 2, Depot Shed #48"
-                  className="w-full px-4 py-3 rounded-2xl border border-[#CCEBD5] bg-white text-xs font-medium text-[#241A12] focus:outline-none focus:border-[#4E8B3F]"
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* =====================================================================
-            STEP 3: MULTI-SITE OPERATIONAL DEPOTS (PARCEL PARITY)
-        ===================================================================== */}
-        {step === 3 && (
-          <div className="space-y-6 bg-[#FAF7F2] border border-[#EBE3D5] rounded-3xl p-6 sm:p-8">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <h2 className="text-lg font-bold text-[#241A12]">3. Operating Depot Sites & Facilities</h2>
-                <p className="text-xs sm:text-sm text-[#5C5245]">
-                  Configure your physical depot points (e.g. Cold Room, Ambient Warehouse). When publishing wholesale lots, you will select which site dispatches the inventory.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={handleAddSite}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#173A20] text-white text-xs font-bold hover:bg-[#224A2E] transition cursor-pointer self-start sm:self-auto shrink-0"
-              >
-                <Plus size={14} />
-                <span>+ Add Depot Site</span>
-              </button>
-            </div>
-
-            {errors.sites && (
-              <p className="text-xs text-red-500 font-bold bg-red-50 p-3 rounded-xl border border-red-200">
-                {errors.sites}
-              </p>
-            )}
-
-            <div className="space-y-4">
-              {sites.map((site, index) => (
-                <div
-                  key={site.id}
-                  className="bg-white border border-[#CCEBD5] rounded-2xl p-5 shadow-xs space-y-4"
-                >
-                  <div className="flex items-center justify-between pb-3 border-b border-[#CCEBD5]">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-lg bg-[#EEF8F1] flex items-center justify-center text-xs font-bold text-[#173A20]">
-                        {index + 1}
+                      <div>
+                        <div className="text-xs font-bold text-[#173A20]">{type.label}</div>
+                        <div className="text-[11px] text-[#5C5245] leading-relaxed mt-0.5">{type.sub}</div>
                       </div>
-                      <span className="text-sm font-bold text-[#241A12]">
-                        {site.name || `Operating Site ${index + 1}`}
-                      </span>
                     </div>
+                  );
+                })}
+              </div>
+            </div>
 
-                    {sites.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveSite(site.id)}
-                        className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition cursor-pointer"
-                        title="Remove Site"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    <div>
-                      <label className="block text-[11px] font-bold text-[#241A12] mb-1">
-                        Depot Site Name * (e.g. Dock 4 Cold Room)
-                      </label>
-                      <input
-                        type="text"
-                        value={site.name}
-                        onChange={(e) => handleUpdateSite(site.id, 'name', e.target.value)}
-                        placeholder="e.g., Dock 4 Cold Room or Exterior Dry Warehouse"
-                        className="w-full px-3 py-2 rounded-xl border border-[#CCEBD5] text-xs font-semibold text-[#241A12] focus:outline-none focus:border-[#4E8B3F]"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-[#241A12] mb-1">
-                        Facility Classification
-                      </label>
-                      <select
-                        value={site.facilityType}
-                        onChange={(e) => handleUpdateSite(site.id, 'facilityType', e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl border border-[#CCEBD5] bg-white text-xs font-medium text-[#241A12] focus:outline-none focus:border-[#4E8B3F]"
-                      >
-                        <option value="COLD_ROOM">Insulated Cold Room (0°C - 8°C)</option>
-                        <option value="AMBIENT_SHED">Ambient Dry Warehouse</option>
-                        <option value="GRAIN_SILO">Ventilated Grain Storage</option>
-                        <option value="PACKAGING_BAY">Sorting & Packaging Terminal</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-[#241A12] mb-1">
-                        Specific Location / Dock Stall
-                      </label>
-                      <input
-                        type="text"
-                        value={site.location}
-                        onChange={(e) => handleUpdateSite(site.id, 'location', e.target.value)}
-                        placeholder="e.g., Marché Sandaga - Quai 4"
-                        className="w-full px-3 py-2 rounded-xl border border-[#CCEBD5] text-xs font-medium text-[#241A12] focus:outline-none focus:border-[#4E8B3F]"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-[#241A12] mb-1">
-                        Storage Capacity (Tons)
-                      </label>
-                      <input
-                        type="number"
-                        step="0.5"
-                        value={site.capacityTons}
-                        onChange={(e) => handleUpdateSite(site.id, 'capacityTons', e.target.value)}
-                        placeholder="8.0"
-                        className="w-full px-3 py-2 rounded-xl border border-[#CCEBD5] text-xs font-medium text-[#241A12] focus:outline-none focus:border-[#4E8B3F]"
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div>
+              <label className="block text-xs font-bold text-[#173A20] mb-1">
+                Store Overview & Wholesale Terms
+              </label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={3}
+                placeholder="Describe warehouse facilities, daily trading volume, acceptance of cooperative crates, return policies..."
+                className="w-full px-4 py-3 rounded-2xl border border-[#CCEBD5] bg-white text-xs font-medium text-[#241A12] placeholder-[#5C5245] focus:outline-none focus:border-[#4E8B3F]"
+              />
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* =====================================================================
-            STEP 4: SPECS, FARM LINK & REVIEW
-        ===================================================================== */}
-        {step === 4 && (
-          <div className="space-y-6 bg-[#FAF7F2] border border-[#EBE3D5] rounded-3xl p-6 sm:p-8">
-            <div>
-              <h2 className="text-lg font-bold text-[#241A12]">4. Storage Specifications, Provenance & Review</h2>
-              <p className="text-xs sm:text-sm text-[#5C5245]">
-                Review store capacity, link to an existing AgroFarm for verified single-origin provenance, and finalize launch.
-              </p>
-            </div>
+      {/* =====================================================================
+          STEP 2: LOCATION & MARKET HUB
+      ===================================================================== */}
+      {step === 2 && (
+        <div className="space-y-6 bg-[#EEF8F1] border border-[#CCEBD5] rounded-3xl p-6 sm:p-8">
+          <div>
+            <h2 className="text-lg font-bold text-[#173A20]">2. Commercial Hub & Market Location</h2>
+            <p className="text-xs sm:text-sm text-[#5C5245]">
+              Specify where buyers, transporters, and institutional clients dispatch and pick up bulk inventory.
+            </p>
+          </div>
 
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-[#241A12] mb-1">
-                    Cumulative Depot Capacity (Tons)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.5"
-                    value={storageCapacityTons}
-                    onChange={(e) => setStorageCapacityTons(e.target.value)}
-                    placeholder="20.0"
-                    className="w-full px-4 py-3 rounded-2xl border border-[#CCEBD5] bg-white text-xs font-semibold text-[#241A12] focus:outline-none focus:border-[#4E8B3F]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-[#241A12] mb-1">
-                    Trade License Number
-                  </label>
-                  <input
-                    type="text"
-                    value={tradeLicenseNumber}
-                    onChange={(e) => setTradeLicenseNumber(e.target.value)}
-                    placeholder="e.g., RC/DLA/2026/B/1049"
-                    className="w-full px-4 py-3 rounded-2xl border border-[#CCEBD5] bg-white text-xs font-semibold text-[#241A12] focus:outline-none focus:border-[#4E8B3F]"
-                  />
-                </div>
-              </div>
-
-              {/* Optional Farm Linkage */}
-              <div className="p-4 rounded-2xl bg-white border border-[#CCEBD5] space-y-2">
-                <div className="flex items-center gap-2">
-                  <LinkIcon size={16} className="text-[#4E8B3F]" />
-                  <span className="text-xs font-bold text-[#173A20]">Link to Registered AgroFarm (Optional)</span>
-                </div>
-                <p className="text-[11px] text-[#5C5245] leading-relaxed">
-                  If you operate a farm parcel, link it to your store to give institutional buyers verified single-origin provenance on your depot stock. You can also operate as a Standalone Urban Merchant Depot.
-                </p>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-[#173A20] mb-1">Economic Region *</label>
                 <select
-                  value={linkedFarmId}
-                  onChange={(e) => setLinkedFarmId(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#CCEBD5] bg-[#FAF7F2] text-xs font-semibold text-[#241A12] focus:outline-none focus:border-[#4E8B3F]"
+                  value={region}
+                  onChange={(e) => setRegion(e.target.value)}
+                  className="w-full px-4 py-3 rounded-2xl border border-[#CCEBD5] bg-white text-xs font-semibold text-[#173A20] focus:outline-none focus:border-[#4E8B3F]"
                 >
-                  <option value="">Standalone Commercial Depot (No Farm Linked)</option>
-                  {userFarms.map((f: any) => (
-                    <option key={f.id} value={f.id}>
-                      🚜 {f.name} ({f.city || 'Cameroon'})
+                  {CAMEROON_REGIONS.map((r) => (
+                    <option key={r} value={r}>
+                      {r}
                     </option>
                   ))}
                 </select>
               </div>
 
-              {/* Cover Photo */}
               <div>
-                <label className="block text-xs font-bold text-[#241A12] mb-2">
-                  Store & Depot Banner Photo
+                <label className="block text-xs font-bold text-[#173A20] mb-1">Division / County</label>
+                <input
+                  type="text"
+                  value={division}
+                  onChange={(e) => setDivision(e.target.value)}
+                  placeholder="e.g., Wouri, Mfoundi, Noun, Mezam, Fako"
+                  className="w-full px-4 py-3 rounded-2xl border border-[#CCEBD5] bg-white text-xs font-semibold text-[#173A20] focus:outline-none focus:border-[#4E8B3F]"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-[#173A20] mb-1">Primary Market City *</label>
+                <input
+                  type="text"
+                  value={city}
+                  onChange={(e) => {
+                    setCity(e.target.value);
+                    if (errors.city) setErrors({ ...errors, city: '' });
+                  }}
+                  placeholder="e.g., Douala, Yaoundé, Bafoussam, Bamenda, Buea"
+                  className={`w-full px-4 py-3 rounded-2xl border bg-white text-xs font-semibold text-[#173A20] focus:outline-none focus:border-[#4E8B3F] ${errors.city ? 'border-red-500' : 'border-[#CCEBD5]'
+                    }`}
+                />
+                {errors.city && <p className="text-xs text-red-500 mt-1 font-semibold">{errors.city}</p>}
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#173A20] mb-1">
+                  Market Zone / Dock Stall *
                 </label>
-                <div className="relative h-44 rounded-2xl overflow-hidden border border-[#CCEBD5] group">
-                  <img src={coverPhoto} alt="Cover Preview" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-black/35 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                <input
+                  type="text"
+                  value={marketZone}
+                  onChange={(e) => {
+                    setMarketZone(e.target.value);
+                    if (errors.marketZone) setErrors({ ...errors, marketZone: '' });
+                  }}
+                  placeholder="e.g., Marché Sandaga - Quai 4, Marché Mokolo Hall 3"
+                  className={`w-full px-4 py-3 rounded-2xl border bg-white text-xs font-semibold text-[#173A20] focus:outline-none focus:border-[#4E8B3F] ${errors.marketZone ? 'border-red-500' : 'border-[#CCEBD5]'
+                    }`}
+                />
+                {errors.marketZone && <p className="text-xs text-red-500 mt-1 font-semibold">{errors.marketZone}</p>}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-[#173A20] mb-1">
+                Full Physical Warehouse Address
+              </label>
+              <input
+                type="text"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="e.g., Boulevard de la Liberté, Entry 2, Depot Shed #48"
+                className="w-full px-4 py-3 rounded-2xl border border-[#CCEBD5] bg-white text-xs font-medium text-[#241A12] focus:outline-none focus:border-[#4E8B3F]"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =====================================================================
+          STEP 3: MULTI-SITE OPERATIONAL DEPOTS (PARCEL PARITY)
+      ===================================================================== */}
+      {step === 3 && (
+        <div className="space-y-6 bg-[#EEF8F1] border border-[#CCEBD5] rounded-3xl p-6 sm:p-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-bold text-[#173A20]">3. Operating Depot Sites & Facilities</h2>
+              <p className="text-xs sm:text-sm text-[#5C5245]">
+                Configure your physical depot points (e.g. Cold Room, Ambient Warehouse). When publishing wholesale lots, you will select which site dispatches the inventory.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleAddSite}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#173A20] text-white text-xs font-bold hover:bg-[#224A2E] transition cursor-pointer self-start sm:self-auto shrink-0"
+            >
+              <Plus size={14} />
+              <span>+ Add Depot Site</span>
+            </button>
+          </div>
+
+          {errors.sites && (
+            <p className="text-xs text-red-500 font-bold bg-red-50 p-3 rounded-xl border border-red-200">
+              {errors.sites}
+            </p>
+          )}
+
+          <div className="space-y-4">
+            {sites.map((site, index) => (
+              <div
+                key={site.id}
+                className="bg-white border border-[#CCEBD5] rounded-2xl p-5 shadow-xs space-y-4"
+              >
+                <div className="flex items-center justify-between pb-3 border-b border-[#CCEBD5]">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-[#EEF8F1] flex items-center justify-center text-xs font-bold text-[#173A20]">
+                      {index + 1}
+                    </div>
+                    <span className="text-sm font-bold text-[#173A20]">
+                      {site.name || `Operating Site ${index + 1}`}
+                    </span>
+                  </div>
+
+                  {sites.length > 1 && (
                     <button
                       type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white text-xs font-bold text-[#241A12] hover:bg-[#FAF7F2] transition shadow-md cursor-pointer"
+                      onClick={() => handleRemoveSite(site.id)}
+                      className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition cursor-pointer"
+                      title="Remove Site"
                     >
-                      <Camera size={14} />
-                      <span>{uploadingCover ? 'Uploading...' : 'Change Cover Photo'}</span>
+                      <Trash2 size={16} />
                     </button>
-                  </div>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                  />
+                  )}
                 </div>
 
-                <div className="flex items-center gap-2 mt-2">
-                  <span className="text-[11px] text-[#8F8475] font-semibold">Or pick a sample banner:</span>
-                  <div className="flex items-center gap-2">
-                    {SAMPLE_COVERS.map((sample, i) => (
-                      <img
-                        key={sample}
-                        src={sample}
-                        alt={`Sample ${i}`}
-                        onClick={() => setCoverPhoto(sample)}
-                        className={`w-10 h-7 rounded-lg object-cover cursor-pointer border-2 transition ${coverPhoto === sample ? 'border-[#4E8B3F] scale-105' : 'border-transparent opacity-65 hover:opacity-100'
-                          }`}
-                      />
-                    ))}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#173A20] mb-1">
+                      Depot Site Name * (e.g. Dock 4 Cold Room)
+                    </label>
+                    <input
+                      type="text"
+                      value={site.name}
+                      onChange={(e) => handleUpdateSite(site.id, 'name', e.target.value)}
+                      placeholder="e.g., Dock 4 Cold Room or Exterior Dry Warehouse"
+                      className="w-full px-3 py-2 rounded-xl border border-[#CCEBD5] text-xs font-semibold text-[#173A20] focus:outline-none focus:border-[#4E8B3F]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#173A20] mb-1">
+                      Facility Classification
+                    </label>
+                    <select
+                      value={site.facilityType}
+                      onChange={(e) => handleUpdateSite(site.id, 'facilityType', e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl border border-[#CCEBD5] bg-white text-xs font-medium text-[#173A20] focus:outline-none focus:border-[#4E8B3F]"
+                    >
+                      <option value="COLD_ROOM">Insulated Cold Room (0°C - 8°C)</option>
+                      <option value="AMBIENT_SHED">Ambient Dry Warehouse</option>
+                      <option value="GRAIN_SILO">Ventilated Grain Storage</option>
+                      <option value="PACKAGING_BAY">Sorting & Packaging Terminal</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#173A20] mb-1">
+                      Specific Location / Dock Stall
+                    </label>
+                    <input
+                      type="text"
+                      value={site.location}
+                      onChange={(e) => handleUpdateSite(site.id, 'location', e.target.value)}
+                      placeholder="e.g., Marché Sandaga - Quai 4"
+                      className="w-full px-3 py-2 rounded-xl border border-[#CCEBD5] text-xs font-medium text-[#173A20] focus:outline-none focus:border-[#4E8B3F]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#173A20] mb-1">
+                      Storage Capacity (Tons)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.5"
+                      value={site.capacityTons}
+                      onChange={(e) => handleUpdateSite(site.id, 'capacityTons', e.target.value)}
+                      placeholder="8.0"
+                      className="w-full px-3 py-2 rounded-xl border border-[#CCEBD5] text-xs font-medium text-[#173A20] focus:outline-none focus:border-[#4E8B3F]"
+                    />
                   </div>
                 </div>
               </div>
+            ))}
+          </div>
+        </div>
+      )}
 
-              {/* Review Summary Card */}
-              <div className="bg-[#EEF8F1] border border-[#CCEBD5] rounded-2xl p-4 space-y-2">
-                <div className="flex items-center gap-2">
-                  <Sparkles size={16} className="text-[#4E8B3F]" />
-                  <span className="text-xs font-bold text-[#173A20]">Store Launch Summary</span>
+      {/* =====================================================================
+          STEP 4: SPECS, FARM LINK & REVIEW
+      ===================================================================== */}
+      {step === 4 && (
+        <div className="space-y-6 bg-[#EEF8F1] border border-[#CCEBD5] rounded-3xl p-6 sm:p-8">
+          <div>
+            <h2 className="text-lg font-bold text-[#173A20]">4. Storage Specifications, Provenance & Review</h2>
+            <p className="text-xs sm:text-sm text-[#5C5245]">
+              Review store capacity, link to an existing AgroFarm for verified single-origin provenance, and finalize launch.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-[#173A20] mb-1">
+                  Cumulative Depot Capacity (Tons)
+                </label>
+                <input
+                  type="number"
+                  step="0.5"
+                  value={storageCapacityTons}
+                  onChange={(e) => setStorageCapacityTons(e.target.value)}
+                  placeholder="20.0"
+                  className="w-full px-4 py-3 rounded-2xl border border-[#CCEBD5] bg-white text-xs font-semibold text-[#173A20] focus:outline-none focus:border-[#4E8B3F]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#173A20] mb-1">
+                  Trade License Number
+                </label>
+                <input
+                  type="text"
+                  value={tradeLicenseNumber}
+                  onChange={(e) => setTradeLicenseNumber(e.target.value)}
+                  placeholder="e.g., RC/DLA/2026/B/1049"
+                  className="w-full px-4 py-3 rounded-2xl border border-[#CCEBD5] bg-white text-xs font-semibold text-[#173A20] focus:outline-none focus:border-[#4E8B3F]"
+                />
+              </div>
+            </div>
+
+            {/* Optional Farm Linkage */}
+            <div className="p-4 rounded-2xl bg-white border border-[#CCEBD5] space-y-2">
+              <div className="flex items-center gap-2">
+                <LinkIcon size={16} className="text-[#4E8B3F]" />
+                <span className="text-xs font-bold text-[#173A20]">Link to Registered AgroFarm (Optional)</span>
+              </div>
+              <p className="text-[11px] text-[#5C5245] leading-relaxed">
+                If you operate a farm parcel, link it to your store to give institutional buyers verified single-origin provenance on your depot stock. You can also operate as a Standalone Urban Merchant Depot.
+              </p>
+              <select
+                value={linkedFarmId}
+                onChange={(e) => setLinkedFarmId(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[#CCEBD5] bg-[#EEF8F1] text-xs font-semibold text-[#173A20] focus:outline-none focus:border-[#4E8B3F]"
+              >
+                <option value="">Standalone Commercial Depot (No Farm Linked)</option>
+                {userFarms.map((f: any) => (
+                  <option key={f.id} value={f.id}>
+                    🚜 {f.name} ({f.city || 'Cameroon'})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Cover Photo */}
+            <div>
+              <label className="block text-xs font-bold text-[#173A20] mb-2">
+                Store & Depot Banner Photo
+              </label>
+              <div className="relative h-44 rounded-2xl overflow-hidden border border-[#CCEBD5] group">
+                <img src={coverPhoto} alt="Cover Preview" className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-black/35 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white text-xs font-bold text-[#173A20] hover:bg-[#EEF8F1] transition shadow-md cursor-pointer"
+                  >
+                    <Camera size={14} />
+                    <span>{uploadingCover ? 'Uploading...' : 'Change Cover Photo'}</span>
+                  </button>
                 </div>
-                <div className="text-xs text-[#241A12] space-y-1">
-                  <div><strong>Store:</strong> {name} ({storeType})</div>
-                  <div><strong>Market Hub:</strong> {city} • {marketZone}</div>
-                  <div><strong>Operating Sites:</strong> {sites.map((s) => s.name).join(' • ')}</div>
-                  <div><strong>Storage Capacity:</strong> {storageCapacityTons} Tonnes</div>
-                  <div><strong>Provenance:</strong> {linkedFarmId ? 'Linked to AgroFarm' : 'Standalone Merchant Depot'}</div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 mt-2">
+                <span className="text-[11px] text-[#5C5245] font-semibold">Or pick a sample banner:</span>
+                <div className="flex items-center gap-2">
+                  {SAMPLE_COVERS.map((sample, i) => (
+                    <img
+                      key={sample}
+                      src={sample}
+                      alt={`Sample ${i}`}
+                      onClick={() => setCoverPhoto(sample)}
+                      className={`w-10 h-7 rounded-lg object-cover cursor-pointer border-2 transition ${coverPhoto === sample ? 'border-[#4E8B3F] scale-105' : 'border-transparent opacity-65 hover:opacity-100'
+                        }`}
+                    />
+                  ))}
                 </div>
               </div>
             </div>
+
+            {/* Review Summary Card */}
+            <div className="bg-white border border-[#CCEBD5] rounded-2xl p-4 space-y-2">
+              <div className="flex items-center gap-2">
+                <Sparkles size={16} className="text-[#4E8B3F]" />
+                <span className="text-xs font-bold text-[#173A20]">Store Launch Summary</span>
+              </div>
+              <div className="text-xs text-[#173A20] space-y-1">
+                <div><strong>Store:</strong> {name} ({storeType})</div>
+                <div><strong>Market Hub:</strong> {city} • {marketZone}</div>
+                <div><strong>Operating Sites:</strong> {sites.map((s) => s.name).join(' • ')}</div>
+                <div><strong>Storage Capacity:</strong> {storageCapacityTons} Tonnes</div>
+                <div><strong>Provenance:</strong> {linkedFarmId ? 'Linked to AgroFarm' : 'Standalone Merchant Depot'}</div>
+              </div>
+            </div>
           </div>
+        </div>
+      )}
+
+      {/* Wizard Footer Controls */}
+      <div className="flex items-center justify-between pt-4 border-t border-[#CCEBD5]">
+        {step > 1 ? (
+          <button
+            type="button"
+            onClick={handleBack}
+            className="px-6 py-2.5 rounded-full border border-[#CCEBD5] text-xs font-bold text-[#173A20] hover:bg-[#EEF8F1] transition cursor-pointer"
+          >
+            ← Back
+          </button>
+        ) : (
+          <div />
         )}
 
-        {/* Wizard Footer Controls */}
-        <div className="flex items-center justify-between pt-4 border-t border-[#CCEBD5]">
-          {step > 1 ? (
-            <button
-              type="button"
-              onClick={handleBack}
-              className="px-5 py-2.5 rounded-xl border border-[#CCEBD5] text-xs font-bold text-[#241A12] hover:bg-[#FAF7F2] transition cursor-pointer"
-            >
-              ← Back
-            </button>
-          ) : (
-            <div />
-          )}
-
-          {step < 4 ? (
-            <button
-              type="button"
-              onClick={handleNext}
-              className="px-6 py-2.5 rounded-xl bg-[#173A20] text-white text-xs font-bold hover:bg-[#224A2E] transition shadow-xs cursor-pointer"
-            >
-              Continue →
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={submitting}
-              className="px-7 py-3 rounded-xl bg-[#4E8B3F] text-white text-xs font-bold hover:bg-[#3D7030] transition shadow-md cursor-pointer disabled:opacity-60 flex items-center gap-2"
-            >
-              {submitting ? (
-                <span>Publishing Store...</span>
-              ) : (
-                <>
-                  <Check size={16} />
-                  <span>Launch AgroStore & Open Depots</span>
-                </>
-              )}
-            </button>
-          )}
-        </div>
+        {step < 4 ? (
+          <button
+            type="button"
+            onClick={handleNext}
+            className="px-7 py-2.5 rounded-full bg-[#173A20] text-white text-xs font-bold hover:bg-[#224A2E] transition shadow-xs cursor-pointer"
+          >
+            Continue →
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={submitting}
+            className="px-7 py-3 rounded-full bg-[#4E8B3F] text-white text-xs font-bold hover:bg-[#3D7030] transition shadow-md cursor-pointer disabled:opacity-60 flex items-center gap-2"
+          >
+            {submitting ? (
+              <span>Publishing Store...</span>
+            ) : (
+              <>
+                <Check size={16} />
+                <span>Launch AgroStore & Open Depots</span>
+              </>
+            )}
+          </button>
+        )}
       </div>
     </div>
   );

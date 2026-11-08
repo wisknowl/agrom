@@ -691,22 +691,22 @@ export const ProfilePage: React.FC = () => {
                 {isOwner && (
                   <div
                     onClick={() => navigate('/store')}
-                    className="flex items-center justify-between bg-[#FFF9EE] hover:bg-[#FEF2D8] border border-[#F2DCAA] p-4 rounded-2xl cursor-pointer transition"
+                    className="flex items-center justify-between bg-[#EEF8F1] hover:bg-[#E3F4E8] border border-[#CCEBD5] hover:border-[#4E8B3F] p-4 rounded-2xl cursor-pointer transition shadow-xs"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-11 h-11 rounded-xl bg-[#E2A63C] text-[#241A12] flex items-center justify-center shadow-sm">
+                      <div className="w-11 h-11 rounded-xl bg-[#4E8B3F] text-white flex items-center justify-center shadow-xs">
                         <Store size={22} />
                       </div>
                       <div>
-                        <div className="font-display font-bold text-[15px] text-[#241A12]">
+                        <div className="font-display font-bold text-[15px] text-[#173A20]">
                           Manage AgroStores & Depot Lots
                         </div>
-                        <div className="text-xs text-[#5C5245]">
+                        <div className="text-xs text-[#52796F]">
                           Manage bulk lots, tenders, cold storage sheds and dispatch hubs
                         </div>
                       </div>
                     </div>
-                    <div className="w-8 h-8 rounded-full bg-white border border-[#F2DCAA] flex items-center justify-center text-[#B87D1E]">
+                    <div className="w-8 h-8 rounded-full bg-white border border-[#CCEBD5] flex items-center justify-center text-[#4E8B3F]">
                       <ChevronRight size={18} />
                     </div>
                   </div>
@@ -714,14 +714,14 @@ export const ProfilePage: React.FC = () => {
 
                 {/* Section Header with + New Store Button */}
                 <div className="flex items-center justify-between pt-1">
-                  <h3 className="font-bold text-sm text-[#241A12]">
+                  <h3 className="font-bold text-sm text-[#173A20]">
                     Registered AgroStores ({((targetUser?.stores || userStoresList) || []).length})
                   </h3>
                   {isOwner && (
                     <button
                       type="button"
                       onClick={() => navigate('/store/new')}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#E2A63C] hover:bg-[#C68F30] text-[#241A12] text-xs font-bold shadow-xs transition cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#4E8B3F] hover:bg-[#3D7030] text-white text-xs font-bold shadow-xs transition cursor-pointer"
                     >
                       <Plus size={14} strokeWidth={2.5} />
                       <span>+ New Store</span>
@@ -735,9 +735,9 @@ export const ProfilePage: React.FC = () => {
                     <div
                       key={st.id}
                       onClick={() => navigate(`/store/${st.slug || st.id}`)}
-                      className="bg-white rounded-2xl border border-[#F2DCAA] hover:border-[#E2A63C] overflow-hidden shadow-xs transition cursor-pointer"
+                      className="bg-white rounded-2xl border border-[#CCEBD5] hover:border-[#4E8B3F] overflow-hidden shadow-xs hover:shadow-md transition cursor-pointer"
                     >
-                      <div className="h-36 bg-[#FFF9EE] relative">
+                      <div className="h-36 bg-[#EEF8F1] relative">
                         <img
                           src={
                             st.coverPhoto ||
@@ -746,26 +746,26 @@ export const ProfilePage: React.FC = () => {
                           alt={st.name}
                           className="w-full h-full object-cover"
                         />
-                        <span className="absolute top-3 left-3 bg-[#FFF9EE]/95 text-[#241A12] border border-[#F2DCAA] text-[11px] font-bold px-2.5 py-0.5 rounded-full">
-                          {st.storeType || 'WHOLESALE_DEPOT'} • {st.storageCapacityTons || 5} Tons
+                        <span className="absolute top-3 left-3 bg-[#EEF8F1]/95 text-[#173A20] border border-[#CCEBD5] text-[11px] font-bold px-2.5 py-0.5 rounded-full backdrop-blur-xs">
+                          {(st.storeType || 'WHOLESALE_DEPOT').replace('_', ' ')} • {st.storageCapacityTons || 5} Tons
                         </span>
                       </div>
                       <div className="p-4 space-y-2">
                         <div className="flex items-center justify-between">
-                          <h3 className="font-bold text-base text-[#241A12]">{st.name}</h3>
-                          <span className="inline-flex items-center gap-1 text-xs font-mono-num font-bold text-[#241A12]">
-                            <Star size={13} className="fill-[#E2A63C] text-[#E2A63C]" />
+                          <h3 className="font-bold text-base text-[#173A20]">{st.name}</h3>
+                          <span className="inline-flex items-center gap-1 text-xs font-mono-num font-bold text-[#173A20]">
+                            <Star size={13} className="fill-[#4E8B3F] text-[#4E8B3F]" />
                             {st.rating || 5.0}
                           </span>
                         </div>
-                        <div className="flex items-center justify-between text-xs text-[#5C5245]">
+                        <div className="flex items-center justify-between text-xs text-[#52796F]">
                           <div className="flex items-center gap-1">
-                            <MapPin size={13} className="text-[#B87D1E]" />
+                            <MapPin size={13} className="text-[#4E8B3F]" />
                             <span>
                               {st.marketZone ? `${st.marketZone}, ` : ''}{st.city}
                             </span>
                           </div>
-                          <span className="text-[#B87D1E] font-bold">View Store Profile →</span>
+                          <span className="text-[#4E8B3F] font-bold hover:underline">View Store Profile →</span>
                         </div>
                       </div>
                     </div>

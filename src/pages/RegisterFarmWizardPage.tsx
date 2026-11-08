@@ -13,7 +13,7 @@ import {
   CheckCircle2,
   Plus,
   Trash2,
-  Building2,
+  Warehouse,
   Camera,
   Upload,
   User,
@@ -323,7 +323,7 @@ export const RegisterFarmWizardPage: React.FC = () => {
       <div className="max-w-xl mx-auto px-4 py-12 sm:py-16">
         <div className="bg-white rounded-3xl border border-[#CCEBD5] p-6 sm:p-8 text-center space-y-5 shadow-[0_8px_30px_rgba(23,58,32,0.06)]">
           <div className="w-16 h-16 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] flex items-center justify-center mx-auto text-[#4E8B3F]">
-            <Building2 size={30} strokeWidth={2.2} />
+            <Warehouse size={30} strokeWidth={2.2} />
           </div>
 
           <div className="space-y-1.5">
@@ -627,7 +627,7 @@ export const RegisterFarmWizardPage: React.FC = () => {
 
           {/* Footprint Banner */}
           <div className="p-3.5 rounded-2xl bg-[#EEF8F1] border border-[#CCEBD5] flex items-center gap-2 text-xs text-[#173A20]">
-            <Building2 size={16} className="text-[#4E8B3F]" />
+            <Warehouse size={16} className="text-[#4E8B3F]" />
             <span>
               Enterprise Footprint: <strong>{parcels.length} Site(s)</strong> • Total Land Area:{' '}
               <strong>{totalParcelsHectares.toFixed(1)} ha</strong>

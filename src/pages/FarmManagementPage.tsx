@@ -17,6 +17,7 @@ import {
   Award,
   X,
   Check,
+  CheckCircle2,
   Sliders,
   Edit3,
   Trash2,
@@ -256,6 +257,8 @@ export const FarmManagementPage: React.FC = () => {
   );
   const [activeFarm, setActiveFarm] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'produce' | 'sites' | 'settings'>('produce');
+  const [produceSearchQuery, setProduceSearchQuery] = useState('');
 
   // Multi-Site / Parcel Addition State
   const [showAddSiteModal, setShowAddSiteModal] = useState(false);
@@ -867,10 +870,13 @@ export const FarmManagementPage: React.FC = () => {
   }
 
   const farmYields = activeFarm?.yields || [];
+  const filteredProduce = farmYields.filter((item: any) =>
+    !produceSearchQuery.trim() || item.title?.toLowerCase().includes(produceSearchQuery.toLowerCase())
+  );
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-      {/* Top Header Bar with Navigation and New Farm CTA */}
+    <div className="max-w-5xl mx-auto px-[11px] py-6 space-y-6">
+      {/* Top Header Bar with Navigation and Storefront & New Farm CTA */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2 border-b border-[#CCEBD5]/60">
         <div>
           <div className="flex items-center gap-2">
@@ -886,632 +892,492 @@ export const FarmManagementPage: React.FC = () => {
               Farm Management Workspace
             </h1>
           </div>
-          <p className="text-xs text-[#5C5245] ml-10 mt-0.5">
-            Manage your agricultural parcels, produce catalog, stock balancing, and public storefront
-          </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => navigate('/farmer/new')}
-          className="self-start sm:self-auto py-2 px-4 rounded-full bg-[#4E8B3F] hover:bg-[#3D7030] text-white text-xs font-bold shadow-xs transition inline-flex items-center gap-1.5 cursor-pointer"
-        >
-          <Plus size={15} strokeWidth={2.5} />
-          <span>New Farm</span>
-        </button>
-      </div>
-
-      {/* Multi-Farm Switcher Bar - always visible when farms exist */}
-      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
-        <div className="flex items-center gap-1.5 text-xs text-[#5C5245] mr-1 shrink-0">
-          <Warehouse size={14} className="text-[#4E8B3F]" />
-          <span className="font-semibold">Parcels:</span>
-        </div>
-        {farmsList.map((f) => {
-          const active = f.id === selectedFarmId;
-          return (
-            <button
-              key={f.id}
-              type="button"
-              onClick={() => handleSelectFarm(f.id)}
-              className={`px-4 py-2 rounded-full text-xs font-semibold border whitespace-nowrap transition cursor-pointer flex items-center gap-2 ${active
-                ? 'bg-[#173A20] text-white border-[#173A20] shadow-xs'
-                : 'bg-white text-[#241A12] border-[#CCEBD5] hover:border-[#4E8B3F]'
-                }`}
-            >
-              <span>{f.name}</span>
-              {active && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
-            </button>
-          );
-        })}
-        <button
-          type="button"
-          onClick={() => navigate('/farmer/new')}
-          className="px-3.5 py-2 rounded-full text-xs font-bold bg-[#EEF8F1] border border-dashed border-[#4E8B3F] text-[#4E8B3F] hover:bg-[#E1F3E7] whitespace-nowrap transition cursor-pointer flex items-center gap-1.5"
-        >
-          <Plus size={13} strokeWidth={2.5} />
-          <span>Add Another Farm</span>
-        </button>
-      </div>
-
-      {/* Active Farm Banner Card */}
-      <div className="relative rounded-3xl overflow-hidden border border-[#CCEBD5] shadow-xs bg-[#173A20]">
-        <div className="relative aspect-[21/9] sm:aspect-[24/8] w-full bg-[#EEF8F1] overflow-hidden">
-          <img
-            src={resolveMediaUrl(activeFarm?.coverPhoto)}
-            alt={activeFarm?.name}
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/20" />
-
-          {/* Top Header Actions (View Storefront / Edit / Delete) */}
-          <div className="absolute top-3 right-3 flex items-center gap-2">
-            {activeFarm && (
-              <button
-                type="button"
-                onClick={() => navigate(`/farm/${activeFarm.slug || activeFarm.id}`)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/95 text-[#173A20] text-xs font-bold shadow-xs hover:bg-white transition cursor-pointer"
-              >
-                <ExternalLink size={13} className="text-[#4E8B3F]" /> Public Storefront
-              </button>
-            )}
+        <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
+          {activeFarm && (
             <button
               type="button"
-              onClick={openEditFarmModal}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/50 backdrop-blur-sm border border-white/25 text-white text-xs font-semibold hover:bg-black/70 transition cursor-pointer"
+              onClick={() => navigate(`/farmer/${activeFarm.slug || activeFarm.id}`)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#EEF8F1] hover:bg-[#CCEBD5] border border-[#CCEBD5] text-xs font-bold text-[#173A20] transition cursor-pointer"
+              title="Preview Public Storefront"
             >
-              <Edit3 size={13} /> Edit Profile
+              <ExternalLink size={14} className="text-[#4E8B3F]" />
+              <span>View Public Storefront</span>
             </button>
-            <button
-              type="button"
-              onClick={openDeleteFarmModal}
-              className="w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm border border-white/25 text-white flex items-center justify-center hover:bg-[#dc2626] transition cursor-pointer"
-              title="Delete Farm"
-            >
-              <Trash2 size={13} />
-            </button>
-          </div>
+          )}
 
-          {/* Bottom Farm Details Overlay */}
-          <div className="absolute bottom-3 left-4 right-4 text-white space-y-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <FarmerBadge tier={user?.farmerProfile?.creditTier || 'GOLD'} size="sm" />
-              <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-[#4E8B3F] text-white px-2 py-0.5 rounded-full">
-                <ShieldCheck size={12} /> Verified Producer
-              </span>
-            </div>
-
-            <h1 className="font-display text-xl sm:text-2xl font-bold truncate">
-              {activeFarm?.name}
-            </h1>
-
-            <div className="flex items-center gap-2 text-xs text-white/85">
-              <span className="inline-flex items-center gap-1">
-                <MapPin size={12} className="text-[#4E8B3F]" />
-                {activeFarm?.city}, {activeFarm?.region}
-              </span>
-              <span>•</span>
-              <span>
-                📍 {activeFarm?.parcels?.length || 1} Site(s) ({activeFarm?.sizeHectares || 2.5} Ha)
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Analytics Highlights */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-white rounded-2xl border border-[#CCEBD5] p-4 flex items-center gap-3 shadow-2xs">
-          <div className="w-10 h-10 rounded-xl bg-[#EEF8F1] text-[#4E8B3F] flex items-center justify-center">
-            <Sprout size={20} strokeWidth={2.4} />
-          </div>
-          <div>
-            <div className="font-mono-num text-xl font-bold text-[#173A20]">
-              {farmYields.length}
-            </div>
-            <div className="text-[11px] text-[#5C5245]">Active Yields</div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl border border-[#CCEBD5] p-4 flex items-center gap-3 shadow-2xs">
-          <div className="w-10 h-10 rounded-xl bg-[#FDF2E9] text-[#8D5B28] flex items-center justify-center">
-            <Layers size={20} strokeWidth={2.4} />
-          </div>
-          <div>
-            <div className="font-mono-num text-xl font-bold text-[#173A20]">
-              {activeFarm?.sizeHectares || 2.5} ha
-            </div>
-            <div className="text-[11px] text-[#5C5245]">Total Land Area</div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl border border-[#CCEBD5] p-4 flex items-center gap-3 shadow-2xs">
-          <div className="w-10 h-10 rounded-xl bg-[#FEF7EE] text-[#E2A63C] flex items-center justify-center">
-            <Star size={20} className="fill-[#E2A63C]" strokeWidth={1.5} />
-          </div>
-          <div>
-            <div className="font-mono-num text-xl font-bold text-[#173A20]">
-              {activeFarm?.rating?.toFixed(1) || '4.9'}
-            </div>
-            <div className="text-[11px] text-[#5C5245]">Buyer Rating</div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl border border-[#CCEBD5] p-4 flex items-center gap-3 shadow-2xs">
-          <div className="w-10 h-10 rounded-xl bg-[#FAF5FF] text-[#7C3AED] flex items-center justify-center">
-            <TrendingUp size={20} strokeWidth={2.4} />
-          </div>
-          <div>
-            <div className="font-mono-num text-xl font-bold text-[#173A20]">
-              {user?.farmerProfile?.creditScore || 501}
-            </div>
-            <div className="text-[11px] text-[#5C5245]">Tabi Credit Score</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Farm Management Actions */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-[#173A20]">
-            Farm Management Actions
-          </h2>
-          <span className="text-[10px] font-mono-num font-bold bg-[#EEF8F1] text-[#4E8B3F] border border-[#CCEBD5] px-2.5 py-0.5 rounded-full">
-            WORKSPACE
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {/* List Harvest */}
-          <button
-            type="button"
-            onClick={handleOpenAddProduce}
-            className="p-4 rounded-2xl bg-[#4E8B3F] hover:bg-[#3D7030] text-white flex items-center gap-3 transition shadow-xs cursor-pointer"
-          >
-            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
-              <Package size={20} strokeWidth={2.3} />
-            </div>
-            <div className="text-left">
-              <div className="text-sm font-bold leading-tight">+ List Harvest</div>
-              <div className="text-[11px] text-white/80">Publish produce to market</div>
-            </div>
-          </button>
-
-          {/* Record Story */}
-          <button
-            type="button"
-            onClick={() => setCreatePostModalOpen(true)}
-            className="p-4 rounded-2xl bg-[#E2A63C] hover:bg-[#C68F30] text-[#241A12] flex items-center gap-3 transition shadow-xs cursor-pointer"
-          >
-            <div className="w-10 h-10 rounded-xl bg-white/30 flex items-center justify-center shrink-0">
-              <Video size={20} strokeWidth={2.2} />
-            </div>
-            <div className="text-left">
-              <div className="text-sm font-bold leading-tight">Record Story</div>
-              <div className="text-[11px] text-[#241A12]/75">Publish video to AgroFeed</div>
-            </div>
-          </button>
-
-          {/* Preview Public Storefront */}
-          <button
-            type="button"
-            onClick={() => navigate(`/farmer/${activeFarm.id}`)}
-            className="p-4 rounded-2xl bg-white hover:bg-[#EEF8F1] border border-[#CCEBD5] text-[#173A20] flex items-center gap-3 transition shadow-xs cursor-pointer"
-          >
-            <div className="w-10 h-10 rounded-xl bg-[#EEF8F1] text-[#4E8B3F] flex items-center justify-center shrink-0">
-              <ExternalLink size={18} strokeWidth={2.2} />
-            </div>
-            <div className="text-left">
-              <div className="text-sm font-bold leading-tight">Storefront</div>
-              <div className="text-[11px] text-[#5C5245]">Preview public page →</div>
-            </div>
-          </button>
-
-          {/* Register Another Farm */}
           <button
             type="button"
             onClick={() => navigate('/farmer/new')}
-            className="p-4 rounded-2xl bg-[#EEF8F1] hover:bg-[#E1F3E7] border border-[#CCEBD5] text-[#173A20] flex items-center gap-3 transition shadow-xs cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#EEF8F1] hover:bg-[#CCEBD5] border border-[#CCEBD5] text-xs font-bold text-[#173A20] transition cursor-pointer"
           >
-            <div className="w-10 h-10 rounded-xl bg-white text-[#4E8B3F] border border-[#CCEBD5] flex items-center justify-center shrink-0">
-              <Plus size={20} strokeWidth={2.5} />
-            </div>
-            <div className="text-left">
-              <div className="text-sm font-bold leading-tight">New Farm</div>
-              <div className="text-[11px] text-[#5C5245]">Register another parcel</div>
-            </div>
+            <Plus size={14} className="text-[#4E8B3F]" />
+            <span>+ New Farm</span>
           </button>
         </div>
       </div>
 
-      {/* AgroFintech & Input Credit Line (Hub-and-Spoke Module) */}
-      <div className="bg-gradient-to-br from-[#FAF5FF] via-white to-[#EEF8F1] rounded-3xl border border-[#E9D5FF] p-5 sm:p-6 shadow-xs space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-[#E9D5FF]/60">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-[#7C3AED] text-white flex items-center justify-center shadow-sm">
-              <TrendingUp size={22} strokeWidth={2.4} />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="font-display font-bold text-base text-[#173A20]">
-                  Tabi Credit & Seasonal Financing
-                </h3>
-                <span className="font-mono-num text-[11px] font-bold bg-[#7C3AED] text-white px-2.5 py-0.5 rounded-full">
-                  {user?.farmerProfile?.creditTier || 'GOLD A-PRIME'}
-                </span>
-              </div>
-              <p className="text-xs text-[#5C5245]">
-                Algorithmic Engine 1 risk underwriting & 10% auto-escrow repayment
-              </p>
-            </div>
+      {/* Multi-Farm Switcher Bar - always visible when farms exist */}
+      {farmsList.length > 0 && (
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+          <div className="flex items-center gap-1.5 text-xs text-[#5C5245] mr-1 shrink-0">
+            <Warehouse size={14} className="text-[#4E8B3F]" />
+            <span className="font-semibold uppercase text-xs">Farms:</span>
           </div>
-
+          {farmsList.map((f) => {
+            const active = f.id === selectedFarmId;
+            return (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => handleSelectFarm(f.id)}
+                className={`px-4 py-1.5 rounded-full text-xs font-semibold border whitespace-nowrap transition cursor-pointer flex items-center gap-2 ${active
+                  ? 'bg-[#173A20] text-white border-[#173A20] shadow-xs'
+                  : 'bg-[#EEF8F1] text-[#173A20] border-[#CCEBD5] hover:bg-[#CCEBD5]'
+                  }`}
+              >
+                <span>{f.name}</span>
+                {active && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+              </button>
+            );
+          })}
           <button
             type="button"
-            onClick={() => navigate('/fintech/loans')}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-bold transition shadow-xs cursor-pointer self-start sm:self-auto"
+            onClick={() => navigate('/farmer/new')}
+            className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#EEF8F1] border border-dashed border-[#4E8B3F] text-[#4E8B3F] hover:bg-[#E1F3E7] whitespace-nowrap transition cursor-pointer flex items-center gap-1.5"
           >
-            <span>Manage AgroLoans & Terms</span>
-            <ChevronRight size={14} strokeWidth={2.5} />
+            <Plus size={13} strokeWidth={2.5} />
+            <span>Add Another Farm</span>
           </button>
         </div>
+      )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="bg-white/90 rounded-2xl p-3.5 border border-[#E9D5FF]/80">
-            <div className="text-[11px] font-medium text-[#6B7280]">Live Tabi FICO Score</div>
-            <div className="font-mono-num text-xl font-bold text-[#7C3AED] mt-0.5">
-              {user?.farmerProfile?.creditScore || 765} <span className="text-xs font-normal text-[#9CA3AF]">/ 1000</span>
-            </div>
-            <div className="text-[10px] text-[#4E8B3F] font-semibold mt-1">● Top 8% of Regional Co-ops</div>
-          </div>
-
-          <div className="bg-white/90 rounded-2xl p-3.5 border border-[#E9D5FF]/80">
-            <div className="text-[11px] font-medium text-[#6B7280]">Pre-Approved Input Credit</div>
-            <div className="font-mono-num text-xl font-bold text-[#173A20] mt-0.5">
-              1,500,000 <span className="text-xs font-normal text-[#5C5245]">XAF</span>
-            </div>
-            <div className="text-[10px] text-[#5C5245] mt-1">Instant MoMo / Orange Money disbursement</div>
-          </div>
-
-          <div className="bg-white/90 rounded-2xl p-3.5 border border-[#E9D5FF]/80">
-            <div className="text-[11px] font-medium text-[#6B7280]">Auto-Escrow Repayment</div>
-            <div className="font-mono-num text-xl font-bold text-[#059669] mt-0.5">
-              10% <span className="text-xs font-normal text-[#5C5245]">per harvest sale</span>
-            </div>
-            <div className="text-[10px] text-[#059669] font-semibold mt-1">✓ Smart Contract Engine 3 Active</div>
-          </div>
-        </div>
-      </div>
-
-      {/* AgroVestor Crop Lot Co-Funding Module */}
-      <div className="bg-gradient-to-br from-[#FEF7EE] via-white to-[#FEF7EE] rounded-3xl border border-[#F7D9A4] p-5 sm:p-6 shadow-xs space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-[#F7D9A4]/60">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-[#E2A63C] text-white flex items-center justify-center shadow-sm">
-              <Award size={22} strokeWidth={2.4} />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="font-display font-bold text-base text-[#173A20]">
-                  AgroVestor Co-Funding Campaigns
-                </h3>
-                <span className="font-mono-num text-[11px] font-bold bg-[#E2A63C] text-white px-2.5 py-0.5 rounded-full">
-                  DIASPORA CROWDFUNDING
-                </span>
-              </div>
-              <p className="text-xs text-[#5C5245]">
-                Crowdfund seed capital for upcoming parcel cycles in exchange for seasonal harvest share
-              </p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => navigate('/fintech/loans')}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#E2A63C] hover:bg-[#D4952B] text-white text-xs font-bold transition shadow-xs cursor-pointer self-start sm:self-auto"
-          >
-            <Plus size={14} strokeWidth={2.5} />
-            <span>Launch Co-Funding Campaign</span>
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-          <div className="p-4 rounded-2xl bg-white border border-[#F7D9A4] space-y-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className="font-bold text-[#173A20]">Foumbot Roma Tomato Lot #4</span>
-              <span className="text-[#059669] font-bold bg-[#EEF8F1] px-2 py-0.5 rounded-full">75% Funded</span>
-            </div>
-            <div className="w-full bg-[#FEF7EE] rounded-full h-2 overflow-hidden border border-[#F7D9A4]/50">
-              <div className="bg-[#E2A63C] h-full rounded-full" style={{ width: '75%' }} />
-            </div>
-            <div className="flex items-center justify-between text-[11px] text-[#5C5245]">
-              <span>Raised: 900,000 XAF</span>
-              <span>Target: 1,200,000 XAF</span>
-            </div>
-          </div>
-
-          <div className="p-4 rounded-2xl bg-white border border-[#F7D9A4] space-y-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className="font-bold text-[#173A20]">Highland Bell Pepper Expansion</span>
-              <span className="text-[#7C3AED] font-bold bg-[#FAF5FF] px-2 py-0.5 rounded-full">Target Reached</span>
-            </div>
-            <div className="w-full bg-[#FEF7EE] rounded-full h-2 overflow-hidden border border-[#F7D9A4]/50">
-              <div className="bg-[#4E8B3F] h-full rounded-full" style={{ width: '100%' }} />
-            </div>
-            <div className="flex items-center justify-between text-[11px] text-[#5C5245]">
-              <span>Disbursed to Escrow: 1,800,000 XAF</span>
-              <span>Cycle: 90 Days</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Operating Sites & Plots Footprint Section */}
-      <div className="bg-white rounded-3xl border border-[#CCEBD5] p-5 sm:p-6 space-y-4 shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-3 border-b border-[#EEF8F1]">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] flex items-center justify-center text-[#4E8B3F]">
-              <MapPin size={16} strokeWidth={2.4} />
-            </div>
-            <div>
-              <h2 className="text-base font-bold text-[#173A20]">
-                Operating Sites & Plots ({activeParcels.length})
-              </h2>
-              <p className="text-xs text-[#5C5245]">
-                Multi-site footprint across Cameroon agricultural production zones
-              </p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setShowAddSiteModal(true)}
-            className="self-start sm:self-auto inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#EEF8F1] hover:bg-[#E1F3E7] border border-[#CCEBD5] text-[#4E8B3F] text-xs font-bold transition cursor-pointer"
-          >
-            <Plus size={14} strokeWidth={2.5} />
-            <span>Add Operating Site</span>
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-          {activeParcels.map((parcel, idx) => (
-            <div
-              key={parcel.id || idx}
-              className="p-4 rounded-2xl bg-[#EEF8F1] border border-[#CCEBD5] flex items-start justify-between gap-3 hover:border-[#4E8B3F] transition shadow-2xs"
-            >
-              <div className="flex items-start gap-3">
-                <div
-                  className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${parcel.isHeadquarters
-                    ? 'bg-[#173A20] text-[#E2A63C]'
-                    : 'bg-[#EEF8F1] text-[#4E8B3F] border border-[#CCEBD5]'
-                    }`}
-                >
-                  <MapPin size={18} />
+      {/* Active Farm Card (Parity with Store Card: image on left, details middle, stats right) */}
+      {activeFarm && (() => {
+        const farmImg = resolveMediaUrl(activeFarm.avatarPhoto || activeFarm.coverPhoto);
+        return (
+          <div className="bg-white border border-[#CCEBD5] rounded-3xl p-6 shadow-xs">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-start gap-4">
+                <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl bg-[#EEF8F1] border border-[#CCEBD5] text-[#173A20] flex items-center justify-center shrink-0 overflow-hidden">
+                  {farmImg ? (
+                    <img src={farmImg} alt={activeFarm.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <Sprout size={32} className="text-[#4E8B3F]" />
+                  )}
                 </div>
                 <div className="space-y-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-bold text-sm text-[#173A20]">{parcel.name}</span>
-                    {parcel.isHeadquarters ? (
-                      <span className="px-2 py-0.5 rounded-full bg-[#173A20] text-[#E2A63C] text-[10px] font-bold">
-                        HQ Base
-                      </span>
-                    ) : (
-                      <span className="px-2 py-0.5 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] text-[#4E8B3F] text-[10px] font-semibold">
-                        Branch Plot
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-xs text-[#5C5245]">
-                    {parcel.city}, {parcel.region} {parcel.division ? `(${parcel.division})` : ''}
-                  </div>
-                  {parcel.location && (
-                    <div className="text-[11px] text-[#5C5245]/80 flex items-center gap-1">
-                      <span>📍</span>
-                      <span>{parcel.location}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex flex-col items-end justify-between shrink-0 self-stretch">
-                <div className="text-right">
-                  <div className="font-mono-num text-sm font-bold text-[#173A20]">
-                    {parcel.sizeHectares || 1.0}
-                  </div>
-                  <div className="text-[10px] font-bold text-[#5C5245] uppercase">Hectares</div>
-                </div>
-
-                {!parcel.isHeadquarters && (
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteSite(parcel.id)}
-                    className="p-1 rounded-lg text-[#5C5245] hover:text-[#B54A34] hover:bg-[#FDF3F1] transition cursor-pointer"
-                    title="Remove site"
-                  >
-                    <Trash2 size={13} />
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Produce Produced on this Farm Header */}
-      <div className="bg-white rounded-3xl border border-[#CCEBD5] p-5 sm:p-6 space-y-4 shadow-xs">
-        <div className="flex items-center justify-between pb-3 border-b border-[#EEF8F1]">
-          <div>
-            <h2 className="text-base font-bold text-[#173A20]">Produce Produced on this Farm</h2>
-            <p className="text-xs text-[#5C5245]">{farmYields.length} items currently listed</p>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleOpenAddProduce}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#4E8B3F] hover:bg-[#3D7030] text-white text-xs font-semibold shadow-xs transition cursor-pointer"
-          >
-            <Plus size={14} strokeWidth={2.5} />
-            <span>Add Produce</span>
-          </button>
-        </div>
-
-        {farmYields.length === 0 ? (
-          <div className="py-10 text-center space-y-2 bg-[#EEF8F1] rounded-2xl border border-[#CCEBD5]">
-            <Package size={32} className="text-[#4E8B3F] mx-auto" />
-            <h3 className="font-bold text-sm text-[#173A20]">No Produce Listed Yet</h3>
-            <p className="text-xs text-[#5C5245] max-w-xs mx-auto">
-              Add your freshly harvested tomatoes, potatoes, plantains or livestock to start selling directly to households and Buyam-Sellam buyers.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {farmYields.map((y: any) => {
-              const stock = y.stockQuantity ?? 0;
-              const isOut = stock <= 0;
-              const isPaused = y.isAvailable === false;
-              return (
-                <div
-                  key={y.id}
-                  className="p-3.5 sm:p-4 rounded-2xl border border-[#CCEBD5] hover:border-[#4E8B3F] flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition shadow-2xs"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <img
-                      src={y.image || y.mediaUrls?.[0]}
-                      alt={y.title}
-                      className="w-16 h-16 rounded-xl object-cover border border-[#CCEBD5] shrink-0"
-                    />
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-bold text-sm text-[#241A12] truncate">{y.title}</h3>
-                        {y.isOrganic && (
-                          <span className="text-[10px] font-semibold bg-[#EEF8F1] text-[#4E8B3F] border border-[#CCEBD5] px-2 py-0.2 rounded-full">
-                            Organic
-                          </span>
-                        )}
-                      </div>
-                      <div className="font-mono-num text-xs font-bold text-[#173A20] mt-0.5">
-                        {formatXaf(y.price || y.pricePerUnit)} / {y.unit}
-                      </div>
-                      <div className="flex items-center gap-2 text-[11px] text-[#5C5245] mt-1">
-                        <span
-                          className={`font-mono-num font-semibold ${isOut ? 'text-[#dc2626]' : 'text-[#4E8B3F]'
-                            }`}
-                        >
-                          {isOut ? 'Out of Stock' : `${stock} ${y.unit} in stock`}
-                        </span>
-                        {isPaused && (
-                          <span className="bg-[#FEF2D8] text-[#B87D1E] px-2 py-0.2 rounded-full font-bold text-[10px]">
-                            Paused
-                          </span>
-                        )}
-                      </div>
+                    <h2 className="text-base font-bold text-[#173A20]">
+                      {activeFarm.name}
+                    </h2>
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] text-[10px] font-bold text-[#173A20]">
+                      <CheckCircle2 size={11} className="text-[#4E8B3F]" />
+                      Verified Cooperative Producer
+                    </span>
+                    <div className="flex items-center gap-1.5 ml-1">
+                      <button
+                        type="button"
+                        onClick={openEditFarmModal}
+                        className="w-7 h-7 rounded-full bg-[#EEF8F1] hover:bg-[#CCEBD5] border border-[#CCEBD5] flex items-center justify-center text-[#173A20] transition cursor-pointer"
+                        title="Edit Farm Profile"
+                      >
+                        <Edit3 size={13} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={openDeleteFarmModal}
+                        className="w-7 h-7 rounded-full bg-white hover:bg-[#FDF3F1] border border-[#dc2626]/30 flex items-center justify-center text-[#dc2626] transition cursor-pointer"
+                        title="Delete Farm"
+                      >
+                        <Trash2 size={13} />
+                      </button>
                     </div>
                   </div>
 
-                  {/* Item Actions */}
-                  <div className="flex items-center gap-2 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => openStockModal(y)}
-                      className="px-3 py-1.5 rounded-full bg-[#EEF8F1] hover:bg-[#E1F3E7] border border-[#CCEBD5] text-[#4E8B3F] text-xs font-semibold inline-flex items-center gap-1.5 transition cursor-pointer"
-                    >
-                      <Sliders size={13} />
-                      <span>Balance Stock</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleOpenEditProduce(y)}
-                      className="w-8 h-8 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] flex items-center justify-center text-[#241A12] hover:border-[#4E8B3F] transition cursor-pointer"
-                      title="Edit Produce"
-                    >
-                      <Edit3 size={13} />
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteProduce(y.id, y.title)}
-                      className="w-8 h-8 rounded-full bg-white border border-[#dc2626]/30 text-[#dc2626] hover:bg-[#FDF3F1] flex items-center justify-center transition cursor-pointer"
-                      title="Delete Produce"
-                    >
-                      <Trash2 size={13} />
-                    </button>
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-[#5C5245]">
+                    <span className="inline-flex items-center gap-1">
+                      <MapPin size={13} className="text-[#4E8B3F]" />
+                      {activeFarm.city}, {activeFarm.region}
+                    </span>
+                    <span className="text-[#CCEBD5]">•</span>
+                    <span>Category: {activeFarm.category || 'CROPS'}</span>
+                    <span className="text-[#CCEBD5]">•</span>
+                    <span className="inline-flex items-center gap-1 font-semibold text-[#173A20]">
+                      <Warehouse size={12} className="text-[#4E8B3F]" />
+                      {activeParcels.length} Operating Site(s)
+                    </span>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+              </div>
 
-      {/* Registered Farms Portfolio (Matches mobile FarmManagementScreen) */}
-      {farmsList.length > 0 && (
-        <div className="bg-white rounded-3xl border border-[#CCEBD5] p-5 sm:p-6 space-y-4 shadow-xs">
-          <div className="flex items-center justify-between pb-3 border-b border-[#EEF8F1]">
-            <div className="flex items-center gap-2">
-              <Warehouse size={16} className="text-[#4E8B3F]" />
-              <h2 className="text-base font-bold text-[#173A20]">
-                Your Farm Portfolio ({farmsList.length})
-              </h2>
+              {/* Quick Metrics (Right side of card, matching Store card layout) */}
+              <div className="flex items-center gap-3 sm:gap-6 bg-[#EEF8F1] border border-[#CCEBD5] px-4 py-3 rounded-2xl shrink-0">
+                <div className="text-center">
+                  <div className="text-sm font-bold font-mono-num text-[#173A20]">
+                    {farmYields.length}
+                  </div>
+                  <div className="text-[10px] text-[#5C5245] uppercase font-semibold">Active Yields</div>
+                </div>
+                <div className="w-px h-7 bg-[#CCEBD5]" />
+                <div className="text-center">
+                  <div className="text-sm font-bold font-mono-num text-[#173A20]">
+                    {activeFarm.sizeHectares || 2.5} ha
+                  </div>
+                  <div className="text-[10px] text-[#5C5245] uppercase font-semibold">Total Land</div>
+                </div>
+                <div className="w-px h-7 bg-[#CCEBD5]" />
+                <div className="text-center">
+                  <div className="text-sm font-bold font-mono-num text-[#173A20]">
+                    {activeFarm.rating?.toFixed(1) || '5.0'} ★
+                  </div>
+                  <div className="text-[10px] text-[#5C5245] uppercase font-semibold">Buyer Rating</div>
+                </div>
+                <div className="w-px h-7 bg-[#CCEBD5]" />
+                <div className="text-center">
+                  <div className="text-sm font-bold font-mono-num text-[#173A20]">
+                    {user?.farmerProfile?.creditScore || 517}
+                  </div>
+                  <div className="text-[10px] text-[#5C5245] uppercase font-semibold">Tabi Score</div>
+                </div>
+              </div>
             </div>
+          </div>
+        );
+      })()}
+
+      {/* =====================================================================
+          PRIMARY TABS (PRODUCE, SITES, SETTINGS)
+      ===================================================================== */}
+      {activeFarm && (
+        <div className="flex items-center justify-between border-b border-[#CCEBD5] pb-3">
+          <div className="flex items-center gap-2 flex-wrap">
             <button
               type="button"
-              onClick={() => navigate('/farmer/new')}
-              className="text-xs font-bold text-[#4E8B3F] hover:underline cursor-pointer inline-flex items-center gap-1"
+              onClick={() => setActiveTab('produce')}
+              className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold transition cursor-pointer flex items-center gap-2 ${activeTab === 'produce'
+                ? 'bg-[#173A20] text-white shadow-xs'
+                : 'bg-[#EEF8F1] text-[#173A20] hover:bg-[#CCEBD5]'
+                }`}
             >
-              <Plus size={13} strokeWidth={2.5} />
-              <span>Register New Farm</span>
+              <Package size={15} />
+              <span>Produce & Harvests ({farmYields.length})</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('sites')}
+              className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold transition cursor-pointer flex items-center gap-2 ${activeTab === 'sites'
+                ? 'bg-[#173A20] text-white shadow-xs'
+                : 'bg-[#EEF8F1] text-[#173A20] hover:bg-[#CCEBD5]'
+                }`}
+            >
+              <Warehouse size={15} />
+              <span>Operating Sites & Plots ({activeParcels.length})</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('settings')}
+              className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold transition cursor-pointer flex items-center gap-2 ${activeTab === 'settings'
+                ? 'bg-[#173A20] text-white shadow-xs'
+                : 'bg-[#EEF8F1] text-[#173A20] hover:bg-[#CCEBD5]'
+                }`}
+            >
+              <Sliders size={15} />
+              <span>Farm Profile & Settings</span>
+            </button>
+          </div>
+
+          {activeTab === 'produce' && (
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                placeholder="Search produce..."
+                value={produceSearchQuery}
+                onChange={(e) => setProduceSearchQuery(e.target.value)}
+                className="hidden sm:block px-3.5 py-1.5 rounded-full border border-[#CCEBD5] bg-white text-xs text-[#241A12] placeholder-[#5C5245] focus:outline-none focus:border-[#4E8B3F] w-40 lg:w-56"
+              />
+              <button
+                type="button"
+                onClick={handleOpenAddProduce}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#4E8B3F] hover:bg-[#3D7030] text-white text-xs font-bold transition shadow-xs cursor-pointer shrink-0"
+              >
+                <Plus size={14} strokeWidth={2.4} />
+                <span>+ List Harvest</span>
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* =====================================================================
+          TAB 1: PRODUCE & HARVESTS
+      ===================================================================== */}
+      {activeFarm && activeTab === 'produce' && (
+        <div className="space-y-4">
+          {filteredProduce.length === 0 ? (
+            <div className="text-center py-12 bg-[#EEF8F1] rounded-3xl border border-dashed border-[#CCEBD5] space-y-3">
+              <Package size={36} className="mx-auto text-[#4E8B3F]" />
+              <h3 className="text-sm font-bold text-[#173A20]">No Active Produce in {activeFarm.name}</h3>
+              <p className="text-xs text-[#5C5245] max-w-sm mx-auto">
+                Publish freshly harvested tomatoes, potatoes, plantains or livestock to start selling directly to households and Buyam-Sellam buyers.
+              </p>
+              <button
+                type="button"
+                onClick={handleOpenAddProduce}
+                className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-[#4E8B3F] text-white text-xs font-bold hover:bg-[#3D7030] transition cursor-pointer"
+              >
+                <Plus size={14} />
+                <span>+ List First Harvest</span>
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredProduce.map((y: any) => {
+                const stock = y.stockQuantity ?? 0;
+                const isOut = stock <= 0;
+                const isPaused = y.isAvailable === false;
+                const img = y.image || y.mediaUrls?.[0];
+                return (
+                  <div
+                    key={y.id}
+                    className="p-3.5 sm:p-4 rounded-2xl bg-white border border-[#CCEBD5] hover:border-[#4E8B3F] flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition shadow-2xs"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      {img ? (
+                        <img
+                          src={resolveMediaUrl(img)}
+                          alt={y.title}
+                          className="w-16 h-16 rounded-xl object-cover border border-[#CCEBD5] shrink-0"
+                        />
+                      ) : (
+                        <div className="w-16 h-16 rounded-xl bg-[#EEF8F1] border border-[#CCEBD5] flex items-center justify-center text-[#4E8B3F] shrink-0">
+                          <Sprout size={24} />
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-bold text-sm text-[#241A12] truncate">{y.title}</h3>
+                          {y.isOrganic && (
+                            <span className="text-[10px] font-semibold bg-[#EEF8F1] text-[#4E8B3F] border border-[#CCEBD5] px-2 py-0.2 rounded-full">
+                              Organic
+                            </span>
+                          )}
+                        </div>
+                        <div className="font-mono-num text-xs font-bold text-[#173A20] mt-0.5">
+                          {formatXaf(y.price || y.pricePerUnit)} / {y.unit}
+                        </div>
+                        <div className="flex items-center gap-2 text-[11px] text-[#5C5245] mt-1">
+                          <span
+                            className={`font-mono-num font-semibold ${isOut ? 'text-[#dc2626]' : 'text-[#4E8B3F]'
+                              }`}
+                          >
+                            {isOut ? 'Out of Stock' : `${stock} ${y.unit} in stock`}
+                          </span>
+                          {isPaused && (
+                            <span className="bg-[#FEF2D8] text-[#B87D1E] px-2 py-0.2 rounded-full font-bold text-[10px]">
+                              Paused
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Item Actions */}
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => openStockModal(y)}
+                        className="px-3 py-1.5 rounded-full bg-[#EEF8F1] hover:bg-[#E1F3E7] border border-[#CCEBD5] text-[#4E8B3F] text-xs font-semibold inline-flex items-center gap-1.5 transition cursor-pointer"
+                      >
+                        <Sliders size={13} />
+                        <span>Balance Stock</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleOpenEditProduce(y)}
+                        className="w-8 h-8 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] flex items-center justify-center text-[#241A12] hover:border-[#4E8B3F] transition cursor-pointer"
+                        title="Edit Produce"
+                      >
+                        <Edit3 size={13} />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteProduce(y.id, y.title)}
+                        className="w-8 h-8 rounded-full bg-white border border-[#dc2626]/30 text-[#dc2626] hover:bg-[#FDF3F1] flex items-center justify-center transition cursor-pointer"
+                        title="Delete Produce"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* =====================================================================
+          TAB 2: OPERATING SITES & PLOTS
+      ===================================================================== */}
+      {activeFarm && activeTab === 'sites' && (
+        <div className="bg-white rounded-3xl border border-[#CCEBD5] p-5 sm:p-6 space-y-4 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-3 border-b border-[#EEF8F1]">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] flex items-center justify-center text-[#4E8B3F]">
+                <MapPin size={16} strokeWidth={2.4} />
+              </div>
+              <div>
+                <h2 className="text-base font-bold text-[#173A20]">
+                  Operating Sites & Plots ({activeParcels.length})
+                </h2>
+                <p className="text-xs text-[#5C5245]">
+                  Multi-site footprint across Cameroon agricultural production zones
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowAddSiteModal(true)}
+              className="self-start sm:self-auto inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#4E8B3F] hover:bg-[#3D7030] text-white text-xs font-bold transition shadow-xs cursor-pointer"
+            >
+              <Plus size={14} strokeWidth={2.5} />
+              <span>+ Add Operating Site</span>
             </button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-            {farmsList.map((farm) => {
-              const isSelected = farm.id === selectedFarmId;
-              return (
-                <div
-                  key={farm.id}
-                  onClick={() => handleSelectFarm(farm.id)}
-                  className={`p-4 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${isSelected
-                    ? 'bg-[#EEF8F1] border-[#4E8B3F] shadow-xs'
-                    : 'bg-white border-[#CCEBD5] hover:border-[#4E8B3F]'
-                    }`}
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <img
-                      src={resolveMediaUrl(farm.coverPhoto)}
-                      alt={farm.name}
-                      className="w-12 h-12 rounded-xl object-cover shrink-0 border border-[#CCEBD5]"
-                    />
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-bold text-sm text-[#173A20] truncate">{farm.name}</span>
-                        {isSelected && (
-                          <span className="w-2 h-2 rounded-full bg-[#4E8B3F] shrink-0" />
-                        )}
-                      </div>
-                      <div className="text-xs text-[#5C5245] truncate">
-                        {farm.city}, {farm.region} • {farm.sizeHectares || 1.0} Ha
-                      </div>
-                      <div className="text-[11px] text-[#4E8B3F] font-semibold">
-                        {farm.parcels?.length || 1} Operating Site(s)
-                      </div>
-                    </div>
+            {activeParcels.map((parcel, idx) => (
+              <div
+                key={parcel.id || idx}
+                className="p-4 rounded-2xl bg-[#EEF8F1] border border-[#CCEBD5] flex items-start justify-between gap-3 hover:border-[#4E8B3F] transition shadow-2xs"
+              >
+                <div className="flex items-start gap-3">
+                  <div
+                    className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${parcel.isHeadquarters
+                      ? 'bg-[#173A20] text-[#E2A63C]'
+                      : 'bg-[#EEF8F1] text-[#4E8B3F] border border-[#CCEBD5]'
+                      }`}
+                  >
+                    <MapPin size={18} />
                   </div>
-
-                  <div className="shrink-0 flex items-center gap-2">
-                    {isSelected ? (
-                      <span className="px-2.5 py-1 rounded-full bg-[#4E8B3F] text-white text-[10px] font-bold">
-                        Active
-                      </span>
-                    ) : (
-                      <span className="px-2.5 py-1 rounded-full bg-white border border-[#CCEBD5] text-[#5C5245] text-[10px] font-semibold hover:border-[#4E8B3F]">
-                        Switch
-                      </span>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-bold text-sm text-[#173A20]">{parcel.name}</span>
+                      {parcel.isHeadquarters ? (
+                        <span className="px-2 py-0.5 rounded-full bg-[#173A20] text-[#E2A63C] text-[10px] font-bold">
+                          HQ Base
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] text-[#4E8B3F] text-[10px] font-semibold">
+                          Branch Plot
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs text-[#5C5245]">
+                      {parcel.city}, {parcel.region} {parcel.division ? `(${parcel.division})` : ''}
+                    </div>
+                    {parcel.location && (
+                      <div className="text-[11px] text-[#5C5245]/80 flex items-center gap-1">
+                        <span>📍</span>
+                        <span>{parcel.location}</span>
+                      </div>
                     )}
                   </div>
                 </div>
-              );
-            })}
+
+                <div className="flex flex-col items-end justify-between shrink-0 self-stretch">
+                  <div className="text-right">
+                    <div className="font-mono-num text-sm font-bold text-[#173A20]">
+                      {parcel.sizeHectares || 1.0}
+                    </div>
+                    <div className="text-[10px] font-bold text-[#5C5245] uppercase">Hectares</div>
+                  </div>
+
+                  {!parcel.isHeadquarters && (
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteSite(parcel.id)}
+                      className="p-1 rounded-lg text-[#5C5245] hover:text-[#B54A34] hover:bg-[#FDF3F1] transition cursor-pointer"
+                      title="Remove site"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* =====================================================================
+          TAB 3: FARM PROFILE & SETTINGS
+      ===================================================================== */}
+      {activeFarm && activeTab === 'settings' && (
+        <div className="bg-white rounded-3xl border border-[#CCEBD5] p-6 shadow-xs space-y-6">
+          <div className="flex items-center justify-between pb-4 border-b border-[#CCEBD5]">
+            <div>
+              <h3 className="text-base font-bold text-[#173A20]">Farm Profile & Settings</h3>
+              <p className="text-xs text-[#5C5245]">Configure parcel details, cooperative registry, and storefront presentation</p>
+            </div>
+            <button
+              type="button"
+              onClick={openEditFarmModal}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#4E8B3F] hover:bg-[#3D7030] text-white text-xs font-bold transition shadow-xs cursor-pointer"
+            >
+              <Edit3 size={13} />
+              <span>Edit Farm Profile</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+            <div className="p-4 rounded-2xl bg-[#EEF8F1] border border-[#CCEBD5] space-y-1">
+              <span className="font-bold text-[#173A20] uppercase text-[10px] tracking-wide">Farm Name</span>
+              <p className="text-sm font-semibold text-[#173A20]">{activeFarm.name}</p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-[#EEF8F1] border border-[#CCEBD5] space-y-1">
+              <span className="font-bold text-[#173A20] uppercase text-[10px] tracking-wide">Category</span>
+              <p className="text-sm font-semibold text-[#173A20]">{activeFarm.category || 'CROPS'}</p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-[#EEF8F1] border border-[#CCEBD5] space-y-1">
+              <span className="font-bold text-[#173A20] uppercase text-[10px] tracking-wide">Primary Location</span>
+              <p className="text-sm font-semibold text-[#173A20]">{activeFarm.city}, {activeFarm.region}</p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-[#EEF8F1] border border-[#CCEBD5] space-y-1">
+              <span className="font-bold text-[#173A20] uppercase text-[10px] tracking-wide">Total Cultivated Area</span>
+              <p className="text-sm font-semibold text-[#173A20]">{activeFarm.sizeHectares || 2.5} Hectares</p>
+            </div>
+          </div>
+
+          {activeFarm.description && (
+            <div className="p-4 rounded-2xl bg-[#EEF8F1] border border-[#CCEBD5] space-y-1">
+              <span className="font-bold text-[#173A20] uppercase text-[10px] tracking-wide">Farm Bio & Practices</span>
+              <p className="text-xs text-[#5C5245] leading-relaxed">{activeFarm.description}</p>
+            </div>
+          )}
+
+          <div className="pt-4 border-t border-[#CCEBD5] flex items-center justify-between">
+            <div>
+              <p className="text-xs font-bold text-[#dc2626]">Danger Zone</p>
+              <p className="text-[11px] text-[#5C5245]">Permanently delete this farm and delist its produce</p>
+            </div>
+            <button
+              type="button"
+              onClick={openDeleteFarmModal}
+              className="px-4 py-2 rounded-full border border-[#dc2626]/40 text-[#dc2626] hover:bg-[#FDF3F1] text-xs font-bold transition cursor-pointer"
+            >
+              Delete Farm
+            </button>
           </div>
         </div>
       )}
