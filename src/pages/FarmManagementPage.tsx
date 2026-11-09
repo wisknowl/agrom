@@ -22,6 +22,7 @@ import {
   Edit3,
   Trash2,
   AlertTriangle,
+  AlertCircle,
   Building2,
   ArrowLeft,
   Upload,
@@ -59,6 +60,7 @@ import { Farm, Yield, FarmParcel } from '@/types';
 import { FarmerBadge } from '@/components/MeetingLeafLogo';
 import { resolveMediaUrl, formatXaf } from '@/utils/media';
 import AgromDropdown from '@/components/AgromDropdown';
+import { AgromImageUploader } from '@/components/AgromImageUploader';
 
 const CATEGORIES = [
   { id: 'cat-veg', name: 'Vegetables & Greens', emoji: '🥬' },
@@ -234,6 +236,10 @@ const INITIAL_PRODUCE_FORM = {
   pricePerUnit: '',
   unit: 'KG',
   customUnit: '',
+  lifecycleStatus: 'SELLING' as 'SELLING' | 'GROWING' | 'OFF_CYCLE',
+  expectedHarvestWindow: '',
+  nextCycleMonth: '',
+  harvestDate: new Date().toISOString().split('T')[0],
   seasonality: 'PEAK_HARVEST',
   shelfLifeDays: '7',
   stockQuantity: '',
@@ -257,7 +263,7 @@ export const FarmManagementPage: React.FC = () => {
   );
   const [activeFarm, setActiveFarm] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'produce' | 'sites' | 'settings'>('produce');
+  const [activeTab, setActiveTab] = useState<'produce' | 'sites'>('produce');
   const [produceSearchQuery, setProduceSearchQuery] = useState('');
 
   // Multi-Site / Parcel Addition State
@@ -277,8 +283,6 @@ export const FarmManagementPage: React.FC = () => {
   const [showEditProduceModal, setShowEditProduceModal] = useState(false);
   const [editingProduceItem, setEditingProduceItem] = useState<any>(null);
   const [savingProduce, setSavingProduce] = useState(false);
-  const [uploadingProduceImage, setUploadingProduceImage] = useState(false);
-  const produceImageInputRef = useRef<HTMLInputElement | null>(null);
 
   const [produceForm, setProduceForm] = useState(INITIAL_PRODUCE_FORM);
 
@@ -315,6 +319,10 @@ export const FarmManagementPage: React.FC = () => {
       pricePerUnit: String(y.price || y.pricePerUnit || ''),
       unit: isKnownUnit ? y.unit : 'CUSTOM',
       customUnit: isKnownUnit ? '' : (y.unit || ''),
+      lifecycleStatus: (y.lifecycleStatus as any) || 'SELLING',
+      expectedHarvestWindow: y.expectedHarvestWindow || '',
+      nextCycleMonth: y.nextCycleMonth || '',
+      harvestDate: y.harvestDate ? y.harvestDate.split('T')[0] : new Date().toISOString().split('T')[0],
       seasonality: y.seasonality || 'PEAK_HARVEST',
       shelfLifeDays: String(y.shelfLifeDays || '7'),
       stockQuantity: String(y.stockQuantity || 0),
@@ -341,14 +349,18 @@ export const FarmManagementPage: React.FC = () => {
   const [editFarmName, setEditFarmName] = useState('');
   const [editFarmDesc, setEditFarmDesc] = useState('');
   const [editFarmCover, setEditFarmCover] = useState('');
-  const [uploadingEditCover, setUploadingEditCover] = useState(false);
-  const editCoverInputRef = useRef<HTMLInputElement | null>(null);
+  const [editPrimaryProduce, setEditPrimaryProduce] = useState<string[]>([]);
+  const [editTagInput, setEditTagInput] = useState('');
+  const [savingFarmProfile, setSavingFarmProfile] = useState(false);
 
   // Cascading Farm Deletion Modal
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [deleteStep, setDeleteStep] = useState<1 | 2>(1);
   const [deleteAction, setDeleteAction] = useState<'transfer' | 'delete'>('transfer');
   const [deleteTargetFarmId, setDeleteTargetFarmId] = useState<string>('');
   const [deleteConfirmName, setDeleteConfirmName] = useState('');
+  const [deleteSingleFarmAgreed, setDeleteSingleFarmAgreed] = useState(false);
+  const [isDeletingFarm, setIsDeletingFarm] = useState(false);
 
   const loadFarms = useCallback(async () => {
     if (!isAuthenticated) {
@@ -513,88 +525,6 @@ export const FarmManagementPage: React.FC = () => {
     }
   };
 
-  const handleUploadEditCover = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Fast local preview
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      if (ev.target?.result) {
-        setEditFarmCover(ev.target.result as string);
-      }
-    };
-    reader.readAsDataURL(file);
-
-    setUploadingEditCover(true);
-    try {
-      const res = await uploadMediaFileApi(file);
-      if (res?.url) {
-        setEditFarmCover(res.url);
-      }
-    } catch (err) {
-      console.warn('Cover upload failed, using local preview data URI', err);
-    } finally {
-      setUploadingEditCover(false);
-    }
-  };
-
-  const handleProduceImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length === 0) return;
-
-    // Fast local previews
-    files.forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        if (ev.target?.result) {
-          const previewUrl = ev.target.result as string;
-          setProduceForm((p) => ({
-            ...p,
-            mediaUrl: p.mediaUrl || previewUrl,
-            mediaUrls: [...p.mediaUrls, previewUrl],
-          }));
-        }
-      };
-      reader.readAsDataURL(file);
-    });
-
-    setUploadingProduceImage(true);
-    try {
-      for (const file of files) {
-        const res = await uploadMediaFileApi(file);
-        if (res?.url) {
-          setProduceForm((p) => {
-            // Replace local data URI with real backend URL
-            const updatedUrls = p.mediaUrls.map((u) => (u.startsWith('data:') ? res.url : u));
-            if (!updatedUrls.includes(res.url)) updatedUrls.push(res.url);
-            return {
-              ...p,
-              mediaUrl: p.mediaUrl.startsWith('data:') ? res.url : (p.mediaUrl || res.url),
-              mediaUrls: updatedUrls,
-            };
-          });
-        }
-      }
-    } catch (err) {
-      console.warn('Produce photo upload failed', err);
-    } finally {
-      setUploadingProduceImage(false);
-      if (produceImageInputRef.current) produceImageInputRef.current.value = '';
-    }
-  };
-
-  const handleRemoveProducePhoto = (idxToRemove: number) => {
-    setProduceForm((p) => {
-      const filtered = p.mediaUrls.filter((_, i) => i !== idxToRemove);
-      return {
-        ...p,
-        mediaUrl: filtered[0] || '',
-        mediaUrls: filtered,
-      };
-    });
-  };
-
   // Produce Actions
   const handleCreateProduce = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -623,6 +553,10 @@ export const FarmManagementPage: React.FC = () => {
         pricePerUnit: Number(produceForm.pricePerUnit),
         unit: effectiveUnit,
         customUnit: produceForm.unit === 'CUSTOM' ? produceForm.customUnit.trim() : undefined,
+        lifecycleStatus: produceForm.lifecycleStatus,
+        expectedHarvestWindow: produceForm.lifecycleStatus === 'GROWING' ? produceForm.expectedHarvestWindow : undefined,
+        nextCycleMonth: produceForm.lifecycleStatus === 'OFF_CYCLE' ? produceForm.nextCycleMonth : undefined,
+        harvestDate: produceForm.harvestDate ? new Date(produceForm.harvestDate).toISOString() : undefined,
         seasonality: produceForm.seasonality,
         shelfLifeDays: produceForm.shelfLifeDays ? Number(produceForm.shelfLifeDays) : undefined,
         stockQuantity: Number(produceForm.stockQuantity || 0),
@@ -666,6 +600,10 @@ export const FarmManagementPage: React.FC = () => {
         pricePerUnit: Number(produceForm.pricePerUnit),
         unit: effectiveUnit,
         customUnit: produceForm.unit === 'CUSTOM' ? produceForm.customUnit.trim() : undefined,
+        lifecycleStatus: produceForm.lifecycleStatus,
+        expectedHarvestWindow: produceForm.lifecycleStatus === 'GROWING' ? produceForm.expectedHarvestWindow : undefined,
+        nextCycleMonth: produceForm.lifecycleStatus === 'OFF_CYCLE' ? produceForm.nextCycleMonth : undefined,
+        harvestDate: produceForm.harvestDate ? new Date(produceForm.harvestDate).toISOString() : undefined,
         seasonality: produceForm.seasonality,
         shelfLifeDays: produceForm.shelfLifeDays ? Number(produceForm.shelfLifeDays) : undefined,
         stockQuantity: Number(produceForm.stockQuantity || 0),
@@ -722,36 +660,120 @@ export const FarmManagementPage: React.FC = () => {
     }
   };
 
+  const handleToggleProduceAvailability = async (item: any) => {
+    const nextVal = item.isAvailable === false ? true : false;
+    try {
+      await patchProduceStockApi(item.id, {
+        delta: 0,
+        isAvailable: nextVal,
+      });
+      setActiveFarm((prev: any) => {
+        if (!prev) return prev;
+        const updatedYields = (prev.yields || []).map((y: any) =>
+          y.id === item.id ? { ...y, isAvailable: nextVal } : y
+        );
+        return { ...prev, yields: updatedYields };
+      });
+    } catch (err: any) {
+      alert(err.message || 'Failed to update produce availability');
+    }
+  };
+
+  const handleSetProduceLifecycle = async (item: any, newStatus: 'SELLING' | 'GROWING' | 'OFF_CYCLE') => {
+    let windowVal = item.expectedHarvestWindow;
+    let nextMonthVal = item.nextCycleMonth;
+
+    if (newStatus === 'GROWING' && !item.expectedHarvestWindow) {
+      const resp = window.prompt('Enter expected harvest window (e.g. Dec 15 - Dec 28 or Within 3 Weeks):', 'Within 30 Days');
+      if (resp === null) return;
+      windowVal = resp.trim() || 'Coming Soon';
+    } else if (newStatus === 'OFF_CYCLE' && !item.nextCycleMonth) {
+      const resp = window.prompt('Enter next target planting or harvest month (e.g. March 2027):', 'Next Season');
+      if (resp === null) return;
+      nextMonthVal = resp.trim() || 'Next Season';
+    }
+
+    try {
+      await patchProduceStockApi(item.id, {
+        lifecycleStatus: newStatus,
+        expectedHarvestWindow: windowVal,
+        nextCycleMonth: nextMonthVal,
+        isAvailable: newStatus !== 'OFF_CYCLE',
+      });
+      setActiveFarm((prev: any) => {
+        if (!prev) return prev;
+        const updatedYields = (prev.yields || []).map((y: any) =>
+          y.id === item.id
+            ? {
+                ...y,
+                lifecycleStatus: newStatus,
+                expectedHarvestWindow: windowVal,
+                nextCycleMonth: nextMonthVal,
+                isAvailable: newStatus !== 'OFF_CYCLE',
+              }
+            : y
+        );
+        return { ...prev, yields: updatedYields };
+      });
+    } catch (err: any) {
+      alert(err.message || 'Failed to update produce lifecycle status');
+    }
+  };
+
   // Edit Farm Profile
   const openEditFarmModal = () => {
     if (!activeFarm) return;
     setEditFarmName(activeFarm.name || '');
     setEditFarmDesc(activeFarm.description || '');
     setEditFarmCover(activeFarm.coverPhoto || '');
+    setEditPrimaryProduce(
+      Array.isArray(activeFarm.primaryProduce)
+        ? [...activeFarm.primaryProduce]
+        : []
+    );
+    setEditTagInput('');
     setShowEditFarmModal(true);
+  };
+
+  const handleAddEditTag = () => {
+    const trimmed = editTagInput.trim();
+    if (trimmed && !editPrimaryProduce.includes(trimmed)) {
+      setEditPrimaryProduce([...editPrimaryProduce, trimmed]);
+      setEditTagInput('');
+    }
+  };
+
+  const handleRemoveEditTag = (tagToRemove: string) => {
+    setEditPrimaryProduce(editPrimaryProduce.filter((t) => t !== tagToRemove));
   };
 
   const handleSaveFarmProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeFarm?.id || !editFarmName.trim()) return;
+    setSavingFarmProfile(true);
     try {
       const updated = await updateFarmApi(activeFarm.id, {
         name: editFarmName.trim(),
         description: editFarmDesc.trim(),
         coverPhoto: editFarmCover,
+        primaryProduce: editPrimaryProduce,
       });
       setActiveFarm((prev: any) => ({ ...prev, ...updated }));
       setShowEditFarmModal(false);
       loadFarms();
     } catch (err: any) {
       alert(err.message || 'Could not save farm profile');
+    } finally {
+      setSavingFarmProfile(false);
     }
   };
 
-  // Cascading Farm Deletion
+  // 2-Step Cascading Farm Deletion
   const openDeleteFarmModal = () => {
     if (!activeFarm) return;
     const otherFarms = farmsList.filter((f) => f.id !== activeFarm.id);
+    setDeleteStep(1);
+    setDeleteSingleFarmAgreed(false);
     setDeleteConfirmName('');
     if (otherFarms.length > 0) {
       setDeleteAction('transfer');
@@ -760,6 +782,7 @@ export const FarmManagementPage: React.FC = () => {
       setDeleteAction('delete');
       setDeleteTargetFarmId('');
     }
+    setShowEditFarmModal(false);
     setDeleteModalVisible(true);
   };
 
@@ -770,6 +793,7 @@ export const FarmManagementPage: React.FC = () => {
       return;
     }
 
+    setIsDeletingFarm(true);
     try {
       await deleteFarmApi(activeFarm.id, deleteAction === 'transfer' ? deleteTargetFarmId : undefined);
       const remaining = farmsList.filter((f) => f.id !== activeFarm.id);
@@ -782,7 +806,9 @@ export const FarmManagementPage: React.FC = () => {
         setActiveFarm(null);
       }
     } catch (err: any) {
-      alert(err.message || 'Could not delete farm enterprise');
+      alert(err.message || 'Failed to delete farm');
+    } finally {
+      setIsDeletingFarm(false);
     }
   };
 
@@ -913,7 +939,7 @@ export const FarmManagementPage: React.FC = () => {
             className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#EEF8F1] hover:bg-[#CCEBD5] border border-[#CCEBD5] text-xs font-bold text-[#173A20] transition cursor-pointer"
           >
             <Plus size={14} className="text-[#4E8B3F]" />
-            <span>+ New Farm</span>
+            <span>New Farm</span>
           </button>
         </div>
       </div>
@@ -957,62 +983,65 @@ export const FarmManagementPage: React.FC = () => {
       {activeFarm && (() => {
         const farmImg = resolveMediaUrl(activeFarm.avatarPhoto || activeFarm.coverPhoto);
         return (
-          <div className="bg-white border border-[#CCEBD5] rounded-3xl p-6 shadow-xs">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="flex items-start gap-4">
-                <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl bg-[#EEF8F1] border border-[#CCEBD5] text-[#173A20] flex items-center justify-center shrink-0 overflow-hidden">
-                  {farmImg ? (
-                    <img src={farmImg} alt={activeFarm.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <Sprout size={32} className="text-[#4E8B3F]" />
-                  )}
+          <div className="bg-white border border-[#CCEBD5] rounded-3xl overflow-hidden shadow-xs flex flex-col md:flex-row items-center">
+            {/* Left square farm image: rounded on the left, straight on the right, fixed aspect-square */}
+            <div className="w-full md:w-36 lg:w-40 aspect-square shrink-0 bg-[#EEF8F1] border-b md:border-b-0 md:border-r border-[#CCEBD5] relative overflow-hidden">
+              {farmImg ? (
+                <img
+                  src={farmImg}
+                  alt={activeFarm.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-[#4E8B3F] p-4">
+                  <Sprout size={36} />
                 </div>
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h2 className="text-base font-bold text-[#173A20]">
-                      {activeFarm.name}
-                    </h2>
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] text-[10px] font-bold text-[#173A20]">
-                      <CheckCircle2 size={11} className="text-[#4E8B3F]" />
-                      Verified Cooperative Producer
-                    </span>
-                    <div className="flex items-center gap-1.5 ml-1">
-                      <button
-                        type="button"
-                        onClick={openEditFarmModal}
-                        className="w-7 h-7 rounded-full bg-[#EEF8F1] hover:bg-[#CCEBD5] border border-[#CCEBD5] flex items-center justify-center text-[#173A20] transition cursor-pointer"
-                        title="Edit Farm Profile"
-                      >
-                        <Edit3 size={13} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={openDeleteFarmModal}
-                        className="w-7 h-7 rounded-full bg-white hover:bg-[#FDF3F1] border border-[#dc2626]/30 flex items-center justify-center text-[#dc2626] transition cursor-pointer"
-                        title="Delete Farm"
-                      >
-                        <Trash2 size={13} />
-                      </button>
-                    </div>
-                  </div>
+              )}
+            </div>
 
-                  <div className="flex flex-wrap items-center gap-3 text-xs text-[#5C5245]">
-                    <span className="inline-flex items-center gap-1">
-                      <MapPin size={13} className="text-[#4E8B3F]" />
-                      {activeFarm.city}, {activeFarm.region}
-                    </span>
-                    <span className="text-[#CCEBD5]">•</span>
-                    <span>Category: {activeFarm.category || 'CROPS'}</span>
-                    <span className="text-[#CCEBD5]">•</span>
-                    <span className="inline-flex items-center gap-1 font-semibold text-[#173A20]">
-                      <Warehouse size={12} className="text-[#4E8B3F]" />
-                      {activeParcels.length} Operating Site(s)
-                    </span>
+            {/* Farm Details and Metrics */}
+            <div className="flex-1 p-5 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="text-base sm:text-lg font-bold text-[#173A20]">
+                    {activeFarm.name}
+                  </h2>
+                  <div className="flex items-center gap-1.5 ml-1">
+                    <button
+                      type="button"
+                      onClick={openEditFarmModal}
+                      className="w-7 h-7 rounded-full bg-[#EEF8F1] hover:bg-[#CCEBD5] border border-[#CCEBD5] flex items-center justify-center text-[#173A20] transition cursor-pointer"
+                      title="Edit Farm Profile"
+                    >
+                      <Edit3 size={13} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={openDeleteFarmModal}
+                      className="w-7 h-7 rounded-full bg-white hover:bg-[#FDF3F1] border border-[#dc2626]/30 flex items-center justify-center text-[#dc2626] transition cursor-pointer"
+                      title="Delete Farm"
+                    >
+                      <Trash2 size={13} />
+                    </button>
                   </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3 text-xs text-[#5C5245]">
+                  <span className="inline-flex items-center gap-1">
+                    <MapPin size={13} className="text-[#4E8B3F]" />
+                    {activeFarm.city}, {activeFarm.region}
+                  </span>
+                  <span className="text-[#CCEBD5]">•</span>
+                  <span>Category: {activeFarm.category || 'CROPS'}</span>
+                  <span className="text-[#CCEBD5]">•</span>
+                  <span className="inline-flex items-center gap-1 font-semibold text-[#173A20]">
+                    <Warehouse size={12} className="text-[#4E8B3F]" />
+                    {activeParcels.length} Operating Site(s)
+                  </span>
                 </div>
               </div>
 
-              {/* Quick Metrics (Right side of card, matching Store card layout) */}
+              {/* Quick Metrics (Right side of card) */}
               <div className="flex items-center gap-3 sm:gap-6 bg-[#EEF8F1] border border-[#CCEBD5] px-4 py-3 rounded-2xl shrink-0">
                 <div className="text-center">
                   <div className="text-sm font-bold font-mono-num text-[#173A20]">
@@ -1037,9 +1066,9 @@ export const FarmManagementPage: React.FC = () => {
                 <div className="w-px h-7 bg-[#CCEBD5]" />
                 <div className="text-center">
                   <div className="text-sm font-bold font-mono-num text-[#173A20]">
-                    {user?.farmerProfile?.creditScore || 517}
+                    {user?.farmerProfile?.creditScore || activeFarm?.creditScore || 517}
                   </div>
-                  <div className="text-[10px] text-[#5C5245] uppercase font-semibold">Tabi Score</div>
+                  <div className="text-[10px] text-[#5C5245] uppercase font-semibold">Credit Score</div>
                 </div>
               </div>
             </div>
@@ -1048,72 +1077,83 @@ export const FarmManagementPage: React.FC = () => {
       })()}
 
       {/* =====================================================================
-          PRIMARY TABS (PRODUCE, SITES, SETTINGS)
+          PRIMARY TABS (PRODUCE, SITES) - Clean border-bottom tab bar (No enclosing box)
       ===================================================================== */}
       {activeFarm && (
-        <div className="flex items-center justify-between border-b border-[#CCEBD5] pb-3">
-          <div className="flex items-center gap-2 flex-wrap">
-            <button
-              type="button"
-              onClick={() => setActiveTab('produce')}
-              className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold transition cursor-pointer flex items-center gap-2 ${activeTab === 'produce'
-                ? 'bg-[#173A20] text-white shadow-xs'
-                : 'bg-[#EEF8F1] text-[#173A20] hover:bg-[#CCEBD5]'
+        <div className="border-b border-[#CCEBD5]/70 flex items-center">
+          <button
+            type="button"
+            onClick={() => setActiveTab('produce')}
+            className="flex-1 sm:flex-none sm:px-8 py-3 flex items-center justify-center gap-2 relative cursor-pointer hover:text-[#4E8B3F] transition"
+          >
+            <Package
+              size={17}
+              className={activeTab === 'produce' ? 'text-[#4E8B3F]' : 'text-[#241A12]/45'}
+            />
+            <span
+              className={`text-xs sm:text-sm ${activeTab === 'produce' ? 'font-bold text-[#4E8B3F]' : 'font-medium text-[#241A12]/60'
                 }`}
             >
-              <Package size={15} />
-              <span>Produce & Harvests ({farmYields.length})</span>
-            </button>
+              Produce & Harvests ({farmYields.length})
+            </span>
+            {activeTab === 'produce' && (
+              <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#4E8B3F] rounded-full" />
+            )}
+          </button>
 
-            <button
-              type="button"
-              onClick={() => setActiveTab('sites')}
-              className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold transition cursor-pointer flex items-center gap-2 ${activeTab === 'sites'
-                ? 'bg-[#173A20] text-white shadow-xs'
-                : 'bg-[#EEF8F1] text-[#173A20] hover:bg-[#CCEBD5]'
+          <button
+            type="button"
+            onClick={() => setActiveTab('sites')}
+            className="flex-1 sm:flex-none sm:px-8 py-3 flex items-center justify-center gap-2 relative cursor-pointer hover:text-[#4E8B3F] transition"
+          >
+            <Warehouse
+              size={17}
+              className={activeTab === 'sites' ? 'text-[#4E8B3F]' : 'text-[#241A12]/45'}
+            />
+            <span
+              className={`text-xs sm:text-sm ${activeTab === 'sites' ? 'font-bold text-[#4E8B3F]' : 'font-medium text-[#241A12]/60'
                 }`}
             >
-              <Warehouse size={15} />
-              <span>Operating Sites & Plots ({activeParcels.length})</span>
-            </button>
+              Operating Sites & Plots ({activeParcels.length})
+            </span>
+            {activeTab === 'sites' && (
+              <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#4E8B3F] rounded-full" />
+            )}
+          </button>
+        </div>
+      )}
 
-            <button
-              type="button"
-              onClick={() => setActiveTab('settings')}
-              className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold transition cursor-pointer flex items-center gap-2 ${activeTab === 'settings'
-                ? 'bg-[#173A20] text-white shadow-xs'
-                : 'bg-[#EEF8F1] text-[#173A20] hover:bg-[#CCEBD5]'
-                }`}
-            >
-              <Sliders size={15} />
-              <span>Farm Profile & Settings</span>
-            </button>
+      {/* Produce Action Bar (List Harvest + Search input if >= 10 items) */}
+      {activeFarm && activeTab === 'produce' && (
+        <div className="flex items-center justify-between gap-3 pt-1">
+          <div className="text-xs text-[#5C5245]">
+            <span className="font-bold text-[#173A20]">{farmYields.length}</span> harvest batches published
           </div>
 
-          {activeTab === 'produce' && (
-            <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
+            {farmYields.length >= 10 && (
               <input
                 type="text"
                 placeholder="Search produce..."
                 value={produceSearchQuery}
                 onChange={(e) => setProduceSearchQuery(e.target.value)}
-                className="hidden sm:block px-3.5 py-1.5 rounded-full border border-[#CCEBD5] bg-white text-xs text-[#241A12] placeholder-[#5C5245] focus:outline-none focus:border-[#4E8B3F] w-40 lg:w-56"
+                className="px-3.5 py-1.5 rounded-full border border-[#CCEBD5] bg-white text-xs text-[#241A12] placeholder-[#5C5245] focus:outline-none focus:border-[#4E8B3F] w-40 lg:w-56 shadow-2xs"
               />
-              <button
-                type="button"
-                onClick={handleOpenAddProduce}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#4E8B3F] hover:bg-[#3D7030] text-white text-xs font-bold transition shadow-xs cursor-pointer shrink-0"
-              >
-                <Plus size={14} strokeWidth={2.4} />
-                <span>+ List Harvest</span>
-              </button>
-            </div>
-          )}
+            )}
+            <button
+              type="button"
+              onClick={handleOpenAddProduce}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#4E8B3F] hover:bg-[#3D7030] text-white text-xs font-bold transition shadow-xs cursor-pointer shrink-0"
+            >
+              <Plus size={14} strokeWidth={2.4} />
+              <span>List Harvest</span>
+            </button>
+          </div>
         </div>
       )}
 
       {/* =====================================================================
-          TAB 1: PRODUCE & HARVESTS
+          TAB 1: PRODUCE & HARVESTS (Desktop 2-Col Grid)
       ===================================================================== */}
       {activeFarm && activeTab === 'produce' && (
         <div className="space-y-4">
@@ -1130,11 +1170,11 @@ export const FarmManagementPage: React.FC = () => {
                 className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-[#4E8B3F] text-white text-xs font-bold hover:bg-[#3D7030] transition cursor-pointer"
               >
                 <Plus size={14} />
-                <span>+ List First Harvest</span>
+                <span>List First Harvest</span>
               </button>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
               {filteredProduce.map((y: any) => {
                 const stock = y.stockQuantity ?? 0;
                 const isOut = stock <= 0;
@@ -1143,9 +1183,9 @@ export const FarmManagementPage: React.FC = () => {
                 return (
                   <div
                     key={y.id}
-                    className="p-3.5 sm:p-4 rounded-2xl bg-white border border-[#CCEBD5] hover:border-[#4E8B3F] flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition shadow-2xs"
+                    className="p-3.5 sm:p-4 rounded-2xl bg-white border border-[#CCEBD5] hover:border-[#4E8B3F] flex flex-col justify-between gap-3 transition shadow-2xs hover:shadow-sm"
                   >
-                    <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex items-start gap-3 min-w-0">
                       {img ? (
                         <img
                           src={resolveMediaUrl(img)}
@@ -1157,7 +1197,7 @@ export const FarmManagementPage: React.FC = () => {
                           <Sprout size={24} />
                         </div>
                       )}
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <h3 className="font-bold text-sm text-[#241A12] truncate">{y.title}</h3>
                           {y.isOrganic && (
@@ -1169,50 +1209,123 @@ export const FarmManagementPage: React.FC = () => {
                         <div className="font-mono-num text-xs font-bold text-[#173A20] mt-0.5">
                           {formatXaf(y.price || y.pricePerUnit)} / {y.unit}
                         </div>
-                        <div className="flex items-center gap-2 text-[11px] text-[#5C5245] mt-1">
-                          <span
-                            className={`font-mono-num font-semibold ${isOut ? 'text-[#dc2626]' : 'text-[#4E8B3F]'
-                              }`}
-                          >
-                            {isOut ? 'Out of Stock' : `${stock} ${y.unit} in stock`}
-                          </span>
-                          {isPaused && (
-                            <span className="bg-[#FEF2D8] text-[#B87D1E] px-2 py-0.2 rounded-full font-bold text-[10px]">
-                              Paused
+                        {y.lifecycleStatus === 'GROWING' ? (
+                          <div className="flex items-center gap-1.5 text-[11px] text-amber-800 bg-[#E2A63C]/15 border border-[#E2A63C]/30 px-2 py-0.5 rounded-md mt-1 w-fit">
+                            <Clock size={11} className="text-[#E2A63C] shrink-0" />
+                            <span>Harvest: {y.expectedHarvestWindow || 'Coming Soon'}</span>
+                            <span className="font-mono-num font-semibold text-[#173A20] ml-1">({stock} {y.unit} batch)</span>
+                          </div>
+                        ) : y.lifecycleStatus === 'OFF_CYCLE' ? (
+                          <div className="flex items-center gap-1.5 text-[11px] text-neutral-600 bg-neutral-100 border border-neutral-200 px-2 py-0.5 rounded-md mt-1 w-fit">
+                            <span>Off-Season • Next: {y.nextCycleMonth || 'Next Season'}</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 text-[11px] text-[#5C5245] mt-1">
+                            <span
+                              className={`font-mono-num font-semibold ${isOut ? 'text-[#dc2626]' : 'text-[#4E8B3F]'
+                                }`}
+                            >
+                              {isOut ? 'Out of Stock' : `${stock} ${y.unit} in stock`}
                             </span>
-                          )}
-                        </div>
+                            {isPaused && (
+                              <span className="bg-[#FEF2D8] text-[#B87D1E] px-2 py-0.2 rounded-full font-bold text-[10px]">
+                                Paused
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
 
                     {/* Item Actions */}
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => openStockModal(y)}
-                        className="px-3 py-1.5 rounded-full bg-[#EEF8F1] hover:bg-[#E1F3E7] border border-[#CCEBD5] text-[#4E8B3F] text-xs font-semibold inline-flex items-center gap-1.5 transition cursor-pointer"
-                      >
-                        <Sliders size={13} />
-                        <span>Balance Stock</span>
-                      </button>
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[#EEF8F1]">
+                      {/* Direct 3-State Lifecycle Segmented Control */}
+                      <div className="inline-flex items-center p-0.5 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] text-[11px]">
+                        <button
+                          type="button"
+                          onClick={() => handleSetProduceLifecycle(y, 'SELLING')}
+                          className={`px-2.5 py-1 rounded-full flex items-center gap-1 font-semibold transition cursor-pointer select-none ${
+                            (y.lifecycleStatus === 'SELLING' || !y.lifecycleStatus) && !isPaused
+                              ? 'bg-[#4E8B3F] text-white shadow-2xs font-bold'
+                              : 'text-[#173A20] hover:bg-white/60'
+                          }`}
+                          title="Selling: Immediate orders accepted"
+                        >
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full ${
+                              (y.lifecycleStatus === 'SELLING' || !y.lifecycleStatus) && !isPaused
+                                ? 'bg-white'
+                                : 'bg-[#4E8B3F]'
+                            }`}
+                          />
+                          <span>Selling</span>
+                        </button>
 
-                      <button
-                        type="button"
-                        onClick={() => handleOpenEditProduce(y)}
-                        className="w-8 h-8 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] flex items-center justify-center text-[#241A12] hover:border-[#4E8B3F] transition cursor-pointer"
-                        title="Edit Produce"
-                      >
-                        <Edit3 size={13} />
-                      </button>
+                        <button
+                          type="button"
+                          onClick={() => handleSetProduceLifecycle(y, 'GROWING')}
+                          className={`px-2.5 py-1 rounded-full flex items-center gap-1 font-semibold transition cursor-pointer select-none ${
+                            y.lifecycleStatus === 'GROWING'
+                              ? 'bg-[#E2A63C] text-[#241A12] shadow-2xs font-bold'
+                              : 'text-[#5C5245] hover:bg-white/60'
+                          }`}
+                          title="Growing: Pre-orders open with harvest window"
+                        >
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full ${
+                              y.lifecycleStatus === 'GROWING' ? 'bg-[#241A12]' : 'bg-[#E2A63C]'
+                            }`}
+                          />
+                          <span>Growing</span>
+                        </button>
 
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteProduce(y.id, y.title)}
-                        className="w-8 h-8 rounded-full bg-white border border-[#dc2626]/30 text-[#dc2626] hover:bg-[#FDF3F1] flex items-center justify-center transition cursor-pointer"
-                        title="Delete Produce"
-                      >
-                        <Trash2 size={13} />
-                      </button>
+                        <button
+                          type="button"
+                          onClick={() => handleSetProduceLifecycle(y, 'OFF_CYCLE')}
+                          className={`px-2.5 py-1 rounded-full flex items-center gap-1 font-semibold transition cursor-pointer select-none ${
+                            y.lifecycleStatus === 'OFF_CYCLE'
+                              ? 'bg-neutral-600 text-white shadow-2xs font-bold'
+                              : 'text-[#5C5245] hover:bg-white/60'
+                          }`}
+                          title="Off-Cycle: Waitlist notification active"
+                        >
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full ${
+                              y.lifecycleStatus === 'OFF_CYCLE' ? 'bg-white' : 'bg-neutral-400'
+                            }`}
+                          />
+                          <span>Off-Cycle</span>
+                        </button>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => openStockModal(y)}
+                          className="px-3 py-1.5 rounded-full bg-[#EEF8F1] hover:bg-[#E1F3E7] border border-[#CCEBD5] text-[#4E8B3F] text-xs font-semibold inline-flex items-center gap-1.5 transition cursor-pointer"
+                        >
+                          <Sliders size={13} />
+                          <span>Balance Stock</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEditProduce(y)}
+                          className="w-8 h-8 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] flex items-center justify-center text-[#241A12] hover:border-[#4E8B3F] transition cursor-pointer"
+                          title="Edit Produce"
+                        >
+                          <Edit3 size={13} />
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteProduce(y.id, y.title)}
+                          className="w-8 h-8 rounded-full bg-white border border-[#dc2626]/30 text-[#dc2626] hover:bg-[#FDF3F1] flex items-center justify-center transition cursor-pointer"
+                          title="Delete Produce"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );
@@ -1317,70 +1430,7 @@ export const FarmManagementPage: React.FC = () => {
         </div>
       )}
 
-      {/* =====================================================================
-          TAB 3: FARM PROFILE & SETTINGS
-      ===================================================================== */}
-      {activeFarm && activeTab === 'settings' && (
-        <div className="bg-white rounded-3xl border border-[#CCEBD5] p-6 shadow-xs space-y-6">
-          <div className="flex items-center justify-between pb-4 border-b border-[#CCEBD5]">
-            <div>
-              <h3 className="text-base font-bold text-[#173A20]">Farm Profile & Settings</h3>
-              <p className="text-xs text-[#5C5245]">Configure parcel details, cooperative registry, and storefront presentation</p>
-            </div>
-            <button
-              type="button"
-              onClick={openEditFarmModal}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#4E8B3F] hover:bg-[#3D7030] text-white text-xs font-bold transition shadow-xs cursor-pointer"
-            >
-              <Edit3 size={13} />
-              <span>Edit Farm Profile</span>
-            </button>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-            <div className="p-4 rounded-2xl bg-[#EEF8F1] border border-[#CCEBD5] space-y-1">
-              <span className="font-bold text-[#173A20] uppercase text-[10px] tracking-wide">Farm Name</span>
-              <p className="text-sm font-semibold text-[#173A20]">{activeFarm.name}</p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-[#EEF8F1] border border-[#CCEBD5] space-y-1">
-              <span className="font-bold text-[#173A20] uppercase text-[10px] tracking-wide">Category</span>
-              <p className="text-sm font-semibold text-[#173A20]">{activeFarm.category || 'CROPS'}</p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-[#EEF8F1] border border-[#CCEBD5] space-y-1">
-              <span className="font-bold text-[#173A20] uppercase text-[10px] tracking-wide">Primary Location</span>
-              <p className="text-sm font-semibold text-[#173A20]">{activeFarm.city}, {activeFarm.region}</p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-[#EEF8F1] border border-[#CCEBD5] space-y-1">
-              <span className="font-bold text-[#173A20] uppercase text-[10px] tracking-wide">Total Cultivated Area</span>
-              <p className="text-sm font-semibold text-[#173A20]">{activeFarm.sizeHectares || 2.5} Hectares</p>
-            </div>
-          </div>
-
-          {activeFarm.description && (
-            <div className="p-4 rounded-2xl bg-[#EEF8F1] border border-[#CCEBD5] space-y-1">
-              <span className="font-bold text-[#173A20] uppercase text-[10px] tracking-wide">Farm Bio & Practices</span>
-              <p className="text-xs text-[#5C5245] leading-relaxed">{activeFarm.description}</p>
-            </div>
-          )}
-
-          <div className="pt-4 border-t border-[#CCEBD5] flex items-center justify-between">
-            <div>
-              <p className="text-xs font-bold text-[#dc2626]">Danger Zone</p>
-              <p className="text-[11px] text-[#5C5245]">Permanently delete this farm and delist its produce</p>
-            </div>
-            <button
-              type="button"
-              onClick={openDeleteFarmModal}
-              className="px-4 py-2 rounded-full border border-[#dc2626]/40 text-[#dc2626] hover:bg-[#FDF3F1] text-xs font-bold transition cursor-pointer"
-            >
-              Delete Farm
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* =====================================================================
           MODAL 1: ADD / EDIT PRODUCE (AgroProduce)
@@ -1453,104 +1503,16 @@ export const FarmManagementPage: React.FC = () => {
                 />
               </div>
 
-              {/* 1. Produce Harvest Photo Upload (Multiple photos supported) */}
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-semibold text-[#5C5245]">
-                    Harvest Photos * {produceForm.mediaUrls.length > 0 && `(${produceForm.mediaUrls.length} selected)`}
-                  </label>
-                  {produceForm.mediaUrls.length > 0 && produceForm.mediaUrls.length < 6 && (
-                    <button
-                      type="button"
-                      onClick={() => produceImageInputRef.current?.click()}
-                      className="text-[11px] font-bold text-[#4E8B3F] hover:underline cursor-pointer inline-flex items-center gap-1"
-                    >
-                      <Plus size={13} /> Add More Photos
-                    </button>
-                  )}
-                </div>
-
-                <input
-                  ref={produceImageInputRef}
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  className="hidden"
-                  onChange={handleProduceImageUpload}
-                />
-
-                {produceForm.mediaUrls.length > 0 ? (
-                  <div className="space-y-2">
-                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
-                      {produceForm.mediaUrls.map((url, idx) => (
-                        <div
-                          key={idx}
-                          className="relative aspect-square rounded-2xl overflow-hidden bg-[#EEF8F1] border border-[#CCEBD5] group shadow-2xs"
-                        >
-                          <img
-                            src={resolveMediaUrl(url)}
-                            alt={`Produce preview ${idx + 1}`}
-                            className="w-full h-full object-cover"
-                          />
-                          {idx === 0 && (
-                            <span className="absolute bottom-1.5 left-1.5 bg-[#173A20]/90 text-[#E2A63C] text-[9px] font-bold px-2 py-0.5 rounded-full shadow-xs">
-                              Cover Photo
-                            </span>
-                          )}
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRemoveProducePhoto(idx);
-                            }}
-                            className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 hover:bg-[#B54A34] text-white flex items-center justify-center transition cursor-pointer shadow-xs"
-                            title="Remove this photo"
-                          >
-                            <X size={13} />
-                          </button>
-                        </div>
-                      ))}
-
-                      {produceForm.mediaUrls.length < 6 && (
-                        <button
-                          type="button"
-                          onClick={() => produceImageInputRef.current?.click()}
-                          className="aspect-square rounded-2xl border-2 border-dashed border-[#CCEBD5] hover:border-[#4E8B3F] bg-[#EEF8F1] hover:bg-[#E5F5E9] flex flex-col items-center justify-center cursor-pointer transition text-[#4E8B3F] group"
-                        >
-                          <div className="w-8 h-8 rounded-full bg-white border border-[#CCEBD5] group-hover:border-[#4E8B3F] flex items-center justify-center mb-1">
-                            <Plus size={16} />
-                          </div>
-                          <span className="text-[10px] font-bold">Add Photo</span>
-                        </button>
-                      )}
-                    </div>
-
-                    {uploadingProduceImage && (
-                      <div className="text-xs font-semibold text-[#4E8B3F] flex items-center gap-1.5 pt-1">
-                        <div className="w-3.5 h-3.5 border-2 border-[#4E8B3F] border-t-transparent rounded-full animate-spin" />
-                        <span>Uploading photo(s)...</span>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div
-                    onClick={() => produceImageInputRef.current?.click()}
-                    className="w-full py-6 px-4 rounded-2xl border-2 border-dashed border-[#CCEBD5] hover:border-[#4E8B3F] bg-[#EEF8F1] hover:bg-[#E5F5E9] flex flex-col items-center justify-center cursor-pointer transition text-center group"
-                  >
-                    <div className="w-12 h-12 rounded-2xl bg-white border border-[#CCEBD5] group-hover:border-[#4E8B3F] flex items-center justify-center text-[#4E8B3F] mb-2 shadow-2xs">
-                      <Camera size={22} />
-                    </div>
-                    <div className="text-xs font-bold text-[#173A20]">Upload Real Harvest Photos</div>
-                    <div className="text-[11px] text-[#5C5245] mt-0.5">Click to choose clear field, crate or crop photos (Multiple allowed)</div>
-                    {uploadingProduceImage && (
-                      <div className="mt-2 text-xs font-semibold text-[#4E8B3F] flex items-center gap-1.5">
-                        <div className="w-3.5 h-3.5 border-2 border-[#4E8B3F] border-t-transparent rounded-full animate-spin" />
-                        <span>Uploading...</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
+              {/* 1. Produce Harvest Photo Upload (Reusable Component) */}
+              <AgromImageUploader
+                label="Harvest Photos"
+                required
+                title="Upload Real Harvest Photos"
+                subtitle="Click to choose clear field, crate or crop photos (Multiple allowed)"
+                images={produceForm.mediaUrls}
+                maxImages={6}
+                onChange={(imgs) => setProduceForm({ ...produceForm, mediaUrls: imgs })}
+              />
 
               {/* 2. Produce Title */}
               <div>
@@ -1567,8 +1529,8 @@ export const FarmManagementPage: React.FC = () => {
                 />
               </div>
 
-              {/* 3. Category & Seasonality in 2 Columns */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* 3. Category & Operational Lifecycle in 2 Columns */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
                 <AgromDropdown
                   label="Agricultural Category"
                   required
@@ -1581,19 +1543,137 @@ export const FarmManagementPage: React.FC = () => {
                   onSelect={(opt) => setProduceForm({ ...produceForm, categoryName: opt.id })}
                 />
 
-                <AgromDropdown
-                  variant="harvest"
-                  label="Harvest Seasonality"
-                  required
-                  options={SEASONS.map((s) => ({
-                    id: s.id,
-                    label: s.label,
-                    icon: getSeasonIcon(s.id),
-                  }))}
-                  selectedId={produceForm.seasonality}
-                  onSelect={(opt) => setProduceForm({ ...produceForm, seasonality: opt.id })}
-                />
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold text-[#5C5245]">
+                    Operational Lifecycle Stage *
+                  </label>
+                  <div className="grid grid-cols-3 gap-1 p-1 rounded-2xl bg-[#EEF8F1] border border-[#CCEBD5]">
+                    <button
+                      type="button"
+                      onClick={() => setProduceForm({ ...produceForm, lifecycleStatus: 'SELLING' })}
+                      className={`py-2 px-1 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer select-none ${
+                        produceForm.lifecycleStatus === 'SELLING'
+                          ? 'bg-[#4E8B3F] text-white shadow-2xs'
+                          : 'text-[#173A20] hover:bg-white/60'
+                      }`}
+                    >
+                      <span className={`w-1.5 h-1.5 rounded-full ${produceForm.lifecycleStatus === 'SELLING' ? 'bg-white' : 'bg-[#4E8B3F]'}`} />
+                      <span>Selling</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setProduceForm({ ...produceForm, lifecycleStatus: 'GROWING' })}
+                      className={`py-2 px-1 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer select-none ${
+                        produceForm.lifecycleStatus === 'GROWING'
+                          ? 'bg-[#E2A63C] text-[#241A12] shadow-2xs'
+                          : 'text-[#5C5245] hover:bg-white/60'
+                      }`}
+                    >
+                      <span className={`w-1.5 h-1.5 rounded-full ${produceForm.lifecycleStatus === 'GROWING' ? 'bg-[#241A12]' : 'bg-[#E2A63C]'}`} />
+                      <span>Growing</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setProduceForm({ ...produceForm, lifecycleStatus: 'OFF_CYCLE' })}
+                      className={`py-2 px-1 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer select-none ${
+                        produceForm.lifecycleStatus === 'OFF_CYCLE'
+                          ? 'bg-neutral-700 text-white shadow-2xs'
+                          : 'text-[#5C5245] hover:bg-white/60'
+                      }`}
+                    >
+                      <span className={`w-1.5 h-1.5 rounded-full ${produceForm.lifecycleStatus === 'OFF_CYCLE' ? 'bg-white' : 'bg-neutral-400'}`} />
+                      <span>Off-Cycle</span>
+                    </button>
+                  </div>
+                </div>
               </div>
+
+              {/* Lifecycle Date & Timeline Specifics */}
+              {produceForm.lifecycleStatus === 'SELLING' && (
+                <div className="p-3.5 rounded-2xl bg-[#EEF8F1] border border-[#CCEBD5] space-y-1">
+                  <label className="block text-xs font-semibold text-[#173A20]">
+                    Harvest Date (Freshness Proof) *
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={produceForm.harvestDate}
+                    onChange={(e) => setProduceForm({ ...produceForm, harvestDate: e.target.value })}
+                    className="w-full rounded-xl bg-white border border-[#CCEBD5] px-3.5 py-2.5 text-xs text-[#173A20] font-mono-num outline-none focus:border-[#4E8B3F]"
+                  />
+                  <p className="text-[11px] text-[#5C5245]">
+                    Confirms when crops were picked from fields for buyers looking for fresh harvests.
+                  </p>
+                </div>
+              )}
+
+              {produceForm.lifecycleStatus === 'GROWING' && (
+                <div className="p-3.5 rounded-2xl bg-[#FEF2D8]/50 border border-[#F2DCAA] space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-semibold text-[#173A20]">
+                      Expected Harvest Window *
+                    </label>
+                    <span className="text-[10px] font-bold text-[#E2A63C] uppercase tracking-wider">
+                      Pre-Order Window
+                    </span>
+                  </div>
+                  <input
+                    type="text"
+                    required
+                    value={produceForm.expectedHarvestWindow}
+                    onChange={(e) => setProduceForm({ ...produceForm, expectedHarvestWindow: e.target.value })}
+                    placeholder="e.g. Dec 15 - Dec 28, or Mid-December"
+                    className="w-full rounded-xl bg-white border border-[#CCEBD5] px-3.5 py-2 text-xs text-[#241A12] outline-none focus:border-[#4E8B3F]"
+                  />
+                  <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                    {['Within 2 Weeks', 'Within 30 Days', 'Mid Next Month', 'End of Month'].map((preset) => (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() => setProduceForm({ ...produceForm, expectedHarvestWindow: preset })}
+                        className="text-[11px] px-2.5 py-0.5 rounded-full bg-white border border-[#CCEBD5] text-[#173A20] hover:border-[#4E8B3F] transition cursor-pointer select-none"
+                      >
+                        {preset}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {produceForm.lifecycleStatus === 'OFF_CYCLE' && (
+                <div className="p-3.5 rounded-2xl bg-neutral-100 border border-neutral-300/80 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-semibold text-[#173A20]">
+                      Next Target Planting / Harvest Month *
+                    </label>
+                    <span className="text-[10px] font-bold text-neutral-600 uppercase tracking-wider">
+                      Waitlist Active
+                    </span>
+                  </div>
+                  <input
+                    type="text"
+                    required
+                    value={produceForm.nextCycleMonth}
+                    onChange={(e) => setProduceForm({ ...produceForm, nextCycleMonth: e.target.value })}
+                    placeholder="e.g. March 2027 or Rainy Season Cycle"
+                    className="w-full rounded-xl bg-white border border-neutral-300 px-3.5 py-2 text-xs text-[#241A12] outline-none focus:border-[#4E8B3F]"
+                  />
+                  <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                    {['January', 'March', 'June', 'September', 'November'].map((m) => (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => setProduceForm({ ...produceForm, nextCycleMonth: `${m} Cycle` })}
+                        className="text-[11px] px-2.5 py-0.5 rounded-full bg-white border border-neutral-300 text-[#173A20] hover:border-[#4E8B3F] transition cursor-pointer select-none"
+                      >
+                        {m}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* 4. Price & Unit of Measure in 2 Columns */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
@@ -1894,7 +1974,7 @@ export const FarmManagementPage: React.FC = () => {
 
               <div className="flex items-center justify-between p-3.5 rounded-2xl bg-[#EEF8F1] border border-[#CCEBD5]">
                 <span className="text-xs font-semibold text-[#241A12]">
-                  Live on AgroMarket Marketplace
+                  Live on AgroMarket
                 </span>
                 <input
                   type="checkbox"
@@ -1916,7 +1996,7 @@ export const FarmManagementPage: React.FC = () => {
       )}
 
       {/* =====================================================================
-          MODAL 3: EDIT FARM PROFILE
+          MODAL 3: EDIT FARM PROFILE (Full parity with mobile app)
       ===================================================================== */}
       {showEditFarmModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -1924,83 +2004,136 @@ export const FarmManagementPage: React.FC = () => {
             className="fixed inset-0 bg-black/60 backdrop-blur-xs"
             onClick={() => setShowEditFarmModal(false)}
           />
-          <div className="relative z-10 w-full max-w-md bg-white rounded-3xl border border-[#CCEBD5] p-6 shadow-2xl space-y-4">
+          <div className="relative z-10 w-full max-w-lg bg-white rounded-3xl border border-[#CCEBD5] p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-[#CCEBD5]">
-              <h3 className="font-bold text-base text-[#173A20]">Edit Farm Profile</h3>
+              <div>
+                <h3 className="font-bold text-base text-[#173A20]">Edit Farm Profile</h3>
+                <p className="text-xs text-[#5C5245]">Update public storefront banner, bio and produce specialties</p>
+              </div>
               <button
                 type="button"
                 onClick={() => setShowEditFarmModal(false)}
-                className="w-8 h-8 rounded-full bg-[#EEF8F1] flex items-center justify-center text-[#241A12] cursor-pointer"
+                className="w-8 h-8 rounded-full bg-[#EEF8F1] flex items-center justify-center text-[#241A12] cursor-pointer hover:bg-[#CCEBD5] transition"
               >
                 <X size={16} />
               </button>
             </div>
 
-            <form onSubmit={handleSaveFarmProfile} className="space-y-3.5">
+            <form onSubmit={handleSaveFarmProfile} className="space-y-4">
+              {/* Storefront Cover Banner (16:9 Standard) - Strictly Uploads, No URL input */}
+              <AgromImageUploader
+                singleBanner
+                aspectRatio="video"
+                label="Storefront Cover Banner (16:9 Standard)"
+                title="Upload Storefront Banner (16:9)"
+                subtitle="Click to upload a clear landscape photo of your farm"
+                images={editFarmCover ? [editFarmCover] : []}
+                onChange={(imgs) => setEditFarmCover(imgs[0] || '')}
+              />
+
+              {/* Farm Enterprise Name */}
               <div>
-                <label className="block text-xs font-semibold text-[#5C5245] mb-1">Farm Name</label>
+                <label className="block text-xs font-semibold text-[#5C5245] mb-1">
+                  Farm Enterprise Name *
+                </label>
                 <input
                   type="text"
                   required
                   value={editFarmName}
                   onChange={(e) => setEditFarmName(e.target.value)}
+                  placeholder="e.g. Mount Cameroon Highlands Farm"
                   className="w-full rounded-2xl bg-[#EEF8F1] border border-[#CCEBD5] px-4 py-3 text-sm text-[#173A20] placeholder-[#5C5245]/50 outline-none focus:outline-none focus:border-[#4E8B3F] focus:ring-2 focus:ring-[#4E8B3F]/20 transition shadow-2xs"
                 />
               </div>
 
+              {/* Farm Story & Ethics */}
               <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block text-xs font-semibold text-[#5C5245]">Banner Photo</label>
-                  <button
-                    type="button"
-                    onClick={() => editCoverInputRef.current?.click()}
-                    disabled={uploadingEditCover}
-                    className="text-[11px] font-bold text-[#4E8B3F] hover:underline cursor-pointer disabled:opacity-50 inline-flex items-center gap-1"
-                  >
-                    <Upload size={12} />
-                    <span>{uploadingEditCover ? 'Uploading...' : 'Upload Image'}</span>
-                  </button>
-                </div>
-
-                <input
-                  ref={editCoverInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleUploadEditCover}
-                />
-
-                {editFarmCover && (
-                  <div className="relative aspect-[21/9] w-full rounded-xl overflow-hidden mb-2 border border-[#CCEBD5]">
-                    <img src={resolveMediaUrl(editFarmCover)} alt="Farm Banner" className="w-full h-full object-cover" />
-                  </div>
-                )}
-
-                <input
-                  type="text"
-                  value={editFarmCover}
-                  onChange={(e) => setEditFarmCover(e.target.value)}
-                  placeholder="Or paste banner image URL"
-                  className="w-full rounded-2xl bg-[#EEF8F1] border border-[#CCEBD5] px-4 py-3 text-sm text-[#173A20] placeholder-[#5C5245]/50 outline-none focus:outline-none focus:border-[#4E8B3F] focus:ring-2 focus:ring-[#4E8B3F]/20 transition shadow-2xs"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#5C5245] mb-1">Description</label>
+                <label className="block text-xs font-semibold text-[#5C5245] mb-1">
+                  Farm Story & Ethics
+                </label>
                 <textarea
                   rows={3}
                   value={editFarmDesc}
                   onChange={(e) => setEditFarmDesc(e.target.value)}
+                  placeholder="Tell buyers about your soil, organic standards, and farming journey..."
                   className="w-full rounded-2xl bg-[#EEF8F1] border border-[#CCEBD5] px-4 py-3 text-sm text-[#173A20] placeholder-[#5C5245]/50 outline-none focus:outline-none focus:border-[#4E8B3F] focus:ring-2 focus:ring-[#4E8B3F]/20 transition shadow-2xs resize-none"
                 />
               </div>
 
-              <button
-                type="submit"
-                className="w-full py-3.5 rounded-full bg-[#4E8B3F] text-white text-xs font-bold transition shadow-xs cursor-pointer"
-              >
-                Save Farm Details
-              </button>
+              {/* Produce Specialties (Glance Tags) */}
+              <div className="space-y-2">
+                <label className="block text-xs font-semibold text-[#5C5245]">
+                  Produce Specialties (Glance Tags)
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={editTagInput}
+                    onChange={(e) => setEditTagInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddEditTag();
+                      }
+                    }}
+                    placeholder="e.g. Foumbot Tomatoes, Penja Pepper"
+                    className="flex-1 rounded-2xl bg-[#EEF8F1] border border-[#CCEBD5] px-4 py-2.5 text-xs text-[#173A20] placeholder-[#5C5245]/50 outline-none focus:border-[#4E8B3F]"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddEditTag}
+                    className="px-4 py-2.5 rounded-2xl bg-[#4E8B3F] hover:bg-[#3D7030] text-white text-xs font-bold transition cursor-pointer shrink-0"
+                  >
+                    Add
+                  </button>
+                </div>
+
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {editPrimaryProduce.map((tag) => (
+                    <span
+                      key={tag}
+                      onClick={() => handleRemoveEditTag(tag)}
+                      className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] text-xs font-semibold text-[#173A20] hover:bg-[#FDF3F1] hover:text-[#dc2626] transition cursor-pointer"
+                      title="Click to remove tag"
+                    >
+                      <span>{tag}</span>
+                      <X size={12} />
+                    </span>
+                  ))}
+                </div>
+                {editPrimaryProduce.length === 0 && (
+                  <p className="text-[11px] text-[#5C5245]/80">
+                    No manual tags added. Your public card will automatically display tags based on your active listed produce.
+                  </p>
+                )}
+              </div>
+
+              {/* Danger Zone: Delete Farm */}
+              <div className="p-4 rounded-2xl bg-[#FEF2F2] border border-[#FECACA] space-y-2">
+                <h4 className="text-xs font-bold text-[#991B1B]">Danger Zone</h4>
+                <p className="text-[11px] text-[#7F1D1D] leading-relaxed">
+                  Permanently remove this farm enterprise from your AgroMarket portfolio. Any active produce listed under this farm will be detached.
+                </p>
+                <button
+                  type="button"
+                  onClick={openDeleteFarmModal}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#DC2626] hover:bg-[#B91C1C] text-white text-xs font-bold transition shadow-xs cursor-pointer"
+                >
+                  <Trash2 size={13} />
+                  <span>Delete Farm Enterprise</span>
+                </button>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={savingFarmProfile}
+                  className="w-full py-3.5 rounded-full bg-[#4E8B3F] hover:bg-[#3D7030] disabled:opacity-50 text-white text-xs font-bold transition shadow-xs cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <CheckCircle2 size={16} />
+                  <span>{savingFarmProfile ? 'Saving...' : 'Save Profile Changes'}</span>
+                </button>
+              </div>
             </form>
           </div>
         </div>
@@ -2169,84 +2302,368 @@ export const FarmManagementPage: React.FC = () => {
       )}
 
       {/* =====================================================================
-          MODAL 4: CASCADING FARM DELETION
+          MODAL 4: 2-STEP CASCADING FARM DELETION & MIGRATION (Parity with mobile)
       ===================================================================== */}
       {deleteModalVisible && activeFarm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
             className="fixed inset-0 bg-black/60 backdrop-blur-xs"
-            onClick={() => setDeleteModalVisible(false)}
+            onClick={() => !isDeletingFarm && setDeleteModalVisible(false)}
           />
-          <div className="relative z-10 w-full max-w-md bg-white rounded-3xl border border-[#CCEBD5] p-6 shadow-2xl space-y-4">
+          <div className="relative z-10 w-full max-w-lg bg-white rounded-3xl border border-[#CCEBD5] p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            {/* Header */}
             <div className="flex items-center justify-between pb-3 border-b border-[#CCEBD5]">
-              <div className="flex items-center gap-2 text-[#dc2626]">
-                <AlertTriangle size={18} />
-                <h3 className="font-bold text-base">Delete Farm Enterprise</h3>
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-[#FEE2E2] flex items-center justify-center text-[#DC2626]">
+                  {deleteStep === 1 ? <AlertTriangle size={18} /> : <Trash2 size={18} />}
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-[#991B1B]">
+                    {deleteStep === 1 ? 'Delete Farm Enterprise' : 'Final Destruction Confirmation'}
+                  </h3>
+                  <p className="text-xs text-[#5C5245]">
+                    {deleteStep === 1
+                      ? 'Step 1 of 2: Impact Assessment & Assets'
+                      : 'Step 2 of 2: Type Farm Name to Confirm'}
+                  </p>
+                </div>
               </div>
               <button
                 type="button"
-                onClick={() => setDeleteModalVisible(false)}
-                className="w-8 h-8 rounded-full bg-[#EEF8F1] flex items-center justify-center text-[#241A12] cursor-pointer"
+                onClick={() => !isDeletingFarm && setDeleteModalVisible(false)}
+                className="w-8 h-8 rounded-full bg-[#EEF8F1] flex items-center justify-center text-[#241A12] cursor-pointer hover:bg-[#CCEBD5] transition"
               >
                 <X size={16} />
               </button>
             </div>
 
-            <p className="text-xs text-[#5C5245] leading-relaxed">
-              Are you sure you want to delete <strong>{activeFarm.name}</strong>?
-            </p>
+            {/* STEP 1: IMPACT ASSESSMENT */}
+            {deleteStep === 1 && (
+              <div className="space-y-4">
+                {/* Warning Card */}
+                <div className="p-4 rounded-2xl bg-[#FEF2F2] border border-[#FECACA] space-y-1">
+                  <div className="flex items-center gap-2 text-[#DC2626] font-bold text-xs">
+                    <AlertTriangle size={15} />
+                    <span>Critical Enterprise Deletion</span>
+                  </div>
+                  <p className="text-xs text-[#7F1D1D] leading-relaxed">
+                    You are preparing to delete <strong>"{activeFarm.name}"</strong>. This enterprise profile and public storefront will be permanently delisted from AgroMarket.
+                  </p>
+                </div>
 
-            {farmsList.length > 1 && (
-              <div className="space-y-2">
-                <label className="block text-xs font-semibold text-[#241A12]">
-                  Active Listings & Stories:
-                </label>
-                <div className="grid grid-cols-2 gap-2">
+                {/* Associated Assets Found */}
+                <div className="space-y-2">
+                  <div className="text-xs font-bold text-[#173A20]">Associated Farm Assets Found:</div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <div className="p-3 rounded-2xl bg-[#EEF8F1] border border-[#CCEBD5] text-center space-y-0.5">
+                      <div className="text-base font-bold text-[#173A20]">{farmYields.length}</div>
+                      <div className="text-[11px] text-[#5C5245] font-medium">Active Produce</div>
+                    </div>
+                    <div className="p-3 rounded-2xl bg-[#FEF3C7] border border-[#FDE68A] text-center space-y-0.5">
+                      <div className="text-base font-bold text-[#92400E]">
+                        {activeFarm.posts?.length || 1}
+                      </div>
+                      <div className="text-[11px] text-[#92400E] font-medium">Harvest Stories</div>
+                    </div>
+                    <div className="p-3 rounded-2xl bg-[#F3E8FF] border border-[#E9D5FF] text-center space-y-0.5">
+                      <div className="text-base font-bold text-[#6B21A8]">
+                        {activeFarm.rating?.toFixed(1) || '5.0'} ★
+                      </div>
+                      <div className="text-[11px] text-[#6B21A8] font-medium">
+                        {activeFarm.reviewsCount || 0} Reviews
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Safety Escrow Notice */}
+                <div className="p-3 rounded-2xl bg-[#ECFDF5] border border-[#A7F3D0] flex items-start gap-2.5 text-xs text-[#065F46]">
+                  <ShieldCheck size={16} className="text-[#059669] shrink-0 mt-0.5" />
+                  <span>
+                    <strong>Safety Rule:</strong> Deletion will be strictly blocked if this farm has active escrow orders in progress or pending customer deliveries.
+                  </span>
+                </div>
+
+                {/* MULTI-FARM: MIGRATION OPTIONS */}
+                {farmsList.filter((f) => f.id !== activeFarm.id).length > 0 ? (
+                  <div className="space-y-3 pt-1">
+                    <div className="text-xs font-bold text-[#173A20]">
+                      Asset Migration Options:
+                    </div>
+                    <p className="text-[11px] text-[#5C5245]">
+                      You have other active farms. You can seamlessly transfer all active produce batches and harvest stories instead of losing them:
+                    </p>
+
+                    {/* Option 1: Transfer (Recommended) */}
+                    <div
+                      onClick={() => setDeleteAction('transfer')}
+                      className={`p-3.5 rounded-2xl border-2 transition cursor-pointer space-y-2 ${deleteAction === 'transfer'
+                          ? 'bg-[#EEF8F1] border-[#4E8B3F]'
+                          : 'bg-white border-[#CCEBD5] hover:border-[#4E8B3F]/50'
+                        }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="radio"
+                            name="deleteAction"
+                            checked={deleteAction === 'transfer'}
+                            onChange={() => setDeleteAction('transfer')}
+                            className="accent-[#4E8B3F]"
+                          />
+                          <span className="text-xs font-bold text-[#173A20]">
+                            Transfer produce & stories to another farm
+                          </span>
+                        </div>
+                        <span className="px-2 py-0.5 rounded-full bg-[#4E8B3F] text-white text-[10px] font-bold">
+                          Recommended
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-[#5C5245] pl-6">
+                        All active marketplace listings and AgroFeed stories will be reassigned so you don't lose sales or followers.
+                      </p>
+
+                      {deleteAction === 'transfer' && (
+                        <div className="pl-6 pt-1 space-y-1.5">
+                          <label className="block text-[11px] font-bold text-[#173A20]">
+                            Select Destination Farm:
+                          </label>
+                          <div className="space-y-1.5">
+                            {farmsList
+                              .filter((f) => f.id !== activeFarm.id)
+                              .map((other) => (
+                                <div
+                                  key={other.id}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setDeleteTargetFarmId(other.id);
+                                  }}
+                                  className={`p-2.5 rounded-xl border flex items-center justify-between transition cursor-pointer ${deleteTargetFarmId === other.id
+                                      ? 'bg-white border-2 border-[#4E8B3F] shadow-2xs'
+                                      : 'bg-white/80 border-[#CCEBD5]'
+                                    }`}
+                                >
+                                  <div>
+                                    <div className="text-xs font-bold text-[#173A20]">
+                                      {other.name}
+                                    </div>
+                                    <div className="text-[10px] text-[#5C5245]">
+                                      📍 {other.city || other.region || 'Cameroon'}
+                                    </div>
+                                  </div>
+                                  {deleteTargetFarmId === other.id && (
+                                    <CheckCircle2 size={16} className="text-[#4E8B3F]" />
+                                  )}
+                                </div>
+                              ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Option 2: Delete All */}
+                    <div
+                      onClick={() => setDeleteAction('delete')}
+                      className={`p-3.5 rounded-2xl border-2 transition cursor-pointer space-y-1 ${deleteAction === 'delete'
+                          ? 'bg-[#FEF2F2] border-[#DC2626]'
+                          : 'bg-white border-[#CCEBD5] hover:border-[#DC2626]/50'
+                        }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          name="deleteAction"
+                          checked={deleteAction === 'delete'}
+                          onChange={() => setDeleteAction('delete')}
+                          className="accent-[#DC2626]"
+                        />
+                        <span className="text-xs font-bold text-[#991B1B]">
+                          Permanently delete all produce & stories
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-[#7F1D1D] pl-6">
+                        All produce batches will be removed from AgroMarket, and all harvest stories, comments, and likes will be permanently erased.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  /* SINGLE FARM CASE */
+                  <div className="space-y-3 pt-1">
+                    <div className="text-xs font-bold text-[#173A20]">Recommended Alternatives:</div>
+                    <p className="text-[11px] text-[#5C5245]">
+                      This is your only registered farm. Before deleting it, consider these safer alternatives:
+                    </p>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <div className="p-3.5 rounded-2xl bg-[#EEF8F1] border border-[#CCEBD5] space-y-2">
+                        <div className="text-xs font-bold text-[#173A20] flex items-center gap-1.5">
+                          <Edit3 size={14} className="text-[#4E8B3F]" />
+                          <span>Rebrand or Edit Profile Instead</span>
+                        </div>
+                        <p className="text-[11px] text-[#5C5245] leading-relaxed">
+                          Change farm name, bio, or crop specialties while keeping your listings, review score, and stories intact.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDeleteModalVisible(false);
+                            openEditFarmModal();
+                          }}
+                          className="w-full py-1.5 rounded-full bg-white border border-[#CCEBD5] hover:border-[#4E8B3F] text-xs font-bold text-[#173A20] transition cursor-pointer"
+                        >
+                          ✏️ Edit Farm Profile
+                        </button>
+                      </div>
+
+                      <div className="p-3.5 rounded-2xl bg-[#FEF3C7] border border-[#FDE68A] space-y-2">
+                        <div className="text-xs font-bold text-[#92400E] flex items-center gap-1.5">
+                          <Plus size={14} className="text-[#D97706]" />
+                          <span>Register New Farm First</span>
+                        </div>
+                        <p className="text-[11px] text-[#92400E] leading-relaxed">
+                          Register your new farm first, then come back to migrate your existing produce and harvest stories seamlessly.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDeleteModalVisible(false);
+                            navigate('/farmer/new');
+                          }}
+                          className="w-full py-1.5 rounded-full bg-white border border-[#FDE68A] hover:border-[#D97706] text-xs font-bold text-[#92400E] transition cursor-pointer"
+                        >
+                          + New Farm First
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Acknowledgement Checkbox */}
+                    <label className="flex items-start gap-2.5 p-3 rounded-2xl bg-[#FEF2F2] border border-[#FECACA] cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={deleteSingleFarmAgreed}
+                        onChange={(e) => setDeleteSingleFarmAgreed(e.target.checked)}
+                        className="mt-0.5 accent-[#DC2626]"
+                      />
+                      <span className="text-xs text-[#7F1D1D] leading-relaxed">
+                        I understand that all produce batches and harvest stories will be permanently deleted and cannot be recovered.
+                      </span>
+                    </label>
+                  </div>
+                )}
+
+                {/* Footer Buttons for Step 1 */}
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#CCEBD5]">
                   <button
                     type="button"
-                    onClick={() => setDeleteAction('transfer')}
-                    className={`p-2.5 rounded-xl border text-left text-xs font-bold transition cursor-pointer ${deleteAction === 'transfer'
-                      ? 'bg-[#EEF8F1] border-[#4E8B3F] text-[#173A20]'
-                      : 'bg-white border-[#CCEBD5] text-[#5C5245]'
-                      }`}
+                    onClick={() => setDeleteModalVisible(false)}
+                    className="px-4 py-2 rounded-full bg-[#EEF8F1] hover:bg-[#CCEBD5] text-xs font-bold text-[#173A20] transition cursor-pointer"
                   >
-                    Transfer to another farm
+                    Cancel
                   </button>
                   <button
                     type="button"
-                    onClick={() => setDeleteAction('delete')}
-                    className={`p-2.5 rounded-xl border text-left text-xs font-bold transition cursor-pointer ${deleteAction === 'delete'
-                      ? 'bg-[#FDF3F1] border-[#dc2626] text-[#dc2626]'
-                      : 'bg-white border-[#CCEBD5] text-[#5C5245]'
-                      }`}
+                    onClick={() => setDeleteStep(2)}
+                    disabled={
+                      farmsList.filter((f) => f.id !== activeFarm.id).length === 0
+                        ? !deleteSingleFarmAgreed
+                        : deleteAction === 'transfer' && !deleteTargetFarmId
+                    }
+                    className="px-5 py-2.5 rounded-full bg-[#DC2626] hover:bg-[#B91C1C] disabled:opacity-40 text-white text-xs font-bold transition shadow-xs cursor-pointer inline-flex items-center gap-1.5"
                   >
-                    Permanently delete
+                    <span>Next: Confirmation</span>
+                    <ChevronRight size={14} />
                   </button>
                 </div>
               </div>
             )}
 
-            <div>
-              <label className="block text-xs font-semibold text-[#5C5245] mb-1">
-                Type <strong>{activeFarm.name}</strong> to confirm:
-              </label>
-              <input
-                type="text"
-                value={deleteConfirmName}
-                onChange={(e) => setDeleteConfirmName(e.target.value)}
-                placeholder={activeFarm.name}
-                className="w-full rounded-xl bg-[#EEF8F1] border border-[#CCEBD5] px-3.5 py-2 text-xs text-[#241A12]"
-              />
-            </div>
+            {/* STEP 2: DESTRUCTION CONFIRMATION */}
+            {deleteStep === 2 && (
+              <div className="space-y-4">
+                <div className="p-4 rounded-2xl bg-[#FEF2F2] border border-[#FECACA] space-y-2">
+                  <div className="text-xs font-bold text-[#991B1B]">Action Summary:</div>
+                  <div className="space-y-1.5 text-xs text-[#7F1D1D]">
+                    {deleteAction === 'transfer' && deleteTargetFarmId ? (
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 size={15} className="text-[#059669]" />
+                        <span>
+                          Produce batches and stories will be migrated to{' '}
+                          <strong>
+                            "{farmsList.find((f) => f.id === deleteTargetFarmId)?.name || 'selected farm'}"
+                          </strong>
+                          .
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <AlertCircle size={15} className="text-[#DC2626]" />
+                        <span>
+                          ALL {farmYields.length} produce batches and stories tied to this farm will be permanently erased.
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2">
+                      <Trash2 size={15} className="text-[#DC2626]" />
+                      <span>Farm profile "{activeFarm.name}" will be completely deleted.</span>
+                    </div>
+                  </div>
+                </div>
 
-            <button
-              type="button"
-              onClick={handleExecuteDeleteFarm}
-              disabled={deleteConfirmName.trim().toLowerCase() !== activeFarm.name.trim().toLowerCase()}
-              className="w-full py-3 rounded-full bg-[#dc2626] hover:bg-[#b91c1c] disabled:opacity-50 text-white text-xs font-bold transition shadow-xs cursor-pointer"
-            >
-              Permanently Remove Farm
-            </button>
+                <div>
+                  <label className="block text-xs font-semibold text-[#5C5245] mb-1.5">
+                    To proceed, type the exact farm name <strong className="text-[#991B1B]">"{activeFarm.name}"</strong> below:
+                  </label>
+                  <input
+                    type="text"
+                    value={deleteConfirmName}
+                    onChange={(e) => setDeleteConfirmName(e.target.value)}
+                    placeholder={activeFarm.name}
+                    className={`w-full rounded-2xl bg-[#EEF8F1] border px-4 py-3 text-xs text-[#241A12] outline-none transition ${deleteConfirmName.trim().toLowerCase() === activeFarm.name.trim().toLowerCase()
+                        ? 'border-[#059669] bg-[#ECFDF5]'
+                        : 'border-[#CCEBD5] focus:border-[#DC2626]'
+                      }`}
+                  />
+                  {deleteConfirmName.length > 0 &&
+                    deleteConfirmName.trim().toLowerCase() !== activeFarm.name.trim().toLowerCase() && (
+                      <p className="text-[11px] text-[#DC2626] font-medium pt-1">
+                        Names do not match yet.
+                      </p>
+                    )}
+                </div>
+
+                <div className="flex items-center justify-between gap-2 pt-2 border-t border-[#CCEBD5]">
+                  <button
+                    type="button"
+                    onClick={() => setDeleteStep(1)}
+                    disabled={isDeletingFarm}
+                    className="px-4 py-2 rounded-full bg-[#EEF8F1] hover:bg-[#CCEBD5] text-xs font-bold text-[#173A20] transition cursor-pointer"
+                  >
+                    ← Back
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleExecuteDeleteFarm}
+                    disabled={
+                      isDeletingFarm ||
+                      deleteConfirmName.trim().toLowerCase() !== activeFarm.name.trim().toLowerCase()
+                    }
+                    className="px-5 py-2.5 rounded-full bg-[#DC2626] hover:bg-[#B91C1C] disabled:opacity-40 text-white text-xs font-bold transition shadow-xs cursor-pointer inline-flex items-center gap-2"
+                  >
+                    {isDeletingFarm ? (
+                      <>
+                        <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Removing Farm...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 size={14} />
+                        <span>Permanently Remove Farm</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

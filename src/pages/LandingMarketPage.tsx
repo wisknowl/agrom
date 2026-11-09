@@ -12,6 +12,7 @@ import {
 import { fetchYieldsApi, fetchCategoriesApi, fetchPublicFarmsApi, fetchPublicStoresApi } from '@/api';
 import { Yield } from '@/types';
 import YieldCard from '@/components/YieldCard';
+import FarmCard from '@/components/FarmCard';
 import { useCartStore } from '@/store/cartStore';
 import { useRegionalContainerStore } from '@/store/regionalContainerStore';
 import { useSearchStore } from '@/store/searchStore';
@@ -34,6 +35,7 @@ export const LandingMarketPage: React.FC = () => {
   const [storesList, setStoresList] = useState<any[]>([]);
   const [categories, setCategories] = useState<string[]>(STATIC_CATEGORIES);
   const [produceSourceFilter, setProduceSourceFilter] = useState<'all' | 'direct' | 'instore'>('all');
+  const [produceLifecycleFilter, setProduceLifecycleFilter] = useState<'all' | 'selling' | 'growing'>('all');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const { searchQuery, setSearchQuery, selectedRegion, setSelectedRegion } = useSearchStore();
   const [loading, setLoading] = useState(true);
@@ -95,13 +97,18 @@ export const LandingMarketPage: React.FC = () => {
       (produceSourceFilter === 'direct' && !isStoreProduce) ||
       (produceSourceFilter === 'instore' && isStoreProduce);
 
+    const matchesLifecycle =
+      produceLifecycleFilter === 'all' ||
+      (produceLifecycleFilter === 'selling' && (item.lifecycleStatus === 'SELLING' || !item.lifecycleStatus)) ||
+      (produceLifecycleFilter === 'growing' && item.lifecycleStatus === 'GROWING');
+
     const matchesRegion =
       !selectedRegion ||
       Boolean(item.originRegion && item.originRegion.toLowerCase().includes(selectedRegion.toLowerCase())) ||
       Boolean(item.farm?.region && item.farm.region.toLowerCase().includes(selectedRegion.toLowerCase())) ||
       Boolean(item.farm?.city && item.farm.city.toLowerCase().includes(selectedRegion.toLowerCase()));
 
-    return matchesSearch && matchesCategory && matchesSource && matchesRegion;
+    return matchesSearch && matchesCategory && matchesSource && matchesLifecycle && matchesRegion;
   });
 
   // Filtered Farms Directory
@@ -245,6 +252,45 @@ export const LandingMarketPage: React.FC = () => {
                   In Stores
                 </button>
               </div>
+
+              {/* Lifecycle Stage Filter: All | In Stock | Pre-Order */}
+              <div className="flex items-center gap-1 bg-[#EEF8F1] border border-[#CCEBD5] p-1 rounded-full shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setProduceLifecycleFilter('all')}
+                  className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition cursor-pointer ${
+                    produceLifecycleFilter === 'all'
+                      ? 'bg-[#173A20] text-white shadow-2xs'
+                      : 'text-[#5C5245] hover:text-[#173A20]'
+                  }`}
+                >
+                  All Status
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setProduceLifecycleFilter('selling')}
+                  className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition cursor-pointer flex items-center gap-1 ${
+                    produceLifecycleFilter === 'selling'
+                      ? 'bg-[#4E8B3F] text-white shadow-2xs'
+                      : 'text-[#5C5245] hover:text-[#4E8B3F]'
+                  }`}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                  <span>In Stock</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setProduceLifecycleFilter('growing')}
+                  className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition cursor-pointer flex items-center gap-1 ${
+                    produceLifecycleFilter === 'growing'
+                      ? 'bg-[#E2A63C] text-[#241A12] shadow-2xs'
+                      : 'text-[#5C5245] hover:text-[#B87D18]'
+                  }`}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                  <span>Pre-Order</span>
+                </button>
+              </div>
             </>
           )}
 
@@ -347,32 +393,7 @@ export const LandingMarketPage: React.FC = () => {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[11px] sm:gap-4 lg:gap-5">
               {filteredFarms.map((farm: any) => (
-                <div
-                  key={farm.id}
-                  onClick={() => navigate(`/farm/${farm.slug || farm.id}`)}
-                  className="bg-white rounded-2xl border border-[#CCEBD5] hover:border-[#4E8B3F] overflow-hidden shadow-xs hover:shadow-md transition cursor-pointer flex flex-col"
-                >
-                  <div className="h-40 bg-[#EEF8F1] relative">
-                    <img
-                      src={farm.coverPhoto || 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=800'}
-                      alt={farm.name}
-                      className="w-full h-full object-cover"
-                    />
-                    <span className="absolute top-3 left-3 bg-[#EEF8F1]/95 text-[#173A20] border border-[#CCEBD5] text-[11px] font-bold px-2.5 py-0.5 rounded-full">
-                      {farm.category || 'CROPS'} • {farm.sizeHectares || 2.5} Ha
-                    </span>
-                  </div>
-                  <div className="p-4 flex-1 flex flex-col justify-between space-y-2">
-                    <div>
-                      <h4 className="font-bold text-base text-[#173A20] leading-snug">{farm.name}</h4>
-                      <p className="text-xs text-[#5C5245] line-clamp-2 mt-1">{farm.description}</p>
-                    </div>
-                    <div className="pt-2 border-t border-[#EEF8F1] flex items-center justify-between text-xs text-[#5C5245]">
-                      <span className="font-semibold">{farm.city}, {farm.region}</span>
-                      <span className="text-[#4E8B3F] font-bold">View Farm Storefront →</span>
-                    </div>
-                  </div>
-                </div>
+                <FarmCard key={farm.id} farm={farm} />
               ))}
             </div>
           )

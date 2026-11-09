@@ -177,6 +177,10 @@ export interface Yield {
   storeName?: string;
   sourceType?: 'FARM' | 'STORE' | 'COMBO';
   harvestDate?: string;
+  lifecycleStatus?: 'SELLING' | 'GROWING' | 'OFF_CYCLE' | string;
+  expectedHarvestWindow?: string;
+  nextCycleMonth?: string;
+  waitlistCount?: number;
   mediaUrls?: string[];
   seasonality?: string;
   shelfLifeDays?: number;

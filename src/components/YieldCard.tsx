@@ -8,6 +8,10 @@ import {
   MessageCircle,
   Check,
   ShieldCheck,
+  Clock,
+  Flame,
+  PackageCheck,
+  Bell,
 } from 'lucide-react';
 import { Yield } from '@/types';
 import { useCartStore } from '@/store/cartStore';
@@ -105,7 +109,15 @@ export const YieldCard: React.FC<YieldCardProps> = ({ item }) => {
 
         {/* Bottom Badges on Image */}
         <div className="absolute bottom-2 left-2.5 right-2.5 flex items-center justify-between gap-1">
-          {item.isMealCombo ? (
+          {item.lifecycleStatus === 'GROWING' ? (
+            <span className="font-mono-num text-[10px] font-bold uppercase tracking-wider bg-[#E2A63C] text-[#241A12] px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1">
+              🌱 Pre-Order • Growing
+            </span>
+          ) : item.lifecycleStatus === 'OFF_CYCLE' ? (
+            <span className="font-mono-num text-[10px] font-bold uppercase tracking-wider bg-neutral-800/80 backdrop-blur-xs text-white px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1">
+              ❄️ Off-Season Cycle
+            </span>
+          ) : item.isMealCombo ? (
             <span className="font-mono-num text-[10px] font-bold uppercase tracking-wider bg-[#E2A63C] text-[#241A12] px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1">
               🍲 Meal Combo
             </span>
@@ -154,6 +166,41 @@ export const YieldCard: React.FC<YieldCardProps> = ({ item }) => {
             )}
           </div>
 
+          {/* Live Stock Quantity & Lifecycle Seasonality Status */}
+          <div className="mt-2 flex items-center flex-wrap gap-1.5">
+            {item.lifecycleStatus === 'GROWING' ? (
+              <span className="text-[11px] font-semibold text-amber-800 bg-[#E2A63C]/15 border border-[#E2A63C]/30 px-2 py-0.5 rounded-md flex items-center gap-1">
+                <Clock size={11} className="text-[#E2A63C] shrink-0" />
+                <span>Harvest: {item.expectedHarvestWindow || 'Coming Soon'}</span>
+              </span>
+            ) : item.lifecycleStatus === 'OFF_CYCLE' ? (
+              <span className="text-[11px] font-medium text-neutral-600 bg-neutral-100 border border-neutral-200 px-2 py-0.5 rounded-md flex items-center gap-1">
+                <span>Next Cycle: {item.nextCycleMonth || 'Next Season'}</span>
+              </span>
+            ) : (
+              // SELLING (Default)
+              (item.stockQuantity !== undefined && item.stockQuantity !== null) && (
+                item.stockQuantity > 0 ? (
+                  item.stockQuantity <= 5 ? (
+                    <span className="text-[11px] font-bold font-mono-num text-[#B54A34] bg-[#B54A34]/10 border border-[#B54A34]/20 px-2 py-0.5 rounded-md flex items-center gap-1">
+                      <Flame size={11} className="text-[#B54A34] shrink-0" />
+                      <span>Only {item.stockQuantity} {String(item.unit || 'units').toLowerCase().replace('_', ' ')} left!</span>
+                    </span>
+                  ) : (
+                    <span className="text-[11px] font-medium font-mono-num text-[#173A20] bg-[#EEF8F1] border border-[#CCEBD5] px-2 py-0.5 rounded-md flex items-center gap-1">
+                      <PackageCheck size={11} className="text-[#4E8B3F] shrink-0" />
+                      <span><strong className="font-bold">{item.stockQuantity}</strong> {String(item.unit || 'units').toLowerCase().replace('_', ' ')} in stock</span>
+                    </span>
+                  )
+                ) : (
+                  <span className="text-[11px] font-semibold text-neutral-500 bg-neutral-100 border border-neutral-200 px-2 py-0.5 rounded-md">
+                    Sold Out • Restocking
+                  </span>
+                )
+              )
+            )}
+          </div>
+
           {/* Provenance / Farm / Store Location */}
           <div
             onClick={(e) => {
@@ -196,27 +243,64 @@ export const YieldCard: React.FC<YieldCardProps> = ({ item }) => {
               <MessageCircle size={14} />
             </button>
 
-            <button
-              type="button"
-              onClick={handleAddToCart}
-              title={justAdded ? 'Added to Basket' : 'Add to Basket'}
-              className={`h-8 w-8 sm:w-auto px-0 sm:px-3 rounded-full font-semibold text-xs inline-flex items-center justify-center gap-1.5 transition cursor-pointer shrink-0 ${justAdded
-                ? 'bg-[#4E8B3F] text-white'
-                : 'bg-[#E2A63C] hover:bg-[#C68F30] text-[#241A12]'
-                }`}
-            >
-              {justAdded ? (
-                <>
-                  <Check size={14} strokeWidth={2.6} />
-                  <span className="hidden sm:inline">Added</span>
-                </>
-              ) : (
-                <>
-                  <ShoppingBag size={14} strokeWidth={2.2} />
-                  <span className="hidden sm:inline">Basket</span>
-                </>
-              )}
-            </button>
+            {item.lifecycleStatus === 'OFF_CYCLE' ? (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  alert(`You will be notified when ${item.title} begins its next harvest cycle (${item.nextCycleMonth || 'next season'})!`);
+                }}
+                title="Join Harvest Waitlist"
+                className="h-8 px-2.5 rounded-full font-semibold text-xs inline-flex items-center justify-center gap-1.5 bg-neutral-100 hover:bg-neutral-200 text-[#241A12] border border-neutral-300 transition cursor-pointer shrink-0"
+              >
+                <Bell size={13} className="text-[#5C5245]" />
+                <span className="hidden sm:inline">Waitlist</span>
+              </button>
+            ) : item.lifecycleStatus === 'GROWING' ? (
+              <button
+                type="button"
+                onClick={handleAddToCart}
+                title={justAdded ? 'Pre-Order Added' : 'Pre-Order Harvest'}
+                className={`h-8 w-8 sm:w-auto px-0 sm:px-3 rounded-full font-semibold text-xs inline-flex items-center justify-center gap-1.5 transition cursor-pointer shrink-0 ${justAdded
+                  ? 'bg-[#4E8B3F] text-white'
+                  : 'bg-[#E2A63C] hover:bg-[#C68F30] text-[#241A12]'
+                  }`}
+              >
+                {justAdded ? (
+                  <>
+                    <Check size={14} strokeWidth={2.6} />
+                    <span className="hidden sm:inline">Reserved</span>
+                  </>
+                ) : (
+                  <>
+                    <Clock size={13} strokeWidth={2.2} />
+                    <span className="hidden sm:inline">Pre-Order</span>
+                  </>
+                )}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleAddToCart}
+                title={justAdded ? 'Added to Basket' : 'Add to Basket'}
+                className={`h-8 w-8 sm:w-auto px-0 sm:px-3 rounded-full font-semibold text-xs inline-flex items-center justify-center gap-1.5 transition cursor-pointer shrink-0 ${justAdded
+                  ? 'bg-[#4E8B3F] text-white'
+                  : 'bg-[#E2A63C] hover:bg-[#C68F30] text-[#241A12]'
+                  }`}
+              >
+                {justAdded ? (
+                  <>
+                    <Check size={14} strokeWidth={2.6} />
+                    <span className="hidden sm:inline">Added</span>
+                  </>
+                ) : (
+                  <>
+                    <ShoppingBag size={14} strokeWidth={2.2} />
+                    <span className="hidden sm:inline">Basket</span>
+                  </>
+                )}
+              </button>
+            )}
           </div>
         </div>
       </div>

@@ -857,7 +857,14 @@ export const deleteProduceApi = async (yieldId: string): Promise<any> => {
 
 export const patchProduceStockApi = async (
   yieldId: string,
-  data: { delta?: number; stockQuantity?: number; isAvailable?: boolean }
+  data: {
+    delta?: number;
+    stockQuantity?: number;
+    isAvailable?: boolean;
+    lifecycleStatus?: string;
+    expectedHarvestWindow?: string;
+    nextCycleMonth?: string;
+  }
 ): Promise<any> => {
   const res = await apiClient.patch(`/yields/${yieldId}/stock`, data);
   return res.data;

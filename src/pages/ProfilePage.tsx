@@ -41,6 +41,7 @@ import {
 import { Post, Yield, Order, Farm } from '@/types';
 import { FarmerBadge, MeetingLeafLogo } from '@/components/MeetingLeafLogo';
 import YieldCard from '@/components/YieldCard';
+import FarmCard from '@/components/FarmCard';
 import { resolveMediaUrl, formatXaf, isVideoMedia } from '@/utils/media';
 
 export const ProfilePage: React.FC = () => {
@@ -615,42 +616,11 @@ export const ProfilePage: React.FC = () => {
                 {/* Farm Cards List */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {(targetUser?.farms || []).map((farm: Farm) => (
-                    <div
+                    <FarmCard
                       key={farm.id}
-                      onClick={() =>
-                        navigate(isOwner ? `/farmer/manage?farmId=${farm.id}` : `/farmer/${farm.id}`)
-                      }
-                      className="bg-white rounded-2xl border border-[#CCEBD5] hover:border-[#4E8B3F] overflow-hidden shadow-xs transition cursor-pointer"
-                    >
-                      <div className="h-36 bg-[#EEF8F1] relative">
-                        <img
-                          src={
-                            farm.coverPhoto ||
-                            'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=900&auto=format&fit=crop&q=80'
-                          }
-                          alt={farm.name}
-                          className="w-full h-full object-cover"
-                        />
-                        <span className="absolute top-3 left-3 bg-[#EEF8F1]/95 text-[#173A20] border border-[#CCEBD5] text-[11px] font-bold px-2.5 py-0.5 rounded-full">
-                          {farm.category || 'CROPS'} • {farm.sizeHectares || 12} Ha
-                        </span>
-                      </div>
-                      <div className="p-4 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <h3 className="font-bold text-base text-[#241A12]">{farm.name}</h3>
-                          <span className="inline-flex items-center gap-1 text-xs font-mono-num font-bold text-[#173A20]">
-                            <Star size={13} className="fill-[#E2A63C] text-[#E2A63C]" />
-                            {farm.rating || 4.9}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1 text-xs text-[#5C5245]">
-                          <MapPin size={13} className="text-[#4E8B3F]" />
-                          <span>
-                            {farm.location || farm.city} • {farm.region}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
+                      farm={farm}
+                      isOwner={isOwner}
+                    />
                   ))}
                 </div>
               </div>
