@@ -17,3 +17,7 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 
+# Local downloaded mobile release binaries (hosted via GitHub Releases)
+public/*.apk
+*.apk
+

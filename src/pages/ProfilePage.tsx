@@ -23,9 +23,11 @@ import {
   Plus,
   ArrowLeft,
   Store,
+  Trash2,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useFavoritesStore } from '@/store/favoritesStore';
+import { useRegionalContainerStore } from '@/store/regionalContainerStore';
 import {
   fetchCurrentUserApi,
   fetchPublicProfileApi,
@@ -36,12 +38,14 @@ import {
   fetchMyFarmsApi,
   fetchMyStoresApi,
   patronizeFarmApi,
+  deletePostApi,
   FALLBACK_POSTS,
 } from '@/api';
 import { Post, Yield, Order, Farm } from '@/types';
 import { FarmerBadge, MeetingLeafLogo } from '@/components/MeetingLeafLogo';
 import YieldCard from '@/components/YieldCard';
 import FarmCard from '@/components/FarmCard';
+import { FarmPostsTikTokViewer } from '@/components/FarmPostsTikTokViewer';
 import { resolveMediaUrl, formatXaf, isVideoMedia } from '@/utils/media';
 
 export const ProfilePage: React.FC = () => {
@@ -50,6 +54,8 @@ export const ProfilePage: React.FC = () => {
   const { user: currentUser, isAuthenticated, updateUser } = useAuthStore();
   const savedYieldIds = useFavoritesStore((s) => s.yields);
   const savedPostIds = useFavoritesStore((s) => s.posts);
+  const lastPostCreatedAt = useRegionalContainerStore((s) => s.lastPostCreatedAt);
+  const setCreatePostModalOpen = useRegionalContainerStore((s) => s.setCreatePostModalOpen);
 
   const isOwner = Boolean(!userId || (currentUser?.id && userId === currentUser.id));
 
@@ -58,11 +64,20 @@ export const ProfilePage: React.FC = () => {
   const [profileData, setProfileData] = useState<any>(null);
   const [profileLoading, setProfileLoading] = useState<boolean>(Boolean(userId && !isOwner));
   const [userPosts, setUserPosts] = useState<Post[]>([]);
+  const [allYieldsList, setAllYieldsList] = useState<Yield[]>([]);
   const [ordersList, setOrdersList] = useState<Order[]>([]);
   const [userStoresList, setUserStoresList] = useState<any[]>([]);
   const [savedYieldsList, setSavedYieldsList] = useState<Yield[]>([]);
   const [savedPostsList, setSavedPostsList] = useState<Post[]>([]);
   const [isFollowing, setIsFollowing] = useState(false);
+
+  // Fullscreen TikTok Post Viewer & Delete confirmation
+  const [viewerPosts, setViewerPosts] = useState<Post[] | null>(null);
+  const [viewerPostIndex, setViewerPostIndex] = useState<number | null>(null);
+  const [viewerAllowsDelete, setViewerAllowsDelete] = useState(false);
+  const [confirmDeletePost, setConfirmDeletePost] = useState<Post | null>(null);
+  const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
+  const [deletePostError, setDeletePostError] = useState<string | null>(null);
 
   // Modals
   const [editModalVisible, setEditModalVisible] = useState(false);
@@ -145,7 +160,10 @@ export const ProfilePage: React.FC = () => {
 
   useEffect(() => {
     const load = async () => {
+      let resolvedUserId: string | undefined = userId;
+
       if (isOwner && isAuthenticated) {
+        resolvedUserId = currentUser?.id;
         try {
           const [freshUser, freshFarms, freshStores, myOrders] = await Promise.all([
             fetchCurrentUserApi().catch(() => null),
@@ -157,6 +175,7 @@ export const ProfilePage: React.FC = () => {
             setUserStoresList(freshStores);
           }
           if (freshUser) {
+            resolvedUserId = freshUser.id || resolvedUserId;
             const combined = {
               ...freshUser,
               ...(freshFarms.length > 0 ? { farms: freshFarms } : {}),
@@ -173,7 +192,10 @@ export const ProfilePage: React.FC = () => {
         setProfileLoading(true);
         try {
           const pub = await fetchPublicProfileApi(userId);
-          if (pub) setProfileData(pub);
+          if (pub) {
+            setProfileData(pub);
+            resolvedUserId = pub.id || userId;
+          }
         } catch {
           // use fallback
         } finally {
@@ -181,15 +203,59 @@ export const ProfilePage: React.FC = () => {
         }
       }
 
-      const allPosts = await fetchFeedPostsApi();
-      setUserPosts(allPosts.length > 0 ? allPosts : FALLBACK_POSTS);
+      const [scopedPosts, allFeedPosts, allYields] = await Promise.all([
+        resolvedUserId
+          ? fetchFeedPostsApi({ userId: resolvedUserId }).catch(() => [])
+          : fetchFeedPostsApi().catch(() => []),
+        isOwner && savedPostIds.length > 0
+          ? fetchFeedPostsApi().catch(() => [])
+          : Promise.resolve([]),
+        fetchYieldsApi().catch(() => []),
+      ]);
 
-      const allYields = await fetchYieldsApi();
+      setAllYieldsList(allYields);
+      if (resolvedUserId) {
+        setUserPosts(scopedPosts);
+      } else {
+        setUserPosts(scopedPosts.length > 0 ? scopedPosts : FALLBACK_POSTS);
+      }
+
       setSavedYieldsList(allYields.filter((y) => savedYieldIds.includes(y.id)));
-      setSavedPostsList(allPosts.filter((p) => savedPostIds.includes(p.id)));
+      const savedSource = allFeedPosts.length > 0 ? allFeedPosts : scopedPosts;
+      setSavedPostsList(savedSource.filter((p) => savedPostIds.includes(p.id)));
     };
     load();
-  }, [userId, isOwner, isAuthenticated, savedYieldIds, savedPostIds]);
+  }, [userId, isOwner, isAuthenticated, savedYieldIds, savedPostIds, lastPostCreatedAt]);
+
+  const handleConfirmDeletePost = async () => {
+    if (!confirmDeletePost?.id) return;
+    const postId = confirmDeletePost.id;
+    try {
+      setDeletingPostId(postId);
+      setDeletePostError(null);
+      await deletePostApi(postId);
+      setUserPosts((prev) => prev.filter((p) => p.id !== postId));
+      setViewerPosts((prev) => {
+        if (!prev) return null;
+        const next = prev.filter((p) => p.id !== postId);
+        if (next.length === 0) {
+          setViewerPostIndex(null);
+          return null;
+        }
+        if (viewerPostIndex !== null && viewerPostIndex >= next.length) {
+          setViewerPostIndex(next.length - 1);
+        }
+        return next;
+      });
+      setConfirmDeletePost(null);
+    } catch (err: any) {
+      setDeletePostError(
+        err?.response?.data?.message || err?.message || 'Failed to delete post.'
+      );
+    } finally {
+      setDeletingPostId(null);
+    }
+  };
 
   const openEditModal = () => {
     setEditName(targetUser?.name || '');
@@ -248,7 +314,7 @@ export const ProfilePage: React.FC = () => {
   const allTabs = [
     ...(userHasFarm ? [{ key: 'farms', label: 'Farms', icon: Warehouse }] : []),
     ...(userHasStore ? [{ key: 'stores', label: 'Stores', icon: Store }] : []),
-    ...(userHasFarm || userHasStore ? [{ key: 'posts', label: 'Stories', icon: Sparkles }] : []),
+    ...(userHasFarm || userHasStore ? [{ key: 'posts', label: 'Posts', icon: Sparkles }] : []),
     ...(isOwner ? [{ key: 'orders', label: 'Orders', icon: ShoppingBag }] : []),
     ...(isOwner ? [{ key: 'wishlist', label: 'Wishlist', icon: BookmarkCheck }] : []),
   ];
@@ -810,35 +876,102 @@ export const ProfilePage: React.FC = () => {
           </div>
         )}
 
-        {/* TAB 3: POSTS (3-Column TikTok/Instagram Grid from profile.tsx) */}
+        {/* TAB 3: POSTS (3-Column TikTok Grid with Video Preview, Fullscreen Viewer & Owner Delete) */}
         {activeTab === 'posts' && (
-          <div className="grid grid-cols-3 gap-1 sm:gap-2">
-            {userPosts.map((post, idx) => {
-              const mediaUri = post.mediaUrl || post.media;
-              const isVid = isVideoMedia(mediaUri, post.isVideo);
-              return (
-                <div
-                  key={post.id}
-                  onClick={() => navigate(`/feed?postIndex=${idx}`)}
-                  className="relative aspect-[3/4] bg-[#EEF8F1] rounded-xl overflow-hidden cursor-pointer group"
-                >
-                  <img
-                    src={mediaUri}
-                    alt={post.content}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/70 to-transparent" />
-                  <div className="absolute bottom-2 left-2.5 flex items-center gap-1 text-white font-mono-num text-xs font-bold">
-                    {isVid ? (
-                      <Play size={11} className="fill-white" />
-                    ) : (
-                      <Leaf size={11} className="fill-[#4ADE80] text-[#4ADE80]" />
-                    )}
-                    <span>{post.likesCount ?? post.likes ?? 0}</span>
-                  </div>
-                </div>
-              );
-            })}
+          <div className="space-y-4">
+            {userPosts.length === 0 ? (
+              <div className="bg-[#EEF8F1] border border-[#CCEBD5] rounded-2xl p-8 text-center space-y-2.5">
+                <Play size={36} className="text-[#4E8B3F] mx-auto" />
+                <h3 className="font-bold text-base text-[#173A20]">No Posts Yet</h3>
+                <p className="text-xs text-[#5C5245] max-w-xs mx-auto">
+                  {isOwner
+                    ? 'Share real harvest photos or field videos to showcase your farms and connect directly with buyers.'
+                    : 'This producer has not published any posts yet.'}
+                </p>
+                {isOwner && (
+                  <button
+                    type="button"
+                    onClick={() => setCreatePostModalOpen(true, targetUser?.farms?.[0]?.id || null)}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#4E8B3F] hover:bg-[#3D7030] text-white text-xs font-bold cursor-pointer transition"
+                  >
+                    <Plus size={14} />
+                    <span>Publish First Post</span>
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
+                {userPosts.map((post, idx) => {
+                  const mediaUri = resolveMediaUrl(post.mediaUrl || post.media);
+                  const isVid = isVideoMedia(mediaUri, post.isVideo);
+                  return (
+                    <div
+                      key={post.id || idx}
+                      onClick={() => {
+                        setViewerPosts(userPosts);
+                        setViewerAllowsDelete(isOwner);
+                        setViewerPostIndex(idx);
+                      }}
+                      className="relative aspect-[3/4] bg-[#173A20] border border-[#CCEBD5] rounded-xl sm:rounded-2xl overflow-hidden cursor-pointer group"
+                    >
+                      {isVid ? (
+                        <video
+                          src={mediaUri}
+                          muted
+                          playsInline
+                          preload="metadata"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <img
+                          src={mediaUri}
+                          alt={post.content || 'Profile post'}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/25 pointer-events-none" />
+                      {isOwner && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeletePostError(null);
+                            setConfirmDeletePost(post);
+                          }}
+                          aria-label="Delete post"
+                          title="Delete post"
+                          className="absolute top-2 left-2 z-10 w-7 h-7 rounded-full bg-black/60 hover:bg-[#DC2626] text-white border border-white/25 flex items-center justify-center transition cursor-pointer shadow-xs"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      )}
+                      {isVid && (
+                        <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-[#4E8B3F] text-white flex items-center justify-center shadow-xs">
+                          <Play size={10} className="fill-white ml-0.5" />
+                        </div>
+                      )}
+                      <div className="absolute bottom-2 left-2.5 right-2.5 text-white space-y-1">
+                        {post.content && (
+                          <p className="text-[11px] font-medium line-clamp-2 leading-tight drop-shadow">
+                            {post.content}
+                          </p>
+                        )}
+                        <div className="flex items-center gap-3 text-[11px] font-mono-num text-[#EEF8F1]">
+                          <span className="inline-flex items-center gap-1">
+                            <Leaf size={11} className="fill-[#4ADE80] text-[#4ADE80]" />
+                            {post.likesCount ?? post.likes ?? 0}
+                          </span>
+                          <span className="inline-flex items-center gap-1">
+                            <MessageCircle size={11} />
+                            {post.commentsCount ?? post.comments?.length ?? 0}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
@@ -889,19 +1022,37 @@ export const ProfilePage: React.FC = () => {
                 {(wishlistFilter === 'all' || wishlistFilter === 'stories') &&
                   savedPostsList.length > 0 && (
                     <div className="grid grid-cols-3 gap-2">
-                      {savedPostsList.map((post, idx) => (
-                        <div
-                          key={post.id}
-                          onClick={() => navigate(`/feed?postIndex=${idx}`)}
-                          className="relative aspect-[3/4] rounded-xl overflow-hidden bg-[#EEF8F1] cursor-pointer"
-                        >
-                          <img
-                            src={post.mediaUrl || post.media}
-                            alt={post.content}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      ))}
+                      {savedPostsList.map((post, idx) => {
+                        const mediaUri = resolveMediaUrl(post.mediaUrl || post.media);
+                        const isVid = isVideoMedia(mediaUri, post.isVideo);
+                        return (
+                          <div
+                            key={post.id}
+                            onClick={() => {
+                              setViewerPosts(savedPostsList);
+                              setViewerAllowsDelete(false);
+                              setViewerPostIndex(idx);
+                            }}
+                            className="relative aspect-[3/4] rounded-xl overflow-hidden bg-[#173A20] cursor-pointer"
+                          >
+                            {isVid ? (
+                              <video
+                                src={mediaUri}
+                                muted
+                                playsInline
+                                preload="metadata"
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <img
+                                src={mediaUri}
+                                alt={post.content}
+                                className="w-full h-full object-cover"
+                              />
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
               </div>
@@ -1061,6 +1212,90 @@ export const ProfilePage: React.FC = () => {
                 ? '✓ AgroPatron Pass Activated!'
                 : `Activate ${patronPlan} Pass via Smart Escrow`}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Fullscreen TikTok-Style Posts Viewer */}
+      {viewerPosts && viewerPostIndex !== null && viewerPosts.length > 0 && (
+        <FarmPostsTikTokViewer
+          posts={viewerPosts}
+          initialIndex={viewerPostIndex}
+          farmName={targetUser?.name || 'Agrom Producer'}
+          ownerAvatar={
+            targetUser?.avatarUrl ||
+            targetUser?.avatar ||
+            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400'
+          }
+          farmYields={allYieldsList}
+          isOwner={viewerAllowsDelete}
+          onDeletePost={(post) => {
+            setDeletePostError(null);
+            setConfirmDeletePost(post);
+          }}
+          onClose={() => {
+            setViewerPostIndex(null);
+            setViewerPosts(null);
+          }}
+          onPostsChange={(updated) => {
+            setViewerPosts(updated);
+            if (viewerAllowsDelete) setUserPosts(updated);
+          }}
+        />
+      )}
+
+      {/* Confirm Delete Post Modal */}
+      {confirmDeletePost && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div
+            className="fixed inset-0 bg-black/65 backdrop-blur-xs"
+            onClick={() => !deletingPostId && setConfirmDeletePost(null)}
+          />
+          <div className="relative z-10 w-full max-w-sm bg-white rounded-3xl border border-[#CCEBD5] p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-[#EEF8F1]">
+              <div className="flex items-center gap-2 text-[#DC2626]">
+                <Trash2 size={18} />
+                <h3 className="font-bold text-sm text-[#173A20]">Delete Post?</h3>
+              </div>
+              <button
+                type="button"
+                disabled={Boolean(deletingPostId)}
+                onClick={() => setConfirmDeletePost(null)}
+                className="w-8 h-8 rounded-full bg-[#EEF8F1] flex items-center justify-center text-[#241A12] cursor-pointer"
+              >
+                <X size={15} />
+              </button>
+            </div>
+
+            <p className="text-xs text-[#5C5245] leading-relaxed">
+              This will permanently remove this post from your profile and AgroFeed.
+            </p>
+
+            {deletePostError && (
+              <div className="p-2.5 rounded-xl bg-[#FDF3F1] border border-[#DC2626]/30 text-xs text-[#DC2626]">
+                {deletePostError}
+              </div>
+            )}
+
+            <div className="flex items-center justify-end gap-2 pt-1">
+              <button
+                type="button"
+                disabled={Boolean(deletingPostId)}
+                onClick={() => setConfirmDeletePost(null)}
+                className="px-4 py-2 rounded-full bg-[#EEF8F1] text-xs font-semibold text-[#173A20] cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={Boolean(deletingPostId)}
+                onClick={handleConfirmDeletePost}
+                className="px-5 py-2 rounded-full bg-[#DC2626] hover:bg-[#B91C1C] disabled:opacity-60 text-white text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer"
+              >
+                <Trash2 size={13} />
+                <span>{deletingPostId ? 'Deleting...' : 'Delete Post'}</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
