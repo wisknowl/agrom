@@ -27,12 +27,15 @@ import { useCartStore } from '@/store/cartStore';
 import { useRegionalContainerStore } from '@/store/regionalContainerStore';
 import {
   fetchFarmByIdApi,
+  fetchFeedPostsApi,
   createProduceApi,
   patronizeFarmApi,
 } from '@/api';
 import { FarmerBadge } from '@/components/MeetingLeafLogo';
 import YieldCard from '@/components/YieldCard';
 import AgromPostButton from '@/components/AgromPostButton';
+import { AgromImageUploader } from '@/components/AgromImageUploader';
+import { FarmPostsTikTokViewer } from '@/components/FarmPostsTikTokViewer';
 import { resolveMediaUrl, formatXaf, isVideoMedia } from '@/utils/media';
 
 export const FarmStorefrontPage: React.FC = () => {
@@ -40,10 +43,13 @@ export const FarmStorefrontPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const setCreatePostModalOpen = useRegionalContainerStore((s) => s.setCreatePostModalOpen);
+  const lastPostCreatedAt = useRegionalContainerStore((s) => s.lastPostCreatedAt);
 
   const [farm, setFarm] = useState<any>(null);
+  const [farmPosts, setFarmPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'produce' | 'stories' | 'about'>('produce');
+  const [viewerPostIndex, setViewerPostIndex] = useState<number | null>(null);
   const [isPatron, setIsPatron] = useState(false);
   const [patronModalVisible, setPatronModalVisible] = useState(false);
   const [patronPlan, setPatronPlan] = useState<'MONTHLY' | 'SEASONAL'>('MONTHLY');
@@ -55,19 +61,37 @@ export const FarmStorefrontPage: React.FC = () => {
   const [producePrice, setProducePrice] = useState('');
   const [produceUnit, setProduceUnit] = useState('CRATE');
   const [produceStock, setProduceStock] = useState('25');
+  const [produceImages, setProduceImages] = useState<string[]>([]);
+
+  const loadFarmProfile = async (farmKey: string) => {
+    setLoading(true);
+    try {
+      const data = await fetchFarmByIdApi(farmKey);
+      setFarm(data);
+
+      const resolvedFarmId = data?.id || farmKey;
+      try {
+        const fetchedPosts = await fetchFeedPostsApi({ farmId: resolvedFarmId });
+        if (Array.isArray(fetchedPosts) && fetchedPosts.length > 0) {
+          setFarmPosts(fetchedPosts);
+        } else {
+          setFarmPosts(data?.posts || []);
+        }
+      } catch {
+        setFarmPosts(data?.posts || []);
+      }
+    } catch {
+      setFarm(null);
+      setFarmPosts([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!id) return;
-    setLoading(true);
-    fetchFarmByIdApi(id)
-      .then((data) => {
-        setFarm(data);
-      })
-      .catch(() => {
-        setFarm(null);
-      })
-      .finally(() => setLoading(false));
-  }, [id]);
+    loadFarmProfile(id);
+  }, [id, lastPostCreatedAt]);
 
   const isOwner = Boolean(
     farm?.isOwner || (user?.id && farm?.userId && user.id === farm.userId)
@@ -102,11 +126,14 @@ export const FarmStorefrontPage: React.FC = () => {
         pricePerUnit: Number(producePrice || 8500),
         unit: produceUnit,
         stockQuantity: Number(produceStock || 25),
+        mediaUrls: produceImages,
         isOrganic: true,
       });
       setShowAddProduceModal(false);
       setProduceTitle('');
-      fetchFarmByIdApi(farm.id).then(setFarm);
+      setProducePrice('');
+      setProduceImages([]);
+      loadFarmProfile(farm.id);
     } catch (err: any) {
       alert(err.message || 'Could not list produce');
     }
@@ -142,7 +169,6 @@ export const FarmStorefrontPage: React.FC = () => {
     image: resolveMediaUrl(y.image || y.mediaUrls?.[0]) || 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=800',
     mediaUrls: y.mediaUrls?.length ? y.mediaUrls : [y.image].filter(Boolean),
   }));
-  const farmPosts = farm.posts || [];
 
   const ownerAvatar =
     farm.user?.avatarUrl ||
@@ -195,12 +221,12 @@ export const FarmStorefrontPage: React.FC = () => {
       </div>
 
       {/* Hero Cover Banner */}
-      <div className="relative rounded-3xl overflow-hidden border border-[#CCEBD5] shadow-xs bg-[#173A20]">
-        <div className="relative aspect-[21/9] sm:aspect-[24/8] w-full bg-[#EEF8F1] overflow-hidden">
+      <div className="relative -mx-4 sm:mx-0 rounded-none sm:rounded-3xl overflow-hidden border-y sm:border border-[#CCEBD5] shadow-xs bg-[#173A20]">
+        <div className="relative min-h-[340px] sm:min-h-[280px] sm:aspect-[21/9] lg:aspect-[24/8] w-full bg-[#EEF8F1] overflow-hidden">
           <img
             src={resolveMediaUrl(farm.coverPhoto)}
             alt={farm.name}
-            className="w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/20" />
 
@@ -215,7 +241,7 @@ export const FarmStorefrontPage: React.FC = () => {
                 <img
                   src={resolveMediaUrl(ownerAvatar)}
                   alt="Farmer avatar"
-                  className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-[#4E8B3F] group-hover:border-[#E2A63C] shadow-md transition"
+                  className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover border-2 border-[#4E8B3F] group-hover:border-[#E2A63C] shadow-md transition"
                 />
               </div>
               <div className="space-y-0.5">
@@ -312,7 +338,7 @@ export const FarmStorefrontPage: React.FC = () => {
                 className="flex-1 py-3 px-5 rounded-full bg-[#173A20] hover:bg-[#0E2515] text-[#E2A63C] text-xs font-bold inline-flex items-center justify-center gap-2 shadow-xs transition cursor-pointer"
               >
                 <ExternalLink size={15} />
-                <span>Open Farm Management Workspace</span>
+                <span>Farm Management</span>
               </button>
               <button
                 type="button"
@@ -320,9 +346,9 @@ export const FarmStorefrontPage: React.FC = () => {
                 className="py-3 px-5 rounded-full bg-[#4E8B3F] hover:bg-[#3D7030] text-white text-xs font-bold inline-flex items-center justify-center gap-1.5 shadow-xs transition cursor-pointer"
               >
                 <Plus size={15} />
-                <span>+ List Produce</span>
+                <span>List Produce</span>
               </button>
-              <AgromPostButton onClick={() => setCreatePostModalOpen(true)} />
+              <AgromPostButton onClick={() => setCreatePostModalOpen(true, farm.id)} />
             </div>
           ) : (
             <div className="flex items-center gap-2.5 flex-wrap">
@@ -338,14 +364,14 @@ export const FarmStorefrontPage: React.FC = () => {
                 <span>{isPatron ? 'AgroPatron Active ⭐ (8% Off Unlocked)' : 'Become an AgroPatron ($2 / 1,200 FCFA)'}</span>
               </button>
 
-              <button
+              {/* <button
                 type="button"
                 onClick={() => navigate('/fintech/loans')}
                 className="py-3 px-5 rounded-full bg-[#4E8B3F] hover:bg-[#3D7030] text-white text-xs font-bold inline-flex items-center justify-center gap-1.5 shadow-xs transition cursor-pointer"
               >
                 <TrendingUp size={15} />
                 <span>AgroVest</span>
-              </button>
+              </button> */}
 
               <button
                 type="button"
@@ -370,7 +396,7 @@ export const FarmStorefrontPage: React.FC = () => {
             : 'border-transparent text-[#5C5245] hover:text-[#241A12]'
             }`}
         >
-          Fresh Produce Catalog ({farmYields.length})
+          AgroProduce Catalog ({farmYields.length})
         </button>
 
         <button
@@ -381,7 +407,7 @@ export const FarmStorefrontPage: React.FC = () => {
             : 'border-transparent text-[#5C5245] hover:text-[#241A12]'
             }`}
         >
-          Farm Stories ({farmPosts.length})
+          Posts ({farmPosts.length})
         </button>
 
         <button
@@ -419,44 +445,75 @@ export const FarmStorefrontPage: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 2: STORIES */}
+      {/* TAB 2: POSTS */}
       {activeTab === 'stories' && (
         <div className="space-y-4">
           {farmPosts.length === 0 ? (
             <div className="p-10 rounded-3xl bg-[#EEF8F1] border border-[#CCEBD5] text-center space-y-2">
               <Play size={36} className="text-[#4E8B3F] mx-auto" />
-              <h3 className="font-bold text-base text-[#173A20]">No Field Stories Yet</h3>
+              <h3 className="font-bold text-base text-[#173A20]">No Posts Yet</h3>
               <p className="text-xs text-[#5C5245] max-w-sm mx-auto">
-                Watch crop harvesting reels and farm stories directly from verified growers.
+                Watch harvest reels and field updates directly from this verified farm.
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {farmPosts.map((post: any, idx: number) => {
-                const mediaUri = post.mediaUrl || post.media;
+                const mediaUri = resolveMediaUrl(post.mediaUrl || post.media);
                 const isVid = isVideoMedia(mediaUri, post.isVideo);
+                const linkedYield =
+                  post.linkedYield ||
+                  (post.linkedYieldId
+                    ? farmYields.find((y: any) => y.id === post.linkedYieldId)
+                    : null);
                 return (
                   <div
-                    key={post.id}
-                    onClick={() => navigate(`/feed?postIndex=${idx}`)}
-                    className="relative aspect-[3/4] bg-[#173A20] rounded-2xl overflow-hidden cursor-pointer group shadow-2xs"
+                    key={post.id || idx}
+                    onClick={() => setViewerPostIndex(idx)}
+                    className="relative aspect-[3/4] bg-[#173A20] rounded-2xl overflow-hidden cursor-pointer group shadow-2xs border border-[#CCEBD5]"
                   >
-                    <img
-                      src={mediaUri}
-                      alt="Story"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30" />
-                    <div className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full bg-[#4E8B3F] text-white flex items-center justify-center">
-                      <Play size={10} className="fill-white ml-0.5" />
+                    {isVid ? (
+                      <video
+                        src={mediaUri}
+                        muted
+                        playsInline
+                        preload="metadata"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <img
+                        src={mediaUri}
+                        alt={post.content || 'Farm post'}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-black/25 pointer-events-none" />
+                    <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5">
+                      {linkedYield && (
+                        <span className="px-2 py-0.5 rounded-full bg-[#E2A63C] text-[#241A12] text-[10px] font-bold inline-flex items-center gap-1 shadow-xs">
+                          <ShoppingBag size={10} />
+                          Shop
+                        </span>
+                      )}
+                      {isVid && (
+                        <div className="w-6 h-6 rounded-full bg-[#4E8B3F] text-white flex items-center justify-center shadow-xs">
+                          <Play size={10} className="fill-white ml-0.5" />
+                        </div>
+                      )}
                     </div>
                     <div className="absolute bottom-2.5 left-2.5 right-2.5 text-white">
-                      <p className="text-xs font-medium line-clamp-2 leading-tight mb-1">
+                      <p className="text-xs font-medium line-clamp-2 leading-tight mb-1.5 drop-shadow">
                         {post.content}
                       </p>
-                      <div className="flex items-center gap-1 text-[11px] font-mono-num text-[#EEF8F1]">
-                        <Leaf size={11} className="fill-[#4ADE80] text-[#4ADE80]" />
-                        <span>{post.likesCount || post.likes || 0}</span>
+                      <div className="flex items-center gap-3 text-[11px] font-mono-num text-[#EEF8F1]">
+                        <span className="inline-flex items-center gap-1">
+                          <Leaf size={11} className="fill-[#4ADE80] text-[#4ADE80]" />
+                          {post.likesCount ?? post.likes ?? 0}
+                        </span>
+                        <span className="inline-flex items-center gap-1">
+                          <MessageCircle size={11} />
+                          {post.commentsCount ?? post.comments?.length ?? 0}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -574,7 +631,7 @@ export const FarmStorefrontPage: React.FC = () => {
             className="fixed inset-0 bg-black/60 backdrop-blur-xs"
             onClick={() => setShowAddProduceModal(false)}
           />
-          <div className="relative z-10 w-full max-w-md bg-white rounded-3xl border border-[#CCEBD5] p-6 shadow-2xl space-y-4">
+          <div className="relative z-10 w-full max-w-md max-h-[90vh] overflow-y-auto bg-white rounded-3xl border border-[#CCEBD5] p-6 shadow-2xl space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-[#CCEBD5]">
               <h3 className="font-bold text-base text-[#173A20]">Add Produce to {farm.name}</h3>
               <button
@@ -587,6 +644,15 @@ export const FarmStorefrontPage: React.FC = () => {
             </div>
 
             <form onSubmit={handleAddProduceSubmit} className="space-y-3.5">
+              <AgromImageUploader
+                label="Harvest Photos"
+                title="Upload Real Harvest Photos"
+                subtitle="Choose clear field, crate or crop photos from your device"
+                images={produceImages}
+                maxImages={4}
+                onChange={setProduceImages}
+              />
+
               <div>
                 <label className="block text-xs font-semibold text-[#5C5245] mb-1">Produce Name</label>
                 <input
@@ -646,6 +712,19 @@ export const FarmStorefrontPage: React.FC = () => {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Full-Screen TikTok-Style Posts Viewer */}
+      {viewerPostIndex !== null && farmPosts.length > 0 && (
+        <FarmPostsTikTokViewer
+          posts={farmPosts}
+          initialIndex={viewerPostIndex}
+          farmName={farm.name}
+          ownerAvatar={ownerAvatar}
+          farmYields={farmYields}
+          onClose={() => setViewerPostIndex(null)}
+          onPostsChange={setFarmPosts}
+        />
       )}
     </div>
   );

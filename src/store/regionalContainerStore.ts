@@ -83,10 +83,13 @@ interface RegionalContainerState {
   language: 'en' | 'fr';
   isEcosystemDrawerOpen: boolean;
   isCreatePostModalOpen: boolean;
+  createPostFarmId: string | null;
+  lastPostCreatedAt: number;
   setRegion: (regionId: ContainerRegionId) => void;
   setLanguage: (lang: 'en' | 'fr') => void;
   setEcosystemDrawerOpen: (open: boolean) => void;
-  setCreatePostModalOpen: (open: boolean) => void;
+  setCreatePostModalOpen: (open: boolean, farmId?: string | null) => void;
+  notifyPostCreated: () => void;
   getContainer: () => RegionalContainer;
 }
 
@@ -97,14 +100,25 @@ export const useRegionalContainerStore = create<RegionalContainerState>()(
       language: 'en',
       isEcosystemDrawerOpen: false,
       isCreatePostModalOpen: false,
+      createPostFarmId: null,
+      lastPostCreatedAt: 0,
       setRegion: (regionId: ContainerRegionId) => set({ regionId }),
       setLanguage: (language: 'en' | 'fr') => set({ language }),
       setEcosystemDrawerOpen: (isEcosystemDrawerOpen: boolean) => set({ isEcosystemDrawerOpen }),
-      setCreatePostModalOpen: (isCreatePostModalOpen: boolean) => set({ isCreatePostModalOpen }),
+      setCreatePostModalOpen: (isCreatePostModalOpen: boolean, farmId?: string | null) =>
+        set({
+          isCreatePostModalOpen,
+          createPostFarmId: isCreatePostModalOpen ? (farmId ?? null) : null,
+        }),
+      notifyPostCreated: () => set({ lastPostCreatedAt: Date.now() }),
       getContainer: () => REGIONAL_CONTAINERS[get().regionId] || REGIONAL_CONTAINERS.CAMEROON,
     }),
     {
       name: 'agrom-web-regional-container',
+      partialize: (state) => ({
+        regionId: state.regionId,
+        language: state.language,
+      }),
     }
   )
 );

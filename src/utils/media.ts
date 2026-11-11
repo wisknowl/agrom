@@ -1,6 +1,6 @@
 export const getBackendOrigin = (): string => {
   if (import.meta.env.VITE_API_URL) {
-    return String(import.meta.env.VITE_API_URL).replace(/\/api\/?$/, '');
+    return String(import.meta.env.VITE_API_URL).replace(/\/+$/, '').replace(/\/api$/, '');
   }
   // Use relative origin so Vite's /api and /uploads proxy works seamlessly on both
   // desktop (localhost:3000) and mobile devices on the same Wi-Fi/LAN (192.168.x.x:3000)
@@ -9,7 +9,8 @@ export const getBackendOrigin = (): string => {
 
 export const getBaseApiUrl = (): string => {
   if (import.meta.env.VITE_API_URL) {
-    return String(import.meta.env.VITE_API_URL);
+    const clean = String(import.meta.env.VITE_API_URL).replace(/\/+$/, '');
+    return clean.endsWith('/api') ? clean : `${clean}/api`;
   }
   return '/api';
 };

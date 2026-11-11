@@ -1,71 +1,117 @@
 import React, { useState, useEffect } from 'react';
-import { X, Upload, Sparkles, Sprout, CheckCircle2 } from 'lucide-react';
+import { X, Sparkles, CheckCircle2 } from 'lucide-react';
 import { useRegionalContainerStore } from '@/store/regionalContainerStore';
-import { createPostApi, fetchYieldsApi, uploadMediaFileApi } from '@/api';
+import { createPostApi, fetchFarmByIdApi, fetchMyFarmsApi } from '@/api';
+import { AgromImageUploader } from '@/components/AgromImageUploader';
+import { isVideoMedia } from '@/utils/media';
 import { Yield } from '@/types';
 
 export const CreatePostModal: React.FC<{ onPostCreated?: () => void }> = ({ onPostCreated }) => {
-  const { isCreatePostModalOpen, setCreatePostModalOpen } = useRegionalContainerStore();
+  const {
+    isCreatePostModalOpen,
+    createPostFarmId,
+    setCreatePostModalOpen,
+    notifyPostCreated,
+  } = useRegionalContainerStore();
+
   const [content, setContent] = useState('');
-  const [mediaUrl, setMediaUrl] = useState(
-    'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=900&auto=format&fit=crop&q=80'
-  );
+  const [mediaUrl, setMediaUrl] = useState('');
+  const [isVideo, setIsVideo] = useState(false);
   const [linkedYieldId, setLinkedYieldId] = useState('');
   const [yields, setYields] = useState<Yield[]>([]);
-  const [uploading, setUploading] = useState(false);
+  const [farmName, setFarmName] = useState<string>('');
+  const [loadingYields, setLoadingYields] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (isCreatePostModalOpen) {
-      fetchYieldsApi().then((data) => {
-        setYields(data);
-        if (data.length > 0 && !linkedYieldId) {
-          setLinkedYieldId(data[0].id);
+    if (!isCreatePostModalOpen) return;
+
+    let cancelled = false;
+    setError('');
+    setLinkedYieldId('');
+
+    const loadScopedProduce = async () => {
+      setLoadingYields(true);
+      try {
+        if (createPostFarmId) {
+          const farm = await fetchFarmByIdApi(createPostFarmId);
+          if (cancelled) return;
+          setFarmName(farm?.name || '');
+          const farmYields: Yield[] = (farm?.yields || []).map((y: any) => ({
+            ...y,
+            price: Number(y.price !== undefined ? y.price : y.pricePerUnit || 0),
+          }));
+          setYields(farmYields);
+        } else {
+          setFarmName('');
+          const myFarms = await fetchMyFarmsApi();
+          if (cancelled) return;
+          const ownYields: Yield[] = myFarms.flatMap((f: any) =>
+            (f.yields || []).map((y: any) => ({
+              ...y,
+              farmId: y.farmId || f.id,
+              price: Number(y.price !== undefined ? y.price : y.pricePerUnit || 0),
+            }))
+          );
+          setYields(ownYields);
         }
-      });
-    }
-  }, [isCreatePostModalOpen]);
+      } catch {
+        if (!cancelled) setYields([]);
+      } finally {
+        if (!cancelled) setLoadingYields(false);
+      }
+    };
+
+    loadScopedProduce();
+    return () => {
+      cancelled = true;
+    };
+  }, [isCreatePostModalOpen, createPostFarmId]);
 
   if (!isCreatePostModalOpen) return null;
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    try {
-      setUploading(true);
-      setError('');
-      const uploaded = await uploadMediaFileApi(file);
-      setMediaUrl(uploaded.url);
-    } catch (err: any) {
-      // Fallback local object URL preview if backend upload requires auth or isn't running
-      setMediaUrl(URL.createObjectURL(file));
-    } finally {
-      setUploading(false);
-    }
+  const resetAndClose = () => {
+    setError('');
+    setCreatePostModalOpen(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!mediaUrl) {
+      setError('Please upload a harvest photo or video from your device.');
+      return;
+    }
     if (!content.trim()) {
-      setError('Please describe your harvest story.');
+      setError('Please write a caption for your post.');
       return;
     }
     try {
       setSubmitting(true);
       setError('');
+      const selectedYield = yields.find((y) => y.id === linkedYieldId);
+      const targetFarmId = createPostFarmId || selectedYield?.farmId || undefined;
+
       await createPostApi({
         content: content.trim(),
         mediaUrl,
+        isVideo: isVideo || isVideoMedia(mediaUrl),
         linkedYieldId: linkedYieldId || undefined,
+        farmId: targetFarmId,
       });
+
       setContent('');
+      setMediaUrl('');
+      setIsVideo(false);
+      setLinkedYieldId('');
+      notifyPostCreated();
       setCreatePostModalOpen(false);
       if (onPostCreated) onPostCreated();
     } catch (err: any) {
       setError(
         err?.response?.data?.message ||
-          'Sign in with a Farmer account to publish live stories to the backend.'
+          err?.message ||
+          'Sign in with a Farmer account to publish live posts.'
       );
     } finally {
       setSubmitting(false);
@@ -76,20 +122,27 @@ export const CreatePostModal: React.FC<{ onPostCreated?: () => void }> = ({ onPo
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
         className="fixed inset-0 bg-[#241A12]/60 backdrop-blur-xs"
-        onClick={() => setCreatePostModalOpen(false)}
+        onClick={resetAndClose}
       />
 
-      <div className="relative z-10 w-full max-w-lg bg-white rounded-3xl border border-[#CCEBD5] shadow-2xl overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-4 bg-[#EEF8F1] border-b border-[#CCEBD5]">
-          <div className="flex items-center gap-2">
-            <Sparkles size={18} className="text-[#4E8B3F]" />
-            <h3 className="font-display-italic text-lg text-[#173A20] font-semibold">
-              Publish AgroFeed Harvest Story
-            </h3>
+      <div className="relative z-10 w-full max-w-lg max-h-[92vh] overflow-y-auto bg-white rounded-3xl border border-[#CCEBD5] shadow-2xl">
+        <div className="flex items-center justify-between px-6 py-4 bg-[#EEF8F1] border-b border-[#CCEBD5] sticky top-0 z-10">
+          <div>
+            <div className="flex items-center gap-2">
+              <Sparkles size={18} className="text-[#4E8B3F]" />
+              <h3 className="font-display-italic text-lg text-[#173A20] font-semibold">
+                Publish Farm Post
+              </h3>
+            </div>
+            {farmName && (
+              <p className="text-[11px] font-semibold text-[#4E8B3F] mt-0.5">
+                Posting to {farmName}
+              </p>
+            )}
           </div>
           <button
             type="button"
-            onClick={() => setCreatePostModalOpen(false)}
+            onClick={resetAndClose}
             className="w-8 h-8 rounded-full bg-white border border-[#CCEBD5] flex items-center justify-center text-[#241A12] hover:bg-[#E1F3E7] cursor-pointer"
           >
             <X size={16} />
@@ -103,63 +156,66 @@ export const CreatePostModal: React.FC<{ onPostCreated?: () => void }> = ({ onPo
             </div>
           )}
 
+          {/* Upload-Only Media Dropzone (matches Add Produce Form AgromImageUploader style) */}
+          <AgromImageUploader
+            label="Post Photo or Video"
+            required
+            singleBanner
+            accept="image/*,video/*"
+            aspectRatio="video"
+            title="Upload Harvest Photo or Video"
+            subtitle="Click to choose an image or reel video from your device"
+            images={mediaUrl ? [mediaUrl] : []}
+            onChange={(imgs) => {
+              const nextUrl = imgs[0] || '';
+              setMediaUrl(nextUrl);
+              if (!nextUrl) setIsVideo(false);
+            }}
+            onMediaUploaded={({ isVideo: vid }) => setIsVideo(vid)}
+          />
+
           <div>
             <label className="block text-xs font-semibold text-[#5C5245] mb-1.5">
-              Harvest Story Caption
+              Post Caption *
             </label>
             <textarea
               rows={3}
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Share live field updates, harvest quality, or wholesale crate availability..."
-              className="w-full rounded-xl bg-[#EEF8F1] border border-[#CCEBD5] px-3.5 py-2.5 text-sm text-[#241A12] focus:outline-none focus:border-[#4E8B3F]"
+              placeholder="Share live field updates, harvest quality, or crate availability..."
+              className="w-full rounded-2xl bg-[#EEF8F1] border border-[#CCEBD5] px-4 py-2.5 text-sm text-[#173A20] placeholder-[#5C5245]/60 focus:outline-none focus:border-[#4E8B3F] focus:ring-2 focus:ring-[#4E8B3F]/20 transition"
             />
           </div>
 
           <div>
             <label className="block text-xs font-semibold text-[#5C5245] mb-1.5">
-              Photo or Harvest Video URL (or Upload File)
+              Attach Produce from {farmName || 'Your Farm'} (1-Tap Buy Overlay)
             </label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={mediaUrl}
-                onChange={(e) => setMediaUrl(e.target.value)}
-                placeholder="https://..."
-                className="flex-1 rounded-xl bg-[#EEF8F1] border border-[#CCEBD5] px-3.5 py-2 text-xs text-[#241A12] focus:outline-none focus:border-[#4E8B3F]"
-              />
-              <label className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-[#CCEBD5] text-xs font-semibold text-[#173A20] hover:bg-[#EEF8F1] cursor-pointer shrink-0">
-                <Upload size={14} className="text-[#4E8B3F]" />
-                <span>{uploading ? 'Uploading...' : 'Upload'}</span>
-                <input type="file" accept="image/*,video/*" className="hidden" onChange={handleFileChange} />
-              </label>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-[#5C5245] mb-1.5">
-              Link Shoppable Harvest Lot (1-Tap Buy Overlay)
-            </label>
-            <div className="relative">
-              <select
-                value={linkedYieldId}
-                onChange={(e) => setLinkedYieldId(e.target.value)}
-                className="w-full rounded-xl bg-[#EEF8F1] border border-[#CCEBD5] px-3.5 py-2.5 text-sm text-[#241A12] focus:outline-none focus:border-[#4E8B3F]"
-              >
-                <option value="">— No linked product —</option>
-                {yields.map((y) => (
-                  <option key={y.id} value={y.id}>
-                    {y.title} ({y.price?.toLocaleString()} FCFA / {y.unit})
-                  </option>
-                ))}
-              </select>
-            </div>
+            <select
+              value={linkedYieldId}
+              onChange={(e) => setLinkedYieldId(e.target.value)}
+              disabled={loadingYields}
+              className="w-full rounded-2xl bg-[#EEF8F1] border border-[#CCEBD5] px-4 py-2.5 text-sm text-[#173A20] focus:outline-none focus:border-[#4E8B3F] focus:ring-2 focus:ring-[#4E8B3F]/20 transition"
+            >
+              <option value="">
+                {loadingYields
+                  ? 'Loading farm produce...'
+                  : yields.length === 0
+                  ? '— No produce listed on this farm yet —'
+                  : '— Optional: Attach a produce item —'}
+              </option>
+              {yields.map((y) => (
+                <option key={y.id} value={y.id}>
+                  {y.title} ({Number(y.price || y.pricePerUnit || 0).toLocaleString()} FCFA / {y.unit})
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="pt-2 flex items-center justify-end gap-2">
             <button
               type="button"
-              onClick={() => setCreatePostModalOpen(false)}
+              onClick={resetAndClose}
               className="px-4 py-2.5 rounded-full text-xs font-semibold text-[#5C5245] hover:bg-[#EEF8F1] cursor-pointer"
             >
               Cancel
@@ -167,10 +223,10 @@ export const CreatePostModal: React.FC<{ onPostCreated?: () => void }> = ({ onPo
             <button
               type="submit"
               disabled={submitting}
-              className="inline-flex items-center gap-1.5 px-6 py-2.5 rounded-full bg-[#4E8B3F] hover:bg-[#3D7030] text-white text-xs font-semibold shadow-sm transition cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-6 py-2.5 rounded-full bg-[#4E8B3F] hover:bg-[#3D7030] disabled:opacity-60 text-white text-xs font-semibold shadow-sm transition cursor-pointer"
             >
               <CheckCircle2 size={15} />
-              <span>{submitting ? 'Publishing...' : 'Publish to AgroFeed'}</span>
+              <span>{submitting ? 'Publishing...' : 'Publish Post'}</span>
             </button>
           </div>
         </form>
