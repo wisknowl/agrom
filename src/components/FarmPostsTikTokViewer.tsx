@@ -10,6 +10,7 @@ import {
   Send,
   Share2,
   ShoppingBag,
+  Trash2,
   Volume2,
   VolumeX,
   X,
@@ -25,6 +26,8 @@ interface FarmPostsTikTokViewerProps {
   farmName: string;
   ownerAvatar: string;
   farmYields: any[];
+  isOwner?: boolean;
+  onDeletePost?: (post: any) => void;
   onClose: () => void;
   onPostsChange?: (updatedPosts: any[]) => void;
 }
@@ -35,6 +38,8 @@ export const FarmPostsTikTokViewer: React.FC<FarmPostsTikTokViewerProps> = ({
   farmName,
   ownerAvatar,
   farmYields,
+  isOwner = false,
+  onDeletePost,
   onClose,
   onPostsChange,
 }) => {
@@ -210,6 +215,18 @@ export const FarmPostsTikTokViewer: React.FC<FarmPostsTikTokViewerProps> = ({
         </div>
 
         <div className="flex items-center gap-2 pointer-events-auto">
+          {isOwner && onDeletePost && posts[activeIndex] && (
+            <button
+              type="button"
+              onClick={() => onDeletePost(posts[activeIndex])}
+              aria-label="Delete post"
+              title="Delete this post"
+              className="w-9 h-9 rounded-full bg-black/55 hover:bg-[#DC2626] backdrop-blur-md border border-white/20 text-white flex items-center justify-center transition cursor-pointer"
+            >
+              <Trash2 size={16} />
+            </button>
+          )}
+
           <button
             type="button"
             onClick={() => setMuted((m) => !m)}

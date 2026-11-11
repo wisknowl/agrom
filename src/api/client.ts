@@ -3,7 +3,7 @@ import { getBaseApiUrl } from '@/utils/media';
 
 export const apiClient = axios.create({
   baseURL: getBaseApiUrl(),
-  timeout: 15000,
+  timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
   },

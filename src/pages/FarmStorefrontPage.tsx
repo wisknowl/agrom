@@ -21,6 +21,7 @@ import {
   Play,
   Leaf,
   ExternalLink,
+  Trash2,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useCartStore } from '@/store/cartStore';
@@ -29,6 +30,7 @@ import {
   fetchFarmByIdApi,
   fetchFeedPostsApi,
   createProduceApi,
+  deletePostApi,
   patronizeFarmApi,
 } from '@/api';
 import { FarmerBadge } from '@/components/MeetingLeafLogo';
@@ -50,6 +52,9 @@ export const FarmStorefrontPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'produce' | 'stories' | 'about'>('produce');
   const [viewerPostIndex, setViewerPostIndex] = useState<number | null>(null);
+  const [confirmDeletePost, setConfirmDeletePost] = useState<any | null>(null);
+  const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
+  const [deletePostError, setDeletePostError] = useState<string | null>(null);
   const [isPatron, setIsPatron] = useState(false);
   const [patronModalVisible, setPatronModalVisible] = useState(false);
   const [patronPlan, setPatronPlan] = useState<'MONTHLY' | 'SEASONAL'>('MONTHLY');
@@ -136,6 +141,34 @@ export const FarmStorefrontPage: React.FC = () => {
       loadFarmProfile(farm.id);
     } catch (err: any) {
       alert(err.message || 'Could not list produce');
+    }
+  };
+
+  const handleConfirmDeletePost = async () => {
+    if (!confirmDeletePost?.id) return;
+    const postId = confirmDeletePost.id;
+    try {
+      setDeletingPostId(postId);
+      setDeletePostError(null);
+      await deletePostApi(postId);
+      setFarmPosts((prev) => {
+        const next = prev.filter((p) => p.id !== postId);
+        if (viewerPostIndex !== null) {
+          if (next.length === 0) {
+            setViewerPostIndex(null);
+          } else if (viewerPostIndex >= next.length) {
+            setViewerPostIndex(next.length - 1);
+          }
+        }
+        return next;
+      });
+      setConfirmDeletePost(null);
+    } catch (err: any) {
+      setDeletePostError(
+        err?.response?.data?.message || err?.message || 'Failed to delete post.'
+      );
+    } finally {
+      setDeletingPostId(null);
     }
   };
 
@@ -488,6 +521,21 @@ export const FarmStorefrontPage: React.FC = () => {
                       />
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-black/25 pointer-events-none" />
+                    {isOwner && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeletePostError(null);
+                          setConfirmDeletePost(post);
+                        }}
+                        aria-label="Delete post"
+                        title="Delete post"
+                        className="absolute top-2.5 left-2.5 z-10 w-7 h-7 rounded-full bg-black/60 hover:bg-[#DC2626] text-white border border-white/25 flex items-center justify-center transition cursor-pointer shadow-xs"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    )}
                     <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5">
                       {linkedYield && (
                         <span className="px-2 py-0.5 rounded-full bg-[#E2A63C] text-[#241A12] text-[10px] font-bold inline-flex items-center gap-1 shadow-xs">
@@ -722,9 +770,70 @@ export const FarmStorefrontPage: React.FC = () => {
           farmName={farm.name}
           ownerAvatar={ownerAvatar}
           farmYields={farmYields}
+          isOwner={isOwner}
+          onDeletePost={(post) => {
+            setDeletePostError(null);
+            setConfirmDeletePost(post);
+          }}
           onClose={() => setViewerPostIndex(null)}
           onPostsChange={setFarmPosts}
         />
+      )}
+
+      {/* Confirm Delete Post Modal (sits above viewer) */}
+      {confirmDeletePost && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div
+            className="fixed inset-0 bg-black/65 backdrop-blur-xs"
+            onClick={() => !deletingPostId && setConfirmDeletePost(null)}
+          />
+          <div className="relative z-10 w-full max-w-sm bg-white rounded-3xl border border-[#CCEBD5] p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-[#EEF8F1]">
+              <div className="flex items-center gap-2 text-[#DC2626]">
+                <Trash2 size={18} />
+                <h3 className="font-bold text-sm text-[#173A20]">Delete Farm Post?</h3>
+              </div>
+              <button
+                type="button"
+                disabled={Boolean(deletingPostId)}
+                onClick={() => setConfirmDeletePost(null)}
+                className="w-8 h-8 rounded-full bg-[#EEF8F1] flex items-center justify-center text-[#241A12] cursor-pointer"
+              >
+                <X size={15} />
+              </button>
+            </div>
+
+            <p className="text-xs text-[#5C5245] leading-relaxed">
+              This will permanently remove this post from <strong>{farm.name}</strong> and AgroFeed.
+            </p>
+
+            {deletePostError && (
+              <div className="p-2.5 rounded-xl bg-[#FDF3F1] border border-[#DC2626]/30 text-xs text-[#DC2626]">
+                {deletePostError}
+              </div>
+            )}
+
+            <div className="flex items-center justify-end gap-2 pt-1">
+              <button
+                type="button"
+                disabled={Boolean(deletingPostId)}
+                onClick={() => setConfirmDeletePost(null)}
+                className="px-4 py-2 rounded-full bg-[#EEF8F1] text-xs font-semibold text-[#173A20] cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={Boolean(deletingPostId)}
+                onClick={handleConfirmDeletePost}
+                className="px-5 py-2 rounded-full bg-[#DC2626] hover:bg-[#B91C1C] disabled:opacity-60 text-white text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer"
+              >
+                <Trash2 size={13} />
+                <span>{deletingPostId ? 'Deleting...' : 'Delete Post'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

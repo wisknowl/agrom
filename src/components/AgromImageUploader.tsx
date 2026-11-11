@@ -36,6 +36,7 @@ export const AgromImageUploader: React.FC<AgromImageUploaderProps> = ({
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [lastUploadedIsVideo, setLastUploadedIsVideo] = useState(false);
 
@@ -44,12 +45,13 @@ export const AgromImageUploader: React.FC<AgromImageUploaderProps> = ({
     if (!files || files.length === 0) return;
 
     setUploading(true);
+    setUploadProgress(0);
     setError(null);
 
     try {
       if (singleBanner) {
         const file = files[0];
-        const res = await uploadMediaFileApi(file);
+        const res = await uploadMediaFileApi(file, (pct) => setUploadProgress(pct));
         const url = res?.url;
         const vid = Boolean(res?.isVideo || file.type?.startsWith('video/') || isVideoMedia(url));
         if (url) {
@@ -61,7 +63,7 @@ export const AgromImageUploader: React.FC<AgromImageUploaderProps> = ({
         const filesToUpload = Array.from(files).slice(0, maxImages - images.length);
         const uploadedUrls: string[] = [];
         for (const file of filesToUpload) {
-          const res = await uploadMediaFileApi(file);
+          const res = await uploadMediaFileApi(file, (pct) => setUploadProgress(pct));
           const url = res?.url;
           if (url) {
             uploadedUrls.push(url);
@@ -70,9 +72,16 @@ export const AgromImageUploader: React.FC<AgromImageUploaderProps> = ({
         onChange([...images, ...uploadedUrls]);
       }
     } catch (err: any) {
-      setError(err?.response?.data?.message || err?.message || 'Failed to upload media. Please try again.');
+      const msg =
+        err?.response?.data?.message ||
+        (err?.code === 'ECONNABORTED'
+          ? 'Upload timed out on a slow connection. Please try again or use a shorter clip.'
+          : err?.message) ||
+        'Failed to upload media. Please try again.';
+      setError(msg);
     } finally {
       setUploading(false);
+      setUploadProgress(0);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -90,8 +99,8 @@ export const AgromImageUploader: React.FC<AgromImageUploaderProps> = ({
     aspectRatio === 'video'
       ? 'aspect-[16/9]'
       : aspectRatio === 'wide'
-      ? 'aspect-[21/9]'
-      : 'aspect-square';
+        ? 'aspect-[21/9]'
+        : 'aspect-square';
 
   const allowsVideo = accept.includes('video');
 
@@ -161,8 +170,9 @@ export const AgromImageUploader: React.FC<AgromImageUploaderProps> = ({
             </div>
           ) : (
             <div
-              onClick={() => fileInputRef.current?.click()}
-              className="w-full py-8 px-4 rounded-2xl border-2 border-dashed border-[#CCEBD5] hover:border-[#4E8B3F] bg-[#EEF8F1] hover:bg-[#E5F5E9] flex flex-col items-center justify-center cursor-pointer transition text-center group"
+              onClick={() => !uploading && fileInputRef.current?.click()}
+              className={`w-full py-8 px-4 rounded-2xl border-2 border-dashed border-[#CCEBD5] hover:border-[#4E8B3F] bg-[#EEF8F1] hover:bg-[#E5F5E9] flex flex-col items-center justify-center transition text-center group ${uploading ? 'cursor-wait opacity-90' : 'cursor-pointer'
+                }`}
             >
               <div className="w-12 h-12 rounded-2xl bg-white border border-[#CCEBD5] group-hover:border-[#4E8B3F] flex items-center justify-center text-[#4E8B3F] mb-2 shadow-2xs">
                 {allowsVideo ? <Film size={22} /> : <Camera size={22} />}
@@ -170,9 +180,19 @@ export const AgromImageUploader: React.FC<AgromImageUploaderProps> = ({
               <div className="text-xs font-bold text-[#173A20]">{title}</div>
               <div className="text-[11px] text-[#5C5245] mt-0.5">{subtitle}</div>
               {uploading && (
-                <div className="mt-2 text-xs font-semibold text-[#4E8B3F] flex items-center gap-1.5">
-                  <div className="w-3.5 h-3.5 border-2 border-[#4E8B3F] border-t-transparent rounded-full animate-spin" />
-                  <span>Uploading media...</span>
+                <div className="mt-3 w-full max-w-xs space-y-1.5">
+                  <div className="text-xs font-semibold text-[#4E8B3F] flex items-center justify-center gap-1.5">
+                    <div className="w-3.5 h-3.5 border-2 border-[#4E8B3F] border-t-transparent rounded-full animate-spin" />
+                    <span>
+                      {uploadProgress > 0 ? `Uploading media... ${uploadProgress}%` : 'Uploading media...'}
+                    </span>
+                  </div>
+                  <div className="w-full h-1.5 rounded-full bg-white border border-[#CCEBD5] overflow-hidden">
+                    <div
+                      className="h-full bg-[#4E8B3F] transition-all duration-200"
+                      style={{ width: `${Math.max(8, uploadProgress)}%` }}
+                    />
+                  </div>
                 </div>
               )}
             </div>

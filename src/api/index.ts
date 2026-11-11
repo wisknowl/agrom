@@ -784,13 +784,22 @@ export const deletePostApi = async (postId: string): Promise<boolean> => {
 };
 
 export const uploadMediaFileApi = async (
-  file: File
+  file: File,
+  onProgress?: (percent: number) => void
 ): Promise<{ url: string; filename: string; isVideo: boolean }> => {
   const formData = new FormData();
   formData.append('file', file);
   const res = await apiClient.post('/upload', formData, {
+    timeout: 300000, // 5 minutes for large mobile video/photo uploads
     headers: { 'Content-Type': 'multipart/form-data' },
+    onUploadProgress: (progressEvent) => {
+      if (onProgress && progressEvent.total) {
+        const pct = Math.min(99, Math.round((progressEvent.loaded * 100) / progressEvent.total));
+        onProgress(pct);
+      }
+    },
   });
+  onProgress?.(100);
   return res.data;
 };
 
