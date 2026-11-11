@@ -258,22 +258,20 @@ export const LandingMarketPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setProduceLifecycleFilter('all')}
-                  className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition cursor-pointer ${
-                    produceLifecycleFilter === 'all'
+                  className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition cursor-pointer ${produceLifecycleFilter === 'all'
                       ? 'bg-[#173A20] text-white shadow-2xs'
                       : 'text-[#5C5245] hover:text-[#173A20]'
-                  }`}
+                    }`}
                 >
                   All Status
                 </button>
                 <button
                   type="button"
                   onClick={() => setProduceLifecycleFilter('selling')}
-                  className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition cursor-pointer flex items-center gap-1 ${
-                    produceLifecycleFilter === 'selling'
+                  className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition cursor-pointer flex items-center gap-1 ${produceLifecycleFilter === 'selling'
                       ? 'bg-[#4E8B3F] text-white shadow-2xs'
                       : 'text-[#5C5245] hover:text-[#4E8B3F]'
-                  }`}
+                    }`}
                 >
                   <span className="w-1.5 h-1.5 rounded-full bg-current" />
                   <span>In Stock</span>
@@ -281,11 +279,10 @@ export const LandingMarketPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setProduceLifecycleFilter('growing')}
-                  className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition cursor-pointer flex items-center gap-1 ${
-                    produceLifecycleFilter === 'growing'
+                  className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition cursor-pointer flex items-center gap-1 ${produceLifecycleFilter === 'growing'
                       ? 'bg-[#E2A63C] text-[#241A12] shadow-2xs'
                       : 'text-[#5C5245] hover:text-[#B87D18]'
-                  }`}
+                    }`}
                 >
                   <span className="w-1.5 h-1.5 rounded-full bg-current" />
                   <span>Pre-Order</span>
