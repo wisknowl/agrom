@@ -233,7 +233,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
   ];
 
   return (
-    <div className="h-screen flex flex-col bg-white text-[#241A12] overflow-hidden">
+    <div className="h-[100dvh] flex flex-col bg-white text-[#241A12] overflow-hidden">
       {/* =====================================================================
           TOP COMMAND BAR (Responsive Desktop & Mobile Header - Never scrolls away)
       ===================================================================== */}
@@ -862,7 +862,14 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
         )}
 
         {/* Main Content Area (Scrolls independently while header & sidebar remain pinned) */}
-        <main className="flex-1 min-w-0 h-full overflow-y-auto pb-safe-nav md:pb-10">{children}</main>
+        <main
+          className={`flex-1 min-w-0 h-full ${isFeedActive
+              ? 'overflow-hidden pb-[max(63px,calc(57px+env(safe-area-inset-bottom,0px)))] md:pb-0'
+              : 'overflow-y-auto pb-safe-nav md:pb-10'
+            }`}
+        >
+          {children}
+        </main>
       </div>
 
       {/* =====================================================================
