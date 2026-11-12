@@ -512,29 +512,56 @@ export const AgroFeedPage: React.FC = () => {
                   <div className="h-full w-full md:w-auto md:max-w-full flex items-end justify-center gap-4">
                     {/* Vertical Reel Card: Full edge-to-edge on mobile, crisp 9:16 full-height card on desktop */}
                     <div className="relative h-full w-full md:w-auto md:aspect-[9/16] md:max-w-[calc(100%-68px)] md:rounded-2xl overflow-hidden bg-black shadow-2xl border-0 md:border md:border-white/15">
-                      {isVid ? (
-                        <video
-                          ref={(el) => {
-                            videoRefs.current[idx] = el;
-                          }}
-                          src={mediaUri}
-                          className="w-full h-full object-cover cursor-pointer"
-                          loop
-                          playsInline
-                          muted={muted}
-                          onClick={(e) => handleTogglePlay(idx, e.currentTarget)}
-                        />
-                      ) : (
-                        <img
-                          src={mediaUri}
-                          alt={post.farmerName || 'AgroFeed post'}
-                          className="w-full h-full object-cover"
-                        />
-                      )}
+                      {/* 1. Ambient Blurred Backdrop (TikTok/Reels algorithm: eliminates black voids on 16:9, landscape, or square media) */}
+                      <div className="absolute inset-0 overflow-hidden pointer-events-none select-none z-0">
+                        {isVid ? (
+                          <video
+                            src={mediaUri}
+                            className="w-full h-full object-cover blur-3xl opacity-40 scale-125"
+                            loop
+                            playsInline
+                            muted
+                            aria-hidden="true"
+                          />
+                        ) : (
+                          <img
+                            src={mediaUri}
+                            alt=""
+                            className="w-full h-full object-cover blur-3xl opacity-40 scale-125"
+                            aria-hidden="true"
+                          />
+                        )}
+                        <div className="absolute inset-0 bg-black/45" />
+                      </div>
+
+                      {/* 2. Main Sharp Media (Preserves native aspect ratio: 9:16, 16:9 landscape, 1:1 square without cropping) */}
+                      <div className="relative z-10 w-full h-full flex items-center justify-center">
+                        {isVid ? (
+                          <video
+                            ref={(el) => {
+                              videoRefs.current[idx] = el;
+                            }}
+                            src={mediaUri}
+                            className="max-h-full max-w-full w-auto h-auto object-contain cursor-pointer"
+                            loop
+                            playsInline
+                            muted={muted}
+                            preload="metadata"
+                            onClick={(e) => handleTogglePlay(idx, e.currentTarget)}
+                          />
+                        ) : (
+                          <img
+                            src={mediaUri}
+                            alt={post.farmerName || 'AgroFeed post'}
+                            className="max-h-full max-w-full w-auto h-auto object-contain"
+                            loading="lazy"
+                          />
+                        )}
+                      </div>
 
                       {/* Center Play indicator when manually paused */}
                       {isVid && isPaused && (
-                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
                           <div className="w-16 h-16 rounded-full bg-black/55 backdrop-blur-sm text-white flex items-center justify-center border border-white/25">
                             <Play size={28} className="fill-white ml-1" />
                           </div>
