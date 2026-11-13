@@ -984,8 +984,8 @@ export const FarmManagementPage: React.FC = () => {
         const farmImg = resolveMediaUrl(activeFarm.avatarPhoto || activeFarm.coverPhoto);
         return (
           <div className="bg-white border border-[#CCEBD5] rounded-3xl overflow-hidden shadow-xs flex flex-col md:flex-row items-center">
-            {/* Left square farm image: rounded on the left, straight on the right, fixed aspect-square */}
-            <div className="w-full md:w-36 lg:w-40 aspect-square shrink-0 bg-[#EEF8F1] border-b md:border-b-0 md:border-r border-[#CCEBD5] relative overflow-hidden">
+            {/* Left farm image: compact height on mobile (reduced by 1/4), crisp square on desktop */}
+            <div className="w-full h-36 sm:h-44 md:h-36 md:w-32 lg:w-36 shrink-0 bg-[#EEF8F1] border-b md:border-b-0 md:border-r border-[#CCEBD5] relative overflow-hidden">
               {farmImg ? (
                 <img
                   src={farmImg}
@@ -1183,129 +1183,74 @@ export const FarmManagementPage: React.FC = () => {
                 return (
                   <div
                     key={y.id}
-                    className="p-3.5 sm:p-4 rounded-2xl bg-white border border-[#CCEBD5] hover:border-[#4E8B3F] flex flex-col justify-between gap-3 transition shadow-2xs hover:shadow-sm"
+                    className="p-3.5 sm:p-4 rounded-2xl bg-white border border-[#CCEBD5] hover:border-[#4E8B3F] flex flex-col justify-between gap-3.5 transition shadow-2xs hover:shadow-sm"
                   >
-                    <div className="flex items-start gap-3 min-w-0">
-                      {img ? (
-                        <img
-                          src={resolveMediaUrl(img)}
-                          alt={y.title}
-                          className="w-16 h-16 rounded-xl object-cover border border-[#CCEBD5] shrink-0"
-                        />
-                      ) : (
-                        <div className="w-16 h-16 rounded-xl bg-[#EEF8F1] border border-[#CCEBD5] flex items-center justify-center text-[#4E8B3F] shrink-0">
-                          <Sprout size={24} />
-                        </div>
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-bold text-sm text-[#241A12] truncate">{y.title}</h3>
-                          {y.isOrganic && (
-                            <span className="text-[10px] font-semibold bg-[#EEF8F1] text-[#4E8B3F] border border-[#CCEBD5] px-2 py-0.2 rounded-full">
-                              Organic
-                            </span>
-                          )}
-                        </div>
-                        <div className="font-mono-num text-xs font-bold text-[#173A20] mt-0.5">
-                          {formatXaf(y.price || y.pricePerUnit)} / {y.unit}
-                        </div>
-                        {y.lifecycleStatus === 'GROWING' ? (
-                          <div className="flex items-center gap-1.5 text-[11px] text-amber-800 bg-[#E2A63C]/15 border border-[#E2A63C]/30 px-2 py-0.5 rounded-md mt-1 w-fit">
-                            <Clock size={11} className="text-[#E2A63C] shrink-0" />
-                            <span>Harvest: {y.expectedHarvestWindow || 'Coming Soon'}</span>
-                            <span className="font-mono-num font-semibold text-[#173A20] ml-1">({stock} {y.unit} batch)</span>
-                          </div>
-                        ) : y.lifecycleStatus === 'OFF_CYCLE' ? (
-                          <div className="flex items-center gap-1.5 text-[11px] text-neutral-600 bg-neutral-100 border border-neutral-200 px-2 py-0.5 rounded-md mt-1 w-fit">
-                            <span>Off-Season • Next: {y.nextCycleMonth || 'Next Season'}</span>
-                          </div>
+                    {/* Top Row: Produce info on the left, Edit/Stock/Delete actions cleanly on the right */}
+                    <div className="flex items-start justify-between gap-2.5">
+                      {/* Left side: Thumbnail + details */}
+                      <div className="flex items-start gap-3 min-w-0 flex-1">
+                        {img ? (
+                          <img
+                            src={resolveMediaUrl(img)}
+                            alt={y.title}
+                            className="w-16 h-16 rounded-xl object-cover border border-[#CCEBD5] shrink-0"
+                          />
                         ) : (
-                          <div className="flex items-center gap-2 text-[11px] text-[#5C5245] mt-1">
-                            <span
-                              className={`font-mono-num font-semibold ${isOut ? 'text-[#dc2626]' : 'text-[#4E8B3F]'
-                                }`}
-                            >
-                              {isOut ? 'Out of Stock' : `${stock} ${y.unit} in stock`}
-                            </span>
-                            {isPaused && (
-                              <span className="bg-[#FEF2D8] text-[#B87D1E] px-2 py-0.2 rounded-full font-bold text-[10px]">
-                                Paused
+                          <div className="w-16 h-16 rounded-xl bg-[#EEF8F1] border border-[#CCEBD5] flex items-center justify-center text-[#4E8B3F] shrink-0">
+                            <Sprout size={24} />
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <h3 className="font-bold text-sm text-[#241A12] truncate max-w-[150px] sm:max-w-none">{y.title}</h3>
+                            {y.isOrganic && (
+                              <span className="text-[10px] font-semibold bg-[#EEF8F1] text-[#4E8B3F] border border-[#CCEBD5] px-2 py-0.2 rounded-full shrink-0">
+                                Organic
                               </span>
                             )}
                           </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Item Actions */}
-                    <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[#EEF8F1]">
-                      {/* Direct 3-State Lifecycle Segmented Control */}
-                      <div className="inline-flex items-center p-0.5 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] text-[11px]">
-                        <button
-                          type="button"
-                          onClick={() => handleSetProduceLifecycle(y, 'SELLING')}
-                          className={`px-2.5 py-1 rounded-full flex items-center gap-1 font-semibold transition cursor-pointer select-none ${
-                            (y.lifecycleStatus === 'SELLING' || !y.lifecycleStatus) && !isPaused
-                              ? 'bg-[#4E8B3F] text-white shadow-2xs font-bold'
-                              : 'text-[#173A20] hover:bg-white/60'
-                          }`}
-                          title="Selling: Immediate orders accepted"
-                        >
-                          <span
-                            className={`w-1.5 h-1.5 rounded-full ${
-                              (y.lifecycleStatus === 'SELLING' || !y.lifecycleStatus) && !isPaused
-                                ? 'bg-white'
-                                : 'bg-[#4E8B3F]'
-                            }`}
-                          />
-                          <span>Selling</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => handleSetProduceLifecycle(y, 'GROWING')}
-                          className={`px-2.5 py-1 rounded-full flex items-center gap-1 font-semibold transition cursor-pointer select-none ${
-                            y.lifecycleStatus === 'GROWING'
-                              ? 'bg-[#E2A63C] text-[#241A12] shadow-2xs font-bold'
-                              : 'text-[#5C5245] hover:bg-white/60'
-                          }`}
-                          title="Growing: Pre-orders open with harvest window"
-                        >
-                          <span
-                            className={`w-1.5 h-1.5 rounded-full ${
-                              y.lifecycleStatus === 'GROWING' ? 'bg-[#241A12]' : 'bg-[#E2A63C]'
-                            }`}
-                          />
-                          <span>Growing</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => handleSetProduceLifecycle(y, 'OFF_CYCLE')}
-                          className={`px-2.5 py-1 rounded-full flex items-center gap-1 font-semibold transition cursor-pointer select-none ${
-                            y.lifecycleStatus === 'OFF_CYCLE'
-                              ? 'bg-neutral-600 text-white shadow-2xs font-bold'
-                              : 'text-[#5C5245] hover:bg-white/60'
-                          }`}
-                          title="Off-Cycle: Waitlist notification active"
-                        >
-                          <span
-                            className={`w-1.5 h-1.5 rounded-full ${
-                              y.lifecycleStatus === 'OFF_CYCLE' ? 'bg-white' : 'bg-neutral-400'
-                            }`}
-                          />
-                          <span>Off-Cycle</span>
-                        </button>
+                          <div className="font-mono-num text-xs font-bold text-[#173A20] mt-0.5">
+                            {formatXaf(y.price || y.pricePerUnit)} / {y.unit}
+                          </div>
+                          {y.lifecycleStatus === 'GROWING' ? (
+                            <div className="flex items-center gap-1.5 text-[11px] text-amber-800 bg-[#E2A63C]/15 border border-[#E2A63C]/30 px-2 py-0.5 rounded-md mt-1 w-fit">
+                              <Clock size={11} className="text-[#E2A63C] shrink-0" />
+                              <span>Harvest: {y.expectedHarvestWindow || 'Coming Soon'}</span>
+                              <span className="font-mono-num font-semibold text-[#173A20] ml-1">({stock} {y.unit})</span>
+                            </div>
+                          ) : y.lifecycleStatus === 'OFF_CYCLE' ? (
+                            <div className="flex items-center gap-1.5 text-[11px] text-neutral-600 bg-neutral-100 border border-neutral-200 px-2 py-0.5 rounded-md mt-1 w-fit">
+                              <span>Off-Season • Next: {y.nextCycleMonth || 'Next Season'}</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2 text-[11px] text-[#5C5245] mt-1 flex-wrap">
+                              <span
+                                className={`font-mono-num font-semibold ${isOut ? 'text-[#dc2626]' : 'text-[#4E8B3F]'
+                                  }`}
+                              >
+                                {isOut ? 'Out of Stock' : `${stock} ${y.unit} in stock`}
+                              </span>
+                              {isPaused && (
+                                <span className="bg-[#FEF2D8] text-[#B87D1E] px-2 py-0.2 rounded-full font-bold text-[10px]">
+                                  Paused
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      {/* Right side: Action buttons (Balance Stock, Edit, Delete) */}
+                      <div className="flex items-center gap-1.5 shrink-0 self-start">
                         <button
                           type="button"
                           onClick={() => openStockModal(y)}
-                          className="px-3 py-1.5 rounded-full bg-[#EEF8F1] hover:bg-[#E1F3E7] border border-[#CCEBD5] text-[#4E8B3F] text-xs font-semibold inline-flex items-center gap-1.5 transition cursor-pointer"
+                          className="px-2.5 py-1.5 rounded-full bg-[#EEF8F1] hover:bg-[#E1F3E7] border border-[#CCEBD5] text-[#4E8B3F] text-xs font-semibold inline-flex items-center gap-1 transition cursor-pointer"
+                          title="Balance Stock"
                         >
                           <Sliders size={13} />
-                          <span>Balance Stock</span>
+                          <span className="hidden sm:inline">Balance Stock</span>
+                          <span className="sm:hidden font-mono-num font-bold">{stock}</span>
                         </button>
 
                         <button
@@ -1324,6 +1269,67 @@ export const FarmManagementPage: React.FC = () => {
                           title="Delete Produce"
                         >
                           <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Bottom Row: 3-State Lifecycle Segmented Control spread evenly across full width */}
+                    <div className="w-full pt-2.5 border-t border-[#EEF8F1]">
+                      <div className="w-full grid grid-cols-3 p-1 rounded-xl bg-[#EEF8F1] border border-[#CCEBD5] text-[11px] gap-1">
+                        <button
+                          type="button"
+                          onClick={() => handleSetProduceLifecycle(y, 'SELLING')}
+                          className={`w-full py-1.5 rounded-lg flex items-center justify-center gap-1.5 font-semibold transition cursor-pointer select-none ${
+                            (y.lifecycleStatus === 'SELLING' || !y.lifecycleStatus) && !isPaused
+                              ? 'bg-[#4E8B3F] text-white shadow-xs font-bold'
+                              : 'text-[#173A20] hover:bg-white/60'
+                          }`}
+                          title="Selling: Immediate orders accepted"
+                        >
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                              (y.lifecycleStatus === 'SELLING' || !y.lifecycleStatus) && !isPaused
+                                ? 'bg-white'
+                                : 'bg-[#4E8B3F]'
+                            }`}
+                          />
+                          <span className="truncate">Selling</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleSetProduceLifecycle(y, 'GROWING')}
+                          className={`w-full py-1.5 rounded-lg flex items-center justify-center gap-1.5 font-semibold transition cursor-pointer select-none ${
+                            y.lifecycleStatus === 'GROWING'
+                              ? 'bg-[#E2A63C] text-[#241A12] shadow-xs font-bold'
+                              : 'text-[#5C5245] hover:bg-white/60'
+                          }`}
+                          title="Growing: Pre-orders open with harvest window"
+                        >
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                              y.lifecycleStatus === 'GROWING' ? 'bg-[#241A12]' : 'bg-[#E2A63C]'
+                            }`}
+                          />
+                          <span className="truncate">Growing</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleSetProduceLifecycle(y, 'OFF_CYCLE')}
+                          className={`w-full py-1.5 rounded-lg flex items-center justify-center gap-1.5 font-semibold transition cursor-pointer select-none ${
+                            y.lifecycleStatus === 'OFF_CYCLE'
+                              ? 'bg-neutral-600 text-white shadow-xs font-bold'
+                              : 'text-[#5C5245] hover:bg-white/60'
+                          }`}
+                          title="Off-Cycle: Waitlist notification active"
+                        >
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                              y.lifecycleStatus === 'OFF_CYCLE' ? 'bg-white' : 'bg-neutral-400'
+                            }`}
+                          />
+                          <span className="truncate">Off-Cycle</span>
                         </button>
                       </div>
                     </div>
@@ -1361,7 +1367,7 @@ export const FarmManagementPage: React.FC = () => {
               className="self-start sm:self-auto inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#4E8B3F] hover:bg-[#3D7030] text-white text-xs font-bold transition shadow-xs cursor-pointer"
             >
               <Plus size={14} strokeWidth={2.5} />
-              <span>+ Add Operating Site</span>
+              <span>Add Operating Site</span>
             </button>
           </div>
 
