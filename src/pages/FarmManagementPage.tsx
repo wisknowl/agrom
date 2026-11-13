@@ -2320,17 +2320,15 @@ export const FarmManagementPage: React.FC = () => {
             {/* Header */}
             <div className="flex items-center justify-between pb-3 border-b border-[#CCEBD5]">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-[#FEE2E2] flex items-center justify-center text-[#DC2626]">
-                  {deleteStep === 1 ? <AlertTriangle size={18} /> : <Trash2 size={18} />}
+                <div className="w-8 h-8 rounded-xl bg-[#FEE2E2] flex items-center justify-center text-[#DC2626]">
+                  <Trash2 size={16} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-base text-[#991B1B]">
-                    {deleteStep === 1 ? 'Delete Farm Enterprise' : 'Final Destruction Confirmation'}
+                  <h3 className="font-bold text-sm sm:text-base text-[#991B1B]">
+                    Delete {activeFarm.name}
                   </h3>
                   <p className="text-xs text-[#5C5245]">
-                    {deleteStep === 1
-                      ? 'Step 1 of 2: Impact Assessment & Assets'
-                      : 'Step 2 of 2: Type Farm Name to Confirm'}
+                    {deleteStep === 1 ? 'Choose asset destination' : 'Final confirmation'}
                   </p>
                 </div>
               </div>
@@ -2343,73 +2341,35 @@ export const FarmManagementPage: React.FC = () => {
               </button>
             </div>
 
-            {/* STEP 1: IMPACT ASSESSMENT */}
+            {/* STEP 1: ASSET DESTINATION */}
             {deleteStep === 1 && (
               <div className="space-y-4">
-                {/* Warning Card */}
-                <div className="p-4 rounded-2xl bg-[#FEF2F2] border border-[#FECACA] space-y-1">
-                  <div className="flex items-center gap-2 text-[#DC2626] font-bold text-xs">
-                    <AlertTriangle size={15} />
-                    <span>Critical Enterprise Deletion</span>
-                  </div>
-                  <p className="text-xs text-[#7F1D1D] leading-relaxed">
-                    You are preparing to delete <strong>"{activeFarm.name}"</strong>. This enterprise profile and public storefront will be permanently delisted from AgroMarket.
-                  </p>
-                </div>
-
-                {/* Associated Assets Found */}
-                <div className="space-y-2">
-                  <div className="text-xs font-bold text-[#173A20]">Associated Farm Assets Found:</div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                    <div className="p-3 rounded-2xl bg-[#EEF8F1] border border-[#CCEBD5] text-center space-y-0.5">
-                      <div className="text-base font-bold text-[#173A20]">{farmYields.length}</div>
-                      <div className="text-[11px] text-[#5C5245] font-medium">Active Produce</div>
-                    </div>
-                    <div className="p-3 rounded-2xl bg-[#FEF3C7] border border-[#FDE68A] text-center space-y-0.5">
-                      <div className="text-base font-bold text-[#92400E]">
-                        {activeFarm.posts?.length || 1}
-                      </div>
-                      <div className="text-[11px] text-[#92400E] font-medium">Harvest Stories</div>
-                    </div>
-                    <div className="p-3 rounded-2xl bg-[#F3E8FF] border border-[#E9D5FF] text-center space-y-0.5">
-                      <div className="text-base font-bold text-[#6B21A8]">
-                        {activeFarm.rating?.toFixed(1) || '5.0'} ★
-                      </div>
-                      <div className="text-[11px] text-[#6B21A8] font-medium">
-                        {activeFarm.reviewsCount || 0} Reviews
-                      </div>
-                    </div>
+                {/* Compact Assets Summary Row */}
+                <div className="flex items-center justify-between p-3 rounded-2xl bg-[#EEF8F1] border border-[#CCEBD5] text-xs">
+                  <span className="font-medium text-[#5C5245]">Farm Assets:</span>
+                  <div className="flex items-center gap-3 font-semibold text-[#173A20]">
+                    <span>{farmYields.length} Produce</span>
+                    <span className="text-[#CCEBD5]">•</span>
+                    <span>{activeFarm.posts?.length || 0} Stories</span>
+                    <span className="text-[#CCEBD5]">•</span>
+                    <span>{activeFarm.reviewsCount || 0} Reviews</span>
                   </div>
                 </div>
 
-                {/* Safety Escrow Notice */}
-                <div className="p-3 rounded-2xl bg-[#ECFDF5] border border-[#A7F3D0] flex items-start gap-2.5 text-xs text-[#065F46]">
-                  <ShieldCheck size={16} className="text-[#059669] shrink-0 mt-0.5" />
-                  <span>
-                    <strong>Safety Rule:</strong> Deletion will be strictly blocked if this farm has active escrow orders in progress or pending customer deliveries.
-                  </span>
-                </div>
-
-                {/* MULTI-FARM: MIGRATION OPTIONS */}
+                {/* MULTI-FARM: Clean, simple choices */}
                 {farmsList.filter((f) => f.id !== activeFarm.id).length > 0 ? (
-                  <div className="space-y-3 pt-1">
-                    <div className="text-xs font-bold text-[#173A20]">
-                      Asset Migration Options:
-                    </div>
-                    <p className="text-[11px] text-[#5C5245]">
-                      You have other active farms. You can seamlessly transfer all active produce batches and harvest stories instead of losing them:
-                    </p>
-
-                    {/* Option 1: Transfer (Recommended) */}
+                  <div className="space-y-2.5">
+                    {/* Option 1: Transfer */}
                     <div
                       onClick={() => setDeleteAction('transfer')}
-                      className={`p-3.5 rounded-2xl border-2 transition cursor-pointer space-y-2 ${deleteAction === 'transfer'
+                      className={`p-3 rounded-2xl border-2 transition cursor-pointer space-y-2 ${
+                        deleteAction === 'transfer'
                           ? 'bg-[#EEF8F1] border-[#4E8B3F]'
                           : 'bg-white border-[#CCEBD5] hover:border-[#4E8B3F]/50'
-                        }`}
+                      }`}
                     >
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
+                        <label className="flex items-center gap-2 cursor-pointer font-bold text-xs text-[#173A20]">
                           <input
                             type="radio"
                             name="deleteAction"
@@ -2417,52 +2377,33 @@ export const FarmManagementPage: React.FC = () => {
                             onChange={() => setDeleteAction('transfer')}
                             className="accent-[#4E8B3F]"
                           />
-                          <span className="text-xs font-bold text-[#173A20]">
-                            Transfer produce & stories to another farm
-                          </span>
-                        </div>
+                          <span>Transfer produce & stories to another farm</span>
+                        </label>
                         <span className="px-2 py-0.5 rounded-full bg-[#4E8B3F] text-white text-[10px] font-bold">
                           Recommended
                         </span>
                       </div>
-                      <p className="text-[11px] text-[#5C5245] pl-6">
-                        All active marketplace listings and AgroFeed stories will be reassigned so you don't lose sales or followers.
-                      </p>
 
                       {deleteAction === 'transfer' && (
-                        <div className="pl-6 pt-1 space-y-1.5">
-                          <label className="block text-[11px] font-bold text-[#173A20]">
-                            Select Destination Farm:
+                        <div className="pl-6 pt-1">
+                          <label className="block text-[11px] font-semibold text-[#5C5245] mb-1">
+                            Destination Farm:
                           </label>
-                          <div className="space-y-1.5">
+                          <select
+                            value={deleteTargetFarmId}
+                            onChange={(e) => setDeleteTargetFarmId(e.target.value)}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-full p-2.5 rounded-xl border border-[#CCEBD5] bg-white text-xs font-semibold text-[#173A20] outline-none"
+                          >
+                            <option value="">Select a destination farm...</option>
                             {farmsList
                               .filter((f) => f.id !== activeFarm.id)
                               .map((other) => (
-                                <div
-                                  key={other.id}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setDeleteTargetFarmId(other.id);
-                                  }}
-                                  className={`p-2.5 rounded-xl border flex items-center justify-between transition cursor-pointer ${deleteTargetFarmId === other.id
-                                      ? 'bg-white border-2 border-[#4E8B3F] shadow-2xs'
-                                      : 'bg-white/80 border-[#CCEBD5]'
-                                    }`}
-                                >
-                                  <div>
-                                    <div className="text-xs font-bold text-[#173A20]">
-                                      {other.name}
-                                    </div>
-                                    <div className="text-[10px] text-[#5C5245]">
-                                      📍 {other.city || other.region || 'Cameroon'}
-                                    </div>
-                                  </div>
-                                  {deleteTargetFarmId === other.id && (
-                                    <CheckCircle2 size={16} className="text-[#4E8B3F]" />
-                                  )}
-                                </div>
+                                <option key={other.id} value={other.id}>
+                                  {other.name} ({other.city || other.region})
+                                </option>
                               ))}
-                          </div>
+                          </select>
                         </div>
                       )}
                     </div>
@@ -2470,12 +2411,13 @@ export const FarmManagementPage: React.FC = () => {
                     {/* Option 2: Delete All */}
                     <div
                       onClick={() => setDeleteAction('delete')}
-                      className={`p-3.5 rounded-2xl border-2 transition cursor-pointer space-y-1 ${deleteAction === 'delete'
+                      className={`p-3 rounded-2xl border-2 transition cursor-pointer ${
+                        deleteAction === 'delete'
                           ? 'bg-[#FEF2F2] border-[#DC2626]'
                           : 'bg-white border-[#CCEBD5] hover:border-[#DC2626]/50'
-                        }`}
+                      }`}
                     >
-                      <div className="flex items-center gap-2">
+                      <label className="flex items-center gap-2 cursor-pointer font-bold text-xs text-[#991B1B]">
                         <input
                           type="radio"
                           name="deleteAction"
@@ -2483,78 +2425,23 @@ export const FarmManagementPage: React.FC = () => {
                           onChange={() => setDeleteAction('delete')}
                           className="accent-[#DC2626]"
                         />
-                        <span className="text-xs font-bold text-[#991B1B]">
-                          Permanently delete all produce & stories
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-[#7F1D1D] pl-6">
-                        All produce batches will be removed from AgroMarket, and all harvest stories, comments, and likes will be permanently erased.
-                      </p>
+                        <span>Permanently delete all produce & stories</span>
+                      </label>
                     </div>
                   </div>
                 ) : (
-                  /* SINGLE FARM CASE */
-                  <div className="space-y-3 pt-1">
-                    <div className="text-xs font-bold text-[#173A20]">Recommended Alternatives:</div>
-                    <p className="text-[11px] text-[#5C5245]">
-                      This is your only registered farm. Before deleting it, consider these safer alternatives:
-                    </p>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                      <div className="p-3.5 rounded-2xl bg-[#EEF8F1] border border-[#CCEBD5] space-y-2">
-                        <div className="text-xs font-bold text-[#173A20] flex items-center gap-1.5">
-                          <Edit3 size={14} className="text-[#4E8B3F]" />
-                          <span>Rebrand or Edit Profile Instead</span>
-                        </div>
-                        <p className="text-[11px] text-[#5C5245] leading-relaxed">
-                          Change farm name, bio, or crop specialties while keeping your listings, review score, and stories intact.
-                        </p>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setDeleteModalVisible(false);
-                            openEditFarmModal();
-                          }}
-                          className="w-full py-1.5 rounded-full bg-white border border-[#CCEBD5] hover:border-[#4E8B3F] text-xs font-bold text-[#173A20] transition cursor-pointer"
-                        >
-                          ✏️ Edit Farm Profile
-                        </button>
-                      </div>
-
-                      <div className="p-3.5 rounded-2xl bg-[#FEF3C7] border border-[#FDE68A] space-y-2">
-                        <div className="text-xs font-bold text-[#92400E] flex items-center gap-1.5">
-                          <Plus size={14} className="text-[#D97706]" />
-                          <span>Register New Farm First</span>
-                        </div>
-                        <p className="text-[11px] text-[#92400E] leading-relaxed">
-                          Register your new farm first, then come back to migrate your existing produce and harvest stories seamlessly.
-                        </p>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setDeleteModalVisible(false);
-                            navigate('/farmer/new');
-                          }}
-                          className="w-full py-1.5 rounded-full bg-white border border-[#FDE68A] hover:border-[#D97706] text-xs font-bold text-[#92400E] transition cursor-pointer"
-                        >
-                          + New Farm First
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Acknowledgement Checkbox */}
-                    <label className="flex items-start gap-2.5 p-3 rounded-2xl bg-[#FEF2F2] border border-[#FECACA] cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={deleteSingleFarmAgreed}
-                        onChange={(e) => setDeleteSingleFarmAgreed(e.target.checked)}
-                        className="mt-0.5 accent-[#DC2626]"
-                      />
-                      <span className="text-xs text-[#7F1D1D] leading-relaxed">
-                        I understand that all produce batches and harvest stories will be permanently deleted and cannot be recovered.
-                      </span>
-                    </label>
-                  </div>
+                  /* SINGLE FARM CASE: Simple and direct */
+                  <label className="flex items-start gap-2.5 p-3 rounded-2xl bg-[#FEF2F2] border border-[#FECACA] cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={deleteSingleFarmAgreed}
+                      onChange={(e) => setDeleteSingleFarmAgreed(e.target.checked)}
+                      className="mt-0.5 accent-[#DC2626]"
+                    />
+                    <span className="text-xs font-semibold text-[#7F1D1D]">
+                      Permanently delete this farm and all its produce and stories.
+                    </span>
+                  </label>
                 )}
 
                 {/* Footer Buttons for Step 1 */}
@@ -2576,43 +2463,33 @@ export const FarmManagementPage: React.FC = () => {
                     }
                     className="px-5 py-2.5 rounded-full bg-[#DC2626] hover:bg-[#B91C1C] disabled:opacity-40 text-white text-xs font-bold transition shadow-xs cursor-pointer inline-flex items-center gap-1.5"
                   >
-                    <span>Next: Confirmation</span>
+                    <span>Next</span>
                     <ChevronRight size={14} />
                   </button>
                 </div>
               </div>
             )}
 
-            {/* STEP 2: DESTRUCTION CONFIRMATION */}
+            {/* STEP 2: FINAL DESTRUCTION CONFIRMATION */}
             {deleteStep === 2 && (
               <div className="space-y-4">
-                <div className="p-4 rounded-2xl bg-[#FEF2F2] border border-[#FECACA] space-y-2">
-                  <div className="text-xs font-bold text-[#991B1B]">Action Summary:</div>
-                  <div className="space-y-1.5 text-xs text-[#7F1D1D]">
-                    {deleteAction === 'transfer' && deleteTargetFarmId ? (
-                      <div className="flex items-center gap-2">
-                        <CheckCircle2 size={15} className="text-[#059669]" />
-                        <span>
-                          Produce batches and stories will be migrated to{' '}
-                          <strong>
-                            "{farmsList.find((f) => f.id === deleteTargetFarmId)?.name || 'selected farm'}"
-                          </strong>
-                          .
-                        </span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <AlertCircle size={15} className="text-[#DC2626]" />
-                        <span>
-                          ALL {farmYields.length} produce batches and stories tied to this farm will be permanently erased.
-                        </span>
-                      </div>
-                    )}
-                    <div className="flex items-center gap-2">
-                      <Trash2 size={15} className="text-[#DC2626]" />
-                      <span>Farm profile "{activeFarm.name}" will be completely deleted.</span>
-                    </div>
+                <div className="p-4 rounded-2xl bg-[#FEF2F2] border border-[#FECACA] space-y-1.5">
+                  <div className="flex items-center gap-2 text-[#DC2626] font-bold text-xs">
+                    <AlertTriangle size={15} />
+                    <span>Critical Enterprise Deletion</span>
                   </div>
+                  <p className="text-xs text-[#7F1D1D] leading-relaxed">
+                    You are preparing to delete <strong>"{activeFarm.name}"</strong>. This enterprise profile and public storefront will be permanently delisted from AgroMarket.
+                  </p>
+                  {deleteAction === 'transfer' && deleteTargetFarmId ? (
+                    <p className="text-[11px] text-[#059669] font-medium pt-0.5">
+                      ✓ Produce and stories will be migrated to "{farmsList.find((f) => f.id === deleteTargetFarmId)?.name}".
+                    </p>
+                  ) : (
+                    <p className="text-[11px] text-[#DC2626] font-medium pt-0.5">
+                      ⚠ All {farmYields.length} produce batches and stories will be permanently erased.
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -2624,10 +2501,11 @@ export const FarmManagementPage: React.FC = () => {
                     value={deleteConfirmName}
                     onChange={(e) => setDeleteConfirmName(e.target.value)}
                     placeholder={activeFarm.name}
-                    className={`w-full rounded-2xl bg-[#EEF8F1] border px-4 py-3 text-xs text-[#241A12] outline-none transition ${deleteConfirmName.trim().toLowerCase() === activeFarm.name.trim().toLowerCase()
+                    className={`w-full rounded-2xl bg-[#EEF8F1] border px-4 py-2.5 text-xs text-[#241A12] outline-none transition ${
+                      deleteConfirmName.trim().toLowerCase() === activeFarm.name.trim().toLowerCase()
                         ? 'border-[#059669] bg-[#ECFDF5]'
                         : 'border-[#CCEBD5] focus:border-[#DC2626]'
-                      }`}
+                    }`}
                   />
                   {deleteConfirmName.length > 0 &&
                     deleteConfirmName.trim().toLowerCase() !== activeFarm.name.trim().toLowerCase() && (
@@ -2644,7 +2522,7 @@ export const FarmManagementPage: React.FC = () => {
                     disabled={isDeletingFarm}
                     className="px-4 py-2 rounded-full bg-[#EEF8F1] hover:bg-[#CCEBD5] text-xs font-bold text-[#173A20] transition cursor-pointer"
                   >
-                    ← Back
+                    Back
                   </button>
                   <button
                     type="button"
@@ -2653,17 +2531,17 @@ export const FarmManagementPage: React.FC = () => {
                       isDeletingFarm ||
                       deleteConfirmName.trim().toLowerCase() !== activeFarm.name.trim().toLowerCase()
                     }
-                    className="px-5 py-2.5 rounded-full bg-[#DC2626] hover:bg-[#B91C1C] disabled:opacity-40 text-white text-xs font-bold transition shadow-xs cursor-pointer inline-flex items-center gap-2"
+                    className="px-5 py-2.5 rounded-full bg-[#DC2626] hover:bg-[#B91C1C] disabled:opacity-40 text-white text-xs font-bold transition shadow-xs cursor-pointer inline-flex items-center gap-1.5"
                   >
                     {isDeletingFarm ? (
                       <>
                         <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        <span>Removing Farm...</span>
+                        <span>Deleting...</span>
                       </>
                     ) : (
                       <>
                         <Trash2 size={14} />
-                        <span>Permanently Remove Farm</span>
+                        <span>Delete Farm</span>
                       </>
                     )}
                   </button>
