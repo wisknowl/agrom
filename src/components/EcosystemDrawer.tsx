@@ -62,12 +62,14 @@ export const EcosystemDrawer: React.FC = () => {
       bg: 'bg-[#EEF8F1]',
       title: 'My Orders & Escrow',
     },
+    /*
     {
       path: '/wallet',
       icon: <Wallet size={18} className="text-[#4E8B3F]" />,
       bg: 'bg-[#EEF8F1]',
       title: 'AgroWallet',
     },
+    */
     ...(hasFarms || user?.role === 'FARMER'
       ? [
         {

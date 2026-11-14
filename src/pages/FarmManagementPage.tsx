@@ -705,12 +705,12 @@ export const FarmManagementPage: React.FC = () => {
         const updatedYields = (prev.yields || []).map((y: any) =>
           y.id === item.id
             ? {
-                ...y,
-                lifecycleStatus: newStatus,
-                expectedHarvestWindow: windowVal,
-                nextCycleMonth: nextMonthVal,
-                isAvailable: newStatus !== 'OFF_CYCLE',
-              }
+              ...y,
+              lifecycleStatus: newStatus,
+              expectedHarvestWindow: windowVal,
+              nextCycleMonth: nextMonthVal,
+              isAvailable: newStatus !== 'OFF_CYCLE',
+            }
             : y
         );
         return { ...prev, yields: updatedYields };
@@ -1279,19 +1279,17 @@ export const FarmManagementPage: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => handleSetProduceLifecycle(y, 'SELLING')}
-                          className={`w-full py-1.5 rounded-lg flex items-center justify-center gap-1.5 font-semibold transition cursor-pointer select-none ${
-                            (y.lifecycleStatus === 'SELLING' || !y.lifecycleStatus) && !isPaused
+                          className={`w-full py-1.5 rounded-lg flex items-center justify-center gap-1.5 font-semibold transition cursor-pointer select-none ${(y.lifecycleStatus === 'SELLING' || !y.lifecycleStatus) && !isPaused
                               ? 'bg-[#4E8B3F] text-white shadow-xs font-bold'
                               : 'text-[#173A20] hover:bg-white/60'
-                          }`}
+                            }`}
                           title="Selling: Immediate orders accepted"
                         >
                           <span
-                            className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                              (y.lifecycleStatus === 'SELLING' || !y.lifecycleStatus) && !isPaused
+                            className={`w-1.5 h-1.5 rounded-full shrink-0 ${(y.lifecycleStatus === 'SELLING' || !y.lifecycleStatus) && !isPaused
                                 ? 'bg-white'
                                 : 'bg-[#4E8B3F]'
-                            }`}
+                              }`}
                           />
                           <span className="truncate">Selling</span>
                         </button>
@@ -1299,17 +1297,15 @@ export const FarmManagementPage: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => handleSetProduceLifecycle(y, 'GROWING')}
-                          className={`w-full py-1.5 rounded-lg flex items-center justify-center gap-1.5 font-semibold transition cursor-pointer select-none ${
-                            y.lifecycleStatus === 'GROWING'
+                          className={`w-full py-1.5 rounded-lg flex items-center justify-center gap-1.5 font-semibold transition cursor-pointer select-none ${y.lifecycleStatus === 'GROWING'
                               ? 'bg-[#E2A63C] text-[#241A12] shadow-xs font-bold'
                               : 'text-[#5C5245] hover:bg-white/60'
-                          }`}
+                            }`}
                           title="Growing: Pre-orders open with harvest window"
                         >
                           <span
-                            className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                              y.lifecycleStatus === 'GROWING' ? 'bg-[#241A12]' : 'bg-[#E2A63C]'
-                            }`}
+                            className={`w-1.5 h-1.5 rounded-full shrink-0 ${y.lifecycleStatus === 'GROWING' ? 'bg-[#241A12]' : 'bg-[#E2A63C]'
+                              }`}
                           />
                           <span className="truncate">Growing</span>
                         </button>
@@ -1317,17 +1313,15 @@ export const FarmManagementPage: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => handleSetProduceLifecycle(y, 'OFF_CYCLE')}
-                          className={`w-full py-1.5 rounded-lg flex items-center justify-center gap-1.5 font-semibold transition cursor-pointer select-none ${
-                            y.lifecycleStatus === 'OFF_CYCLE'
+                          className={`w-full py-1.5 rounded-lg flex items-center justify-center gap-1.5 font-semibold transition cursor-pointer select-none ${y.lifecycleStatus === 'OFF_CYCLE'
                               ? 'bg-neutral-600 text-white shadow-xs font-bold'
                               : 'text-[#5C5245] hover:bg-white/60'
-                          }`}
+                            }`}
                           title="Off-Cycle: Waitlist notification active"
                         >
                           <span
-                            className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                              y.lifecycleStatus === 'OFF_CYCLE' ? 'bg-white' : 'bg-neutral-400'
-                            }`}
+                            className={`w-1.5 h-1.5 rounded-full shrink-0 ${y.lifecycleStatus === 'OFF_CYCLE' ? 'bg-white' : 'bg-neutral-400'
+                              }`}
                           />
                           <span className="truncate">Off-Cycle</span>
                         </button>
@@ -1557,11 +1551,10 @@ export const FarmManagementPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setProduceForm({ ...produceForm, lifecycleStatus: 'SELLING' })}
-                      className={`py-2 px-1 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer select-none ${
-                        produceForm.lifecycleStatus === 'SELLING'
+                      className={`py-2 px-1 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer select-none ${produceForm.lifecycleStatus === 'SELLING'
                           ? 'bg-[#4E8B3F] text-white shadow-2xs'
                           : 'text-[#173A20] hover:bg-white/60'
-                      }`}
+                        }`}
                     >
                       <span className={`w-1.5 h-1.5 rounded-full ${produceForm.lifecycleStatus === 'SELLING' ? 'bg-white' : 'bg-[#4E8B3F]'}`} />
                       <span>Selling</span>
@@ -1570,11 +1563,10 @@ export const FarmManagementPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setProduceForm({ ...produceForm, lifecycleStatus: 'GROWING' })}
-                      className={`py-2 px-1 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer select-none ${
-                        produceForm.lifecycleStatus === 'GROWING'
+                      className={`py-2 px-1 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer select-none ${produceForm.lifecycleStatus === 'GROWING'
                           ? 'bg-[#E2A63C] text-[#241A12] shadow-2xs'
                           : 'text-[#5C5245] hover:bg-white/60'
-                      }`}
+                        }`}
                     >
                       <span className={`w-1.5 h-1.5 rounded-full ${produceForm.lifecycleStatus === 'GROWING' ? 'bg-[#241A12]' : 'bg-[#E2A63C]'}`} />
                       <span>Growing</span>
@@ -1583,11 +1575,10 @@ export const FarmManagementPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setProduceForm({ ...produceForm, lifecycleStatus: 'OFF_CYCLE' })}
-                      className={`py-2 px-1 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer select-none ${
-                        produceForm.lifecycleStatus === 'OFF_CYCLE'
+                      className={`py-2 px-1 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer select-none ${produceForm.lifecycleStatus === 'OFF_CYCLE'
                           ? 'bg-neutral-700 text-white shadow-2xs'
                           : 'text-[#5C5245] hover:bg-white/60'
-                      }`}
+                        }`}
                     >
                       <span className={`w-1.5 h-1.5 rounded-full ${produceForm.lifecycleStatus === 'OFF_CYCLE' ? 'bg-white' : 'bg-neutral-400'}`} />
                       <span>Off-Cycle</span>
@@ -2362,11 +2353,10 @@ export const FarmManagementPage: React.FC = () => {
                     {/* Option 1: Transfer */}
                     <div
                       onClick={() => setDeleteAction('transfer')}
-                      className={`p-3 rounded-2xl border-2 transition cursor-pointer space-y-2 ${
-                        deleteAction === 'transfer'
+                      className={`p-3 rounded-2xl border-2 transition cursor-pointer space-y-2 ${deleteAction === 'transfer'
                           ? 'bg-[#EEF8F1] border-[#4E8B3F]'
                           : 'bg-white border-[#CCEBD5] hover:border-[#4E8B3F]/50'
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center justify-between">
                         <label className="flex items-center gap-2 cursor-pointer font-bold text-xs text-[#173A20]">
@@ -2411,11 +2401,10 @@ export const FarmManagementPage: React.FC = () => {
                     {/* Option 2: Delete All */}
                     <div
                       onClick={() => setDeleteAction('delete')}
-                      className={`p-3 rounded-2xl border-2 transition cursor-pointer ${
-                        deleteAction === 'delete'
+                      className={`p-3 rounded-2xl border-2 transition cursor-pointer ${deleteAction === 'delete'
                           ? 'bg-[#FEF2F2] border-[#DC2626]'
                           : 'bg-white border-[#CCEBD5] hover:border-[#DC2626]/50'
-                      }`}
+                        }`}
                     >
                       <label className="flex items-center gap-2 cursor-pointer font-bold text-xs text-[#991B1B]">
                         <input
@@ -2501,11 +2490,10 @@ export const FarmManagementPage: React.FC = () => {
                     value={deleteConfirmName}
                     onChange={(e) => setDeleteConfirmName(e.target.value)}
                     placeholder={activeFarm.name}
-                    className={`w-full rounded-2xl bg-[#EEF8F1] border px-4 py-2.5 text-xs text-[#241A12] outline-none transition ${
-                      deleteConfirmName.trim().toLowerCase() === activeFarm.name.trim().toLowerCase()
+                    className={`w-full rounded-2xl bg-[#EEF8F1] border px-4 py-2.5 text-xs text-[#241A12] outline-none transition ${deleteConfirmName.trim().toLowerCase() === activeFarm.name.trim().toLowerCase()
                         ? 'border-[#059669] bg-[#ECFDF5]'
                         : 'border-[#CCEBD5] focus:border-[#DC2626]'
-                    }`}
+                      }`}
                   />
                   {deleteConfirmName.length > 0 &&
                     deleteConfirmName.trim().toLowerCase() !== activeFarm.name.trim().toLowerCase() && (

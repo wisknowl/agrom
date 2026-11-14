@@ -171,12 +171,14 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
       icon: <ShieldCheck size={19} />,
       active: pathname.startsWith('/orders'),
     },
+    /*
     {
       to: '/wallet',
       label: 'AgroWallet',
       icon: <Wallet size={19} />,
       active: pathname.startsWith('/wallet'),
     },
+    */
     // Creator-specific links (only displayed if user owns or manages farm/store)
     ...(hasFarms || user?.role === 'FARMER'
       ? [
@@ -682,6 +684,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
                             <ShieldCheck size={14} className="text-[#4E8B3F]" />
                             <span>My Orders & Escrow</span>
                           </button>
+                          {/* AgroWallet link commented out
                           <button
                             type="button"
                             onClick={() => { setIsProfileDropdownOpen(false); navigate('/wallet'); }}
@@ -690,6 +693,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
                             <Wallet size={14} className="text-[#4E8B3F]" />
                             <span>AgroWallet</span>
                           </button>
+                          */}
                           {hasFarms && (
                             <button
                               type="button"
