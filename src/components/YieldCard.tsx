@@ -12,9 +12,11 @@ import {
   Flame,
   PackageCheck,
   Bell,
+  Sprout,
 } from 'lucide-react';
 import { Yield } from '@/types';
 import { useCartStore } from '@/store/cartStore';
+import { useAuthStore } from '@/store/authStore';
 import { useFavoritesStore } from '@/store/favoritesStore';
 import { FarmerBadge } from './MeetingLeafLogo';
 import { resolveMediaUrl, formatXaf } from '@/utils/media';
@@ -41,6 +43,14 @@ export const YieldCard: React.FC<YieldCardProps> = ({ item }) => {
   const farmerTargetId = farmerUser?.id || (farm as any)?.userId || item.farmerId;
   const isStoreOrigin = Boolean(item.storeId || item.sourceType === 'STORE');
   const storeDisplay = item.storeName || (item as any).store?.name;
+
+  const user = useAuthStore((s) => s.user);
+  const isOwnProduce = Boolean(
+    user &&
+    (item.farmerId === user.id ||
+      farmerTargetId === user.id ||
+      (user.farms && user.farms.some((f: any) => f.id === item.farmId || f.id === (farm as any)?.id)))
+  );
   const storeSlugOrId = (item as any).store?.slug || item.storeId;
   const farmSlugOrId = farm?.slug || farm?.id;
   const provenanceLocation =
@@ -233,75 +243,90 @@ export const YieldCard: React.FC<YieldCardProps> = ({ item }) => {
             </span>
           </div>
 
-          <div className="flex items-center gap-1.5">
+          {isOwnProduce ? (
             <button
               type="button"
-              onClick={handleChat}
-              title="Negotiate / Chat with Farmer"
-              className="w-8 h-8 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] text-[#4E8B3F] hover:bg-[#4E8B3F] hover:text-white flex items-center justify-center transition"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate('/farm-management');
+              }}
+              title="Manage your produce in Farm Dashboard"
+              className="h-8 px-2.5 rounded-full font-bold text-xs inline-flex items-center justify-center gap-1.5 bg-[#EEF8F1] hover:bg-[#CCEBD5] text-[#173A20] border border-[#CCEBD5] transition cursor-pointer"
             >
-              <MessageCircle size={14} />
+              <Sprout size={13} className="text-[#4E8B3F]" />
+              <span>Your Listing</span>
             </button>
+          ) : (
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={handleChat}
+                title="Negotiate / Chat with Farmer"
+                className="w-8 h-8 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] text-[#4E8B3F] hover:bg-[#4E8B3F] hover:text-white flex items-center justify-center transition"
+              >
+                <MessageCircle size={14} />
+              </button>
 
-            {item.lifecycleStatus === 'OFF_CYCLE' ? (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  alert(`You will be notified when ${item.title} begins its next harvest cycle (${item.nextCycleMonth || 'next season'})!`);
-                }}
-                title="Join Harvest Waitlist"
-                className="h-8 px-2.5 rounded-full font-semibold text-xs inline-flex items-center justify-center gap-1.5 bg-neutral-100 hover:bg-neutral-200 text-[#241A12] border border-neutral-300 transition cursor-pointer shrink-0"
-              >
-                <Bell size={13} className="text-[#5C5245]" />
-                <span className="hidden sm:inline">Waitlist</span>
-              </button>
-            ) : item.lifecycleStatus === 'GROWING' ? (
-              <button
-                type="button"
-                onClick={handleAddToCart}
-                title={justAdded ? 'Pre-Order Added' : 'Pre-Order Harvest'}
-                className={`h-8 w-8 sm:w-auto px-0 sm:px-3 rounded-full font-semibold text-xs inline-flex items-center justify-center gap-1.5 transition cursor-pointer shrink-0 ${justAdded
-                  ? 'bg-[#4E8B3F] text-white'
-                  : 'bg-[#E2A63C] hover:bg-[#C68F30] text-[#241A12]'
-                  }`}
-              >
-                {justAdded ? (
-                  <>
-                    <Check size={14} strokeWidth={2.6} />
-                    <span className="hidden sm:inline">Reserved</span>
-                  </>
-                ) : (
-                  <>
-                    <Clock size={13} strokeWidth={2.2} />
-                    <span className="hidden sm:inline">Pre-Order</span>
-                  </>
-                )}
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={handleAddToCart}
-                title={justAdded ? 'Added to Basket' : 'Add to Basket'}
-                className={`h-8 w-8 sm:w-auto px-0 sm:px-3 rounded-full font-semibold text-xs inline-flex items-center justify-center gap-1.5 transition cursor-pointer shrink-0 ${justAdded
-                  ? 'bg-[#4E8B3F] text-white'
-                  : 'bg-[#E2A63C] hover:bg-[#C68F30] text-[#241A12]'
-                  }`}
-              >
-                {justAdded ? (
-                  <>
-                    <Check size={14} strokeWidth={2.6} />
-                    <span className="hidden sm:inline">Added</span>
-                  </>
-                ) : (
-                  <>
-                    <ShoppingBag size={14} strokeWidth={2.2} />
-                    <span className="hidden sm:inline">Basket</span>
-                  </>
-                )}
-              </button>
-            )}
-          </div>
+              {item.lifecycleStatus === 'OFF_CYCLE' ? (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    alert(`You will be notified when ${item.title} begins its next harvest cycle (${item.nextCycleMonth || 'next season'})!`);
+                  }}
+                  title="Join Harvest Waitlist"
+                  className="h-8 px-2.5 rounded-full font-semibold text-xs inline-flex items-center justify-center gap-1.5 bg-neutral-100 hover:bg-neutral-200 text-[#241A12] border border-neutral-300 transition cursor-pointer shrink-0"
+                >
+                  <Bell size={13} className="text-[#5C5245]" />
+                  <span className="hidden sm:inline">Waitlist</span>
+                </button>
+              ) : item.lifecycleStatus === 'GROWING' ? (
+                <button
+                  type="button"
+                  onClick={handleAddToCart}
+                  title={justAdded ? 'Pre-Order Added' : 'Pre-Order Harvest'}
+                  className={`h-8 w-8 sm:w-auto px-0 sm:px-3 rounded-full font-semibold text-xs inline-flex items-center justify-center gap-1.5 transition cursor-pointer shrink-0 ${justAdded
+                    ? 'bg-[#4E8B3F] text-white'
+                    : 'bg-[#E2A63C] hover:bg-[#C68F30] text-[#241A12]'
+                    }`}
+                >
+                  {justAdded ? (
+                    <>
+                      <Check size={14} strokeWidth={2.6} />
+                      <span className="hidden sm:inline">Reserved</span>
+                    </>
+                  ) : (
+                    <>
+                      <Clock size={13} strokeWidth={2.2} />
+                      <span className="hidden sm:inline">Pre-Order</span>
+                    </>
+                  )}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleAddToCart}
+                  title={justAdded ? 'Added to Basket' : 'Add to Basket'}
+                  className={`h-8 w-8 sm:w-auto px-0 sm:px-3 rounded-full font-semibold text-xs inline-flex items-center justify-center gap-1.5 transition cursor-pointer shrink-0 ${justAdded
+                    ? 'bg-[#4E8B3F] text-white'
+                    : 'bg-[#E2A63C] hover:bg-[#C68F30] text-[#241A12]'
+                    }`}
+                >
+                  {justAdded ? (
+                    <>
+                      <Check size={14} strokeWidth={2.6} />
+                      <span className="hidden sm:inline">Added</span>
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingBag size={14} strokeWidth={2.2} />
+                      <span className="hidden sm:inline">Basket</span>
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

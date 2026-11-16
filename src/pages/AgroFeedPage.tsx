@@ -16,6 +16,9 @@ import {
   VolumeX,
   Play,
   X,
+  Clock,
+  Bell,
+  Sprout,
 } from 'lucide-react';
 import {
   fetchFeedPostsApi,
@@ -25,6 +28,7 @@ import {
 import { Post } from '@/types';
 import { FarmerBadge } from '@/components/MeetingLeafLogo';
 import { useCartStore } from '@/store/cartStore';
+import { useAuthStore } from '@/store/authStore';
 import { useFavoritesStore } from '@/store/favoritesStore';
 import { useRegionalContainerStore } from '@/store/regionalContainerStore';
 import { formatXaf, isVideoMedia, resolveMediaUrl } from '@/utils/media';
@@ -46,6 +50,7 @@ export const AgroFeedPage: React.FC = () => {
   const [likedLocal, setLikedLocal] = useState<Record<string, boolean>>({});
 
   const addToCart = useCartStore((s) => s.addToCart);
+  const user = useAuthStore((s) => s.user);
   const { togglePost, isPostFavorite } = useFavoritesStore();
   const lastPostCreatedAt = useRegionalContainerStore((s) => s.lastPostCreatedAt);
 
@@ -596,37 +601,100 @@ export const AgroFeedPage: React.FC = () => {
                           {post.content}
                         </p>
 
-                        {linkedYield && (
-                          <div className="bg-white/95 backdrop-blur-md rounded-2xl p-2.5 border border-[#CCEBD5] flex items-center justify-between gap-2.5 shadow-lg">
-                            <div
-                              onClick={() => navigate(`/yield/${linkedYield.id}`)}
-                              className="flex items-center gap-2.5 min-w-0 cursor-pointer"
-                            >
-                              <img
-                                src={resolveMediaUrl(linkedYield.image)}
-                                alt={linkedYield.title}
-                                className="w-11 h-11 rounded-xl object-cover border border-[#CCEBD5] shrink-0"
-                              />
-                              <div className="min-w-0">
-                                <div className="text-xs font-bold text-[#241A12] truncate">
-                                  {linkedYield.title}
-                                </div>
-                                <div className="font-mono-num text-xs font-bold text-[#4E8B3F]">
-                                  {formatXaf(linkedYield.price)} / {linkedYield.unit}
+                        {linkedYield && (() => {
+                          const isOwnProduce = Boolean(
+                            user &&
+                            (linkedYield.farmerId === user.id ||
+                              linkedYield.farmer?.id === user.id ||
+                              (user.farms && user.farms.some((f: any) => f.id === linkedYield.farmId || f.id === linkedYield.farm?.id)))
+                          );
+                          const isGrowing = linkedYield.lifecycleStatus === 'GROWING';
+                          const isOffCycle = linkedYield.lifecycleStatus === 'OFF_CYCLE';
+
+                          return (
+                            <div className="bg-white/95 backdrop-blur-md rounded-2xl p-2.5 border border-[#CCEBD5] flex items-center justify-between gap-2.5 shadow-lg">
+                              <div
+                                onClick={() => navigate(`/yield/${linkedYield.id}`)}
+                                className="flex items-center gap-2.5 min-w-0 cursor-pointer"
+                              >
+                                <img
+                                  src={resolveMediaUrl(linkedYield.image)}
+                                  alt={linkedYield.title}
+                                  className="w-11 h-11 rounded-xl object-cover border border-[#CCEBD5] shrink-0"
+                                />
+                                <div className="min-w-0">
+                                  <div className="text-xs font-bold text-[#241A12] truncate flex items-center gap-1.5">
+                                    <span className="truncate">{linkedYield.title}</span>
+                                    {isGrowing && (
+                                      <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-[#FEF2D8] text-[#B87D1E] border border-[#E2A63C]/30 shrink-0">
+                                        Growing
+                                      </span>
+                                    )}
+                                    {isOffCycle && (
+                                      <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-neutral-100 text-neutral-600 border border-neutral-300 shrink-0">
+                                        Off-Season
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="font-mono-num text-xs font-bold text-[#4E8B3F]">
+                                    {formatXaf(linkedYield.price)} / {linkedYield.unit}
+                                  </div>
+                                  {isGrowing && linkedYield.expectedHarvestWindow && (
+                                    <div className="text-[10px] text-[#B87D1E] font-medium truncate">
+                                      Harvest: {linkedYield.expectedHarvestWindow}
+                                    </div>
+                                  )}
+                                  {isOffCycle && linkedYield.nextCycleMonth && (
+                                    <div className="text-[10px] text-neutral-500 font-medium truncate">
+                                      Next: {linkedYield.nextCycleMonth}
+                                    </div>
+                                  )}
                                 </div>
                               </div>
-                            </div>
 
-                            <button
-                              type="button"
-                              onClick={() => addToCart(linkedYield, 1)}
-                              className="px-3 py-2 rounded-full bg-[#E2A63C] hover:bg-[#C68F30] text-[#241A12] text-xs font-bold inline-flex items-center gap-1 shrink-0 transition cursor-pointer"
-                            >
-                              <ShoppingBag size={13} />
-                              <span>1-Tap Buy</span>
-                            </button>
-                          </div>
-                        )}
+                              {isOwnProduce ? (
+                                <button
+                                  type="button"
+                                  onClick={() => navigate('/farm-management')}
+                                  className="px-3 py-2 rounded-full bg-[#EEF8F1] hover:bg-[#CCEBD5] text-[#173A20] text-xs font-bold inline-flex items-center gap-1 shrink-0 transition cursor-pointer border border-[#CCEBD5]"
+                                  title="Manage your produce in Farm Dashboard"
+                                >
+                                  <Sprout size={13} className="text-[#4E8B3F]" />
+                                  <span>Your Produce</span>
+                                </button>
+                              ) : isOffCycle ? (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    alert(`You will be notified when ${linkedYield.title} begins its next harvest cycle (${linkedYield.nextCycleMonth || 'next season'})!`);
+                                  }}
+                                  className="px-3 py-2 rounded-full bg-neutral-100 hover:bg-neutral-200 text-[#241A12] text-xs font-bold inline-flex items-center gap-1 shrink-0 transition cursor-pointer border border-neutral-300"
+                                >
+                                  <Bell size={13} className="text-[#5C5245]" />
+                                  <span>Waitlist</span>
+                                </button>
+                              ) : isGrowing ? (
+                                <button
+                                  type="button"
+                                  onClick={() => addToCart(linkedYield, 1)}
+                                  className="px-3 py-2 rounded-full bg-[#E2A63C] hover:bg-[#C68F30] text-[#241A12] text-xs font-bold inline-flex items-center gap-1 shrink-0 transition cursor-pointer shadow-xs"
+                                >
+                                  <Clock size={13} />
+                                  <span>Pre-Order</span>
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => addToCart(linkedYield, 1)}
+                                  className="px-3 py-2 rounded-full bg-[#4E8B3F] hover:bg-[#3d6e32] text-white text-xs font-bold inline-flex items-center gap-1 shrink-0 transition cursor-pointer shadow-xs"
+                                >
+                                  <ShoppingBag size={13} />
+                                  <span>1-Tap Buy</span>
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </div>
 
                       {/* MOBILE Floating Action Rail (inside bottom-right of video) */}

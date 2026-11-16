@@ -35,7 +35,7 @@ export const LandingMarketPage: React.FC = () => {
   const [storesList, setStoresList] = useState<any[]>([]);
   const [categories, setCategories] = useState<string[]>(STATIC_CATEGORIES);
   const [produceSourceFilter, setProduceSourceFilter] = useState<'all' | 'direct' | 'instore'>('all');
-  const [produceLifecycleFilter, setProduceLifecycleFilter] = useState<'all' | 'selling' | 'growing'>('all');
+  const [produceLifecycleFilter, setProduceLifecycleFilter] = useState<'all' | 'selling' | 'growing' | 'off_cycle'>('all');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const { searchQuery, setSearchQuery, selectedRegion, setSelectedRegion } = useSearchStore();
   const [loading, setLoading] = useState(true);
@@ -100,7 +100,8 @@ export const LandingMarketPage: React.FC = () => {
     const matchesLifecycle =
       produceLifecycleFilter === 'all' ||
       (produceLifecycleFilter === 'selling' && (item.lifecycleStatus === 'SELLING' || !item.lifecycleStatus)) ||
-      (produceLifecycleFilter === 'growing' && item.lifecycleStatus === 'GROWING');
+      (produceLifecycleFilter === 'growing' && item.lifecycleStatus === 'GROWING') ||
+      (produceLifecycleFilter === 'off_cycle' && item.lifecycleStatus === 'OFF_CYCLE');
 
     const matchesRegion =
       !selectedRegion ||
@@ -286,6 +287,17 @@ export const LandingMarketPage: React.FC = () => {
                 >
                   <span className="w-1.5 h-1.5 rounded-full bg-current" />
                   <span>Pre-Order</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setProduceLifecycleFilter('off_cycle')}
+                  className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition cursor-pointer flex items-center gap-1 ${produceLifecycleFilter === 'off_cycle'
+                      ? 'bg-neutral-700 text-white shadow-2xs'
+                      : 'text-[#5C5245] hover:text-neutral-700'
+                    }`}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                  <span>Off-Season</span>
                 </button>
               </div>
             </>

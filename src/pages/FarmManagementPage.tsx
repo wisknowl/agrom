@@ -719,7 +719,7 @@ export const FarmManagementPage: React.FC = () => {
         lifecycleStatus: newStatus,
         expectedHarvestWindow: windowVal,
         nextCycleMonth: nextMonthVal,
-        isAvailable: newStatus !== 'OFF_CYCLE',
+        isAvailable: true,
       });
       setActiveFarm((prev: any) => {
         if (!prev) return prev;
@@ -730,7 +730,7 @@ export const FarmManagementPage: React.FC = () => {
               lifecycleStatus: newStatus,
               expectedHarvestWindow: windowVal,
               nextCycleMonth: nextMonthVal,
-              isAvailable: newStatus !== 'OFF_CYCLE',
+              isAvailable: true,
             }
             : y
         );
@@ -1316,15 +1316,15 @@ export const FarmManagementPage: React.FC = () => {
                           type="button"
                           onClick={() => handleSetProduceLifecycle(y, 'SELLING')}
                           className={`w-full py-1.5 rounded-lg flex items-center justify-center gap-1.5 font-semibold transition cursor-pointer select-none ${(y.lifecycleStatus === 'SELLING' || !y.lifecycleStatus) && !isPaused
-                              ? 'bg-[#4E8B3F] text-white shadow-xs font-bold'
-                              : 'text-[#173A20] hover:bg-white/60'
+                            ? 'bg-[#4E8B3F] text-white shadow-xs font-bold'
+                            : 'text-[#173A20] hover:bg-white/60'
                             }`}
                           title="Selling: Immediate orders accepted"
                         >
                           <span
                             className={`w-1.5 h-1.5 rounded-full shrink-0 ${(y.lifecycleStatus === 'SELLING' || !y.lifecycleStatus) && !isPaused
-                                ? 'bg-white'
-                                : 'bg-[#4E8B3F]'
+                              ? 'bg-white'
+                              : 'bg-[#4E8B3F]'
                               }`}
                           />
                           <span className="truncate">Selling</span>
@@ -1334,8 +1334,8 @@ export const FarmManagementPage: React.FC = () => {
                           type="button"
                           onClick={() => handleSetProduceLifecycle(y, 'GROWING')}
                           className={`w-full py-1.5 rounded-lg flex items-center justify-center gap-1.5 font-semibold transition cursor-pointer select-none ${y.lifecycleStatus === 'GROWING'
-                              ? 'bg-[#E2A63C] text-[#241A12] shadow-xs font-bold'
-                              : 'text-[#5C5245] hover:bg-white/60'
+                            ? 'bg-[#E2A63C] text-[#241A12] shadow-xs font-bold'
+                            : 'text-[#5C5245] hover:bg-white/60'
                             }`}
                           title="Growing: Pre-orders open with harvest window"
                         >
@@ -1350,8 +1350,8 @@ export const FarmManagementPage: React.FC = () => {
                           type="button"
                           onClick={() => handleSetProduceLifecycle(y, 'OFF_CYCLE')}
                           className={`w-full py-1.5 rounded-lg flex items-center justify-center gap-1.5 font-semibold transition cursor-pointer select-none ${y.lifecycleStatus === 'OFF_CYCLE'
-                              ? 'bg-neutral-600 text-white shadow-xs font-bold'
-                              : 'text-[#5C5245] hover:bg-white/60'
+                            ? 'bg-neutral-600 text-white shadow-xs font-bold'
+                            : 'text-[#5C5245] hover:bg-white/60'
                             }`}
                           title="Off-Cycle: Waitlist notification active"
                         >
@@ -1588,8 +1588,8 @@ export const FarmManagementPage: React.FC = () => {
                       type="button"
                       onClick={() => setProduceForm({ ...produceForm, lifecycleStatus: 'SELLING' })}
                       className={`py-2 px-1 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer select-none ${produceForm.lifecycleStatus === 'SELLING'
-                          ? 'bg-[#4E8B3F] text-white shadow-2xs'
-                          : 'text-[#173A20] hover:bg-white/60'
+                        ? 'bg-[#4E8B3F] text-white shadow-2xs'
+                        : 'text-[#173A20] hover:bg-white/60'
                         }`}
                     >
                       <span className={`w-1.5 h-1.5 rounded-full ${produceForm.lifecycleStatus === 'SELLING' ? 'bg-white' : 'bg-[#4E8B3F]'}`} />
@@ -1600,8 +1600,8 @@ export const FarmManagementPage: React.FC = () => {
                       type="button"
                       onClick={() => setProduceForm({ ...produceForm, lifecycleStatus: 'GROWING' })}
                       className={`py-2 px-1 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer select-none ${produceForm.lifecycleStatus === 'GROWING'
-                          ? 'bg-[#E2A63C] text-[#241A12] shadow-2xs'
-                          : 'text-[#5C5245] hover:bg-white/60'
+                        ? 'bg-[#E2A63C] text-[#241A12] shadow-2xs'
+                        : 'text-[#5C5245] hover:bg-white/60'
                         }`}
                     >
                       <span className={`w-1.5 h-1.5 rounded-full ${produceForm.lifecycleStatus === 'GROWING' ? 'bg-[#241A12]' : 'bg-[#E2A63C]'}`} />
@@ -1612,8 +1612,8 @@ export const FarmManagementPage: React.FC = () => {
                       type="button"
                       onClick={() => setProduceForm({ ...produceForm, lifecycleStatus: 'OFF_CYCLE' })}
                       className={`py-2 px-1 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer select-none ${produceForm.lifecycleStatus === 'OFF_CYCLE'
-                          ? 'bg-neutral-700 text-white shadow-2xs'
-                          : 'text-[#5C5245] hover:bg-white/60'
+                        ? 'bg-neutral-700 text-white shadow-2xs'
+                        : 'text-[#5C5245] hover:bg-white/60'
                         }`}
                     >
                       <span className={`w-1.5 h-1.5 rounded-full ${produceForm.lifecycleStatus === 'OFF_CYCLE' ? 'bg-white' : 'bg-neutral-400'}`} />
@@ -2390,8 +2390,8 @@ export const FarmManagementPage: React.FC = () => {
                     <div
                       onClick={() => setDeleteAction('transfer')}
                       className={`p-3 rounded-2xl border-2 transition cursor-pointer space-y-2 ${deleteAction === 'transfer'
-                          ? 'bg-[#EEF8F1] border-[#4E8B3F]'
-                          : 'bg-white border-[#CCEBD5] hover:border-[#4E8B3F]/50'
+                        ? 'bg-[#EEF8F1] border-[#4E8B3F]'
+                        : 'bg-white border-[#CCEBD5] hover:border-[#4E8B3F]/50'
                         }`}
                     >
                       <div className="flex items-center justify-between">
@@ -2438,8 +2438,8 @@ export const FarmManagementPage: React.FC = () => {
                     <div
                       onClick={() => setDeleteAction('delete')}
                       className={`p-3 rounded-2xl border-2 transition cursor-pointer ${deleteAction === 'delete'
-                          ? 'bg-[#FEF2F2] border-[#DC2626]'
-                          : 'bg-white border-[#CCEBD5] hover:border-[#DC2626]/50'
+                        ? 'bg-[#FEF2F2] border-[#DC2626]'
+                        : 'bg-white border-[#CCEBD5] hover:border-[#DC2626]/50'
                         }`}
                     >
                       <label className="flex items-center gap-2 cursor-pointer font-bold text-xs text-[#991B1B]">
@@ -2527,8 +2527,8 @@ export const FarmManagementPage: React.FC = () => {
                     onChange={(e) => setDeleteConfirmName(e.target.value)}
                     placeholder={activeFarm.name}
                     className={`w-full rounded-2xl bg-[#EEF8F1] border px-4 py-2.5 text-xs text-[#241A12] outline-none transition ${deleteConfirmName.trim().toLowerCase() === activeFarm.name.trim().toLowerCase()
-                        ? 'border-[#059669] bg-[#ECFDF5]'
-                        : 'border-[#CCEBD5] focus:border-[#DC2626]'
+                      ? 'border-[#059669] bg-[#ECFDF5]'
+                      : 'border-[#CCEBD5] focus:border-[#DC2626]'
                       }`}
                   />
                   {deleteConfirmName.length > 0 &&
@@ -2589,11 +2589,10 @@ export const FarmManagementPage: React.FC = () => {
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div
-                  className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${
-                    lifecycleModal.targetStatus === 'GROWING'
+                  className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${lifecycleModal.targetStatus === 'GROWING'
                       ? 'bg-[#FEF2D8] text-[#E2A63C]'
                       : 'bg-neutral-100 text-neutral-600'
-                  }`}
+                    }`}
                 >
                   {lifecycleModal.targetStatus === 'GROWING' ? <Clock size={20} /> : <Calendar size={20} />}
                 </div>
@@ -2671,22 +2670,22 @@ export const FarmManagementPage: React.FC = () => {
                 <div className="flex items-center gap-1.5 flex-wrap">
                   {(lifecycleModal.targetStatus === 'GROWING'
                     ? [
-                        'Within 2 Weeks',
-                        'Within 30 Days',
-                        'Next Month',
-                        'Mid Next Month',
-                        'Early Rainy Season',
-                        'Late Rainy Season',
-                        'Dry Season Harvest',
-                      ]
+                      'Within 2 Weeks',
+                      'Within 30 Days',
+                      'Next Month',
+                      'Mid Next Month',
+                      'Early Rainy Season',
+                      'Late Rainy Season',
+                      'Dry Season Harvest',
+                    ]
                     : [
-                        'Next Month',
-                        'Next Season',
-                        'Rainy Season Cycle',
-                        'Dry Season Cycle',
-                        'March Planting',
-                        'Next Year',
-                      ]
+                      'Next Month',
+                      'Next Season',
+                      'Rainy Season Cycle',
+                      'Dry Season Cycle',
+                      'March Planting',
+                      'Next Year',
+                    ]
                   ).map((preset) => (
                     <button
                       key={preset}
@@ -2697,11 +2696,10 @@ export const FarmManagementPage: React.FC = () => {
                           value: preset,
                         })
                       }
-                      className={`text-[11px] px-2.5 py-1 rounded-full border transition cursor-pointer select-none font-medium ${
-                        lifecycleModal.value === preset
+                      className={`text-[11px] px-2.5 py-1 rounded-full border transition cursor-pointer select-none font-medium ${lifecycleModal.value === preset
                           ? 'bg-[#173A20] text-white border-[#173A20]'
                           : 'bg-[#EEF8F1] border-[#CCEBD5] text-[#173A20] hover:border-[#4E8B3F]'
-                      }`}
+                        }`}
                     >
                       {preset}
                     </button>
@@ -2731,11 +2729,10 @@ export const FarmManagementPage: React.FC = () => {
                   )
                 }
                 disabled={savingLifecycle || !lifecycleModal.value.trim()}
-                className={`px-5 py-2.5 rounded-full text-xs font-bold transition shadow-xs cursor-pointer inline-flex items-center gap-1.5 ${
-                  lifecycleModal.targetStatus === 'GROWING'
+                className={`px-5 py-2.5 rounded-full text-xs font-bold transition shadow-xs cursor-pointer inline-flex items-center gap-1.5 ${lifecycleModal.targetStatus === 'GROWING'
                     ? 'bg-[#E2A63C] hover:bg-[#d4972e] text-[#241A12]'
                     : 'bg-[#173A20] hover:bg-[#122e19] text-white'
-                } disabled:opacity-40`}
+                  } disabled:opacity-40`}
               >
                 {savingLifecycle ? (
                   <>
