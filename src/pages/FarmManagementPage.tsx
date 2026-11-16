@@ -42,6 +42,7 @@ import {
   Sunrise,
   Sunset,
   RefreshCw,
+  Calendar,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useRegionalContainerStore } from '@/store/regionalContainerStore';
@@ -362,6 +363,14 @@ export const FarmManagementPage: React.FC = () => {
   const [deleteSingleFarmAgreed, setDeleteSingleFarmAgreed] = useState(false);
   const [isDeletingFarm, setIsDeletingFarm] = useState(false);
 
+  // Produce Lifecycle Window Modal (Replaces browser window.prompt)
+  const [lifecycleModal, setLifecycleModal] = useState<{
+    item: any;
+    targetStatus: 'GROWING' | 'OFF_CYCLE';
+    value: string;
+  } | null>(null);
+  const [savingLifecycle, setSavingLifecycle] = useState(false);
+
   const loadFarms = useCallback(async () => {
     if (!isAuthenticated) {
       setLoading(false);
@@ -679,20 +688,32 @@ export const FarmManagementPage: React.FC = () => {
     }
   };
 
+  const openLifecycleModal = (item: any, status: 'GROWING' | 'OFF_CYCLE') => {
+    setLifecycleModal({
+      item,
+      targetStatus: status,
+      value:
+        status === 'GROWING'
+          ? (item.expectedHarvestWindow || 'Within 30 Days')
+          : (item.nextCycleMonth || 'Next Season'),
+    });
+  };
+
   const handleSetProduceLifecycle = async (item: any, newStatus: 'SELLING' | 'GROWING' | 'OFF_CYCLE') => {
-    let windowVal = item.expectedHarvestWindow;
-    let nextMonthVal = item.nextCycleMonth;
-
-    if (newStatus === 'GROWING' && !item.expectedHarvestWindow) {
-      const resp = window.prompt('Enter expected harvest window (e.g. Dec 15 - Dec 28 or Within 3 Weeks):', 'Within 30 Days');
-      if (resp === null) return;
-      windowVal = resp.trim() || 'Coming Soon';
-    } else if (newStatus === 'OFF_CYCLE' && !item.nextCycleMonth) {
-      const resp = window.prompt('Enter next target planting or harvest month (e.g. March 2027):', 'Next Season');
-      if (resp === null) return;
-      nextMonthVal = resp.trim() || 'Next Season';
+    if (newStatus === 'SELLING') {
+      await applyProduceLifecycle(item, 'SELLING', undefined, undefined);
+    } else {
+      openLifecycleModal(item, newStatus);
     }
+  };
 
+  const applyProduceLifecycle = async (
+    item: any,
+    newStatus: 'SELLING' | 'GROWING' | 'OFF_CYCLE',
+    windowVal?: string,
+    nextMonthVal?: string
+  ) => {
+    setSavingLifecycle(true);
     try {
       await patchProduceStockApi(item.id, {
         lifecycleStatus: newStatus,
@@ -715,8 +736,11 @@ export const FarmManagementPage: React.FC = () => {
         );
         return { ...prev, yields: updatedYields };
       });
+      setLifecycleModal(null);
     } catch (err: any) {
       alert(err.message || 'Failed to update produce lifecycle status');
+    } finally {
+      setSavingLifecycle(false);
     }
   };
 
@@ -1213,15 +1237,27 @@ export const FarmManagementPage: React.FC = () => {
                             {formatXaf(y.price || y.pricePerUnit)} / {y.unit}
                           </div>
                           {y.lifecycleStatus === 'GROWING' ? (
-                            <div className="flex items-center gap-1.5 text-[11px] text-amber-800 bg-[#E2A63C]/15 border border-[#E2A63C]/30 px-2 py-0.5 rounded-md mt-1 w-fit">
+                            <button
+                              type="button"
+                              onClick={() => openLifecycleModal(y, 'GROWING')}
+                              className="flex items-center gap-1.5 text-[11px] text-amber-800 bg-[#E2A63C]/15 hover:bg-[#E2A63C]/25 border border-[#E2A63C]/30 px-2 py-0.5 rounded-md mt-1 w-fit transition cursor-pointer"
+                              title="Click to update harvest window"
+                            >
                               <Clock size={11} className="text-[#E2A63C] shrink-0" />
                               <span>Harvest: {y.expectedHarvestWindow || 'Coming Soon'}</span>
                               <span className="font-mono-num font-semibold text-[#173A20] ml-1">({stock} {y.unit})</span>
-                            </div>
+                              <Edit3 size={10} className="text-amber-700/60 ml-0.5" />
+                            </button>
                           ) : y.lifecycleStatus === 'OFF_CYCLE' ? (
-                            <div className="flex items-center gap-1.5 text-[11px] text-neutral-600 bg-neutral-100 border border-neutral-200 px-2 py-0.5 rounded-md mt-1 w-fit">
+                            <button
+                              type="button"
+                              onClick={() => openLifecycleModal(y, 'OFF_CYCLE')}
+                              className="flex items-center gap-1.5 text-[11px] text-neutral-600 bg-neutral-100 hover:bg-neutral-200/80 border border-neutral-200 px-2 py-0.5 rounded-md mt-1 w-fit transition cursor-pointer"
+                              title="Click to update next season"
+                            >
                               <span>Off-Season • Next: {y.nextCycleMonth || 'Next Season'}</span>
-                            </div>
+                              <Edit3 size={10} className="text-neutral-500/60 ml-0.5" />
+                            </button>
                           ) : (
                             <div className="flex items-center gap-2 text-[11px] text-[#5C5245] mt-1 flex-wrap">
                               <span
@@ -1621,11 +1657,11 @@ export const FarmManagementPage: React.FC = () => {
                     required
                     value={produceForm.expectedHarvestWindow}
                     onChange={(e) => setProduceForm({ ...produceForm, expectedHarvestWindow: e.target.value })}
-                    placeholder="e.g. Dec 15 - Dec 28, or Mid-December"
+                    placeholder="e.g. Mid-December, Within 3 Weeks, Early Rainy Season"
                     className="w-full rounded-xl bg-white border border-[#CCEBD5] px-3.5 py-2 text-xs text-[#241A12] outline-none focus:border-[#4E8B3F]"
                   />
                   <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
-                    {['Within 2 Weeks', 'Within 30 Days', 'Mid Next Month', 'End of Month'].map((preset) => (
+                    {['Within 2 Weeks', 'Within 30 Days', 'Next Month', 'Mid Next Month', 'Early Rainy Season', 'Late Rainy Season', 'Dry Season Harvest'].map((preset) => (
                       <button
                         key={preset}
                         type="button"
@@ -1654,15 +1690,15 @@ export const FarmManagementPage: React.FC = () => {
                     required
                     value={produceForm.nextCycleMonth}
                     onChange={(e) => setProduceForm({ ...produceForm, nextCycleMonth: e.target.value })}
-                    placeholder="e.g. March 2027 or Rainy Season Cycle"
+                    placeholder="e.g. Next Season, March Planting, Rainy Season Cycle"
                     className="w-full rounded-xl bg-white border border-neutral-300 px-3.5 py-2 text-xs text-[#241A12] outline-none focus:border-[#4E8B3F]"
                   />
                   <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
-                    {['January', 'March', 'June', 'September', 'November'].map((m) => (
+                    {['Next Month', 'Next Season', 'Rainy Season Cycle', 'Dry Season Cycle', 'March Planting', 'Next Year'].map((m) => (
                       <button
                         key={m}
                         type="button"
-                        onClick={() => setProduceForm({ ...produceForm, nextCycleMonth: `${m} Cycle` })}
+                        onClick={() => setProduceForm({ ...produceForm, nextCycleMonth: m })}
                         className="text-[11px] px-2.5 py-0.5 rounded-full bg-white border border-neutral-300 text-[#173A20] hover:border-[#4E8B3F] transition cursor-pointer select-none"
                       >
                         {m}
@@ -2536,6 +2572,186 @@ export const FarmManagementPage: React.FC = () => {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 6: SET EXPECTED HARVEST WINDOW OR NEXT SEASON (Replaces browser window.prompt) */}
+      {lifecycleModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="fixed inset-0 bg-[#241A12]/60 backdrop-blur-xs transition-opacity"
+            onClick={() => !savingLifecycle && setLifecycleModal(null)}
+          />
+
+          <div className="relative bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-[#CCEBD5] space-y-4 z-10 animate-in fade-in zoom-in-95 duration-150">
+            {/* Header */}
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div
+                  className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${
+                    lifecycleModal.targetStatus === 'GROWING'
+                      ? 'bg-[#FEF2D8] text-[#E2A63C]'
+                      : 'bg-neutral-100 text-neutral-600'
+                  }`}
+                >
+                  {lifecycleModal.targetStatus === 'GROWING' ? <Clock size={20} /> : <Calendar size={20} />}
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-[#173A20]">
+                    {lifecycleModal.targetStatus === 'GROWING'
+                      ? 'Expected Harvest Window'
+                      : 'Next Planting / Season Cycle'}
+                  </h3>
+                  <p className="text-xs text-[#5C5245] truncate max-w-[230px]">
+                    {lifecycleModal.item?.title || 'Produce Listing'}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => !savingLifecycle && setLifecycleModal(null)}
+                className="w-8 h-8 rounded-full bg-[#EEF8F1] hover:bg-[#CCEBD5] flex items-center justify-center text-[#173A20] transition cursor-pointer"
+              >
+                <X size={15} />
+              </button>
+            </div>
+
+            {/* Explanation Note */}
+            <p className="text-xs text-[#5C5245] leading-relaxed">
+              {lifecycleModal.targetStatus === 'GROWING'
+                ? 'Inform buyers when this crop will be harvested for pre-order delivery. Flexible agricultural windows prevent premature expiration.'
+                : 'Indicate when this seasonal crop will return to production so buyers can follow or join the waitlist.'}
+            </p>
+
+            {/* Input & Presets */}
+            <div className="space-y-2.5">
+              <label className="block text-xs font-semibold text-[#173A20]">
+                {lifecycleModal.targetStatus === 'GROWING'
+                  ? 'Harvest Timeline Window'
+                  : 'Target Month / Season'}
+              </label>
+
+              <input
+                type="text"
+                autoFocus
+                value={lifecycleModal.value}
+                onChange={(e) =>
+                  setLifecycleModal({
+                    ...lifecycleModal,
+                    value: e.target.value,
+                  })
+                }
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (lifecycleModal.value.trim()) {
+                      applyProduceLifecycle(
+                        lifecycleModal.item,
+                        lifecycleModal.targetStatus,
+                        lifecycleModal.targetStatus === 'GROWING' ? lifecycleModal.value.trim() : undefined,
+                        lifecycleModal.targetStatus === 'OFF_CYCLE' ? lifecycleModal.value.trim() : undefined
+                      );
+                    }
+                  }
+                }}
+                placeholder={
+                  lifecycleModal.targetStatus === 'GROWING'
+                    ? 'e.g. Mid-December, Within 3 Weeks, Early Rainy Season'
+                    : 'e.g. Next Season, March Planting, Rainy Season Cycle'
+                }
+                className="w-full rounded-xl bg-white border border-[#CCEBD5] px-3.5 py-2.5 text-xs text-[#241A12] outline-none focus:border-[#4E8B3F] focus:ring-1 focus:ring-[#4E8B3F]"
+              />
+
+              {/* Ready Preset Chips */}
+              <div className="pt-1 space-y-1.5">
+                <span className="text-[10px] font-semibold text-[#5C5245] uppercase tracking-wider block">
+                  Quick Select Presets
+                </span>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {(lifecycleModal.targetStatus === 'GROWING'
+                    ? [
+                        'Within 2 Weeks',
+                        'Within 30 Days',
+                        'Next Month',
+                        'Mid Next Month',
+                        'Early Rainy Season',
+                        'Late Rainy Season',
+                        'Dry Season Harvest',
+                      ]
+                    : [
+                        'Next Month',
+                        'Next Season',
+                        'Rainy Season Cycle',
+                        'Dry Season Cycle',
+                        'March Planting',
+                        'Next Year',
+                      ]
+                  ).map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() =>
+                        setLifecycleModal({
+                          ...lifecycleModal,
+                          value: preset,
+                        })
+                      }
+                      className={`text-[11px] px-2.5 py-1 rounded-full border transition cursor-pointer select-none font-medium ${
+                        lifecycleModal.value === preset
+                          ? 'bg-[#173A20] text-white border-[#173A20]'
+                          : 'bg-[#EEF8F1] border-[#CCEBD5] text-[#173A20] hover:border-[#4E8B3F]'
+                      }`}
+                    >
+                      {preset}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer Buttons */}
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#CCEBD5]">
+              <button
+                type="button"
+                onClick={() => setLifecycleModal(null)}
+                disabled={savingLifecycle}
+                className="px-4 py-2 rounded-full bg-[#EEF8F1] hover:bg-[#CCEBD5] text-xs font-bold text-[#173A20] transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  applyProduceLifecycle(
+                    lifecycleModal.item,
+                    lifecycleModal.targetStatus,
+                    lifecycleModal.targetStatus === 'GROWING' ? (lifecycleModal.value.trim() || 'Within 30 Days') : undefined,
+                    lifecycleModal.targetStatus === 'OFF_CYCLE' ? (lifecycleModal.value.trim() || 'Next Season') : undefined
+                  )
+                }
+                disabled={savingLifecycle || !lifecycleModal.value.trim()}
+                className={`px-5 py-2.5 rounded-full text-xs font-bold transition shadow-xs cursor-pointer inline-flex items-center gap-1.5 ${
+                  lifecycleModal.targetStatus === 'GROWING'
+                    ? 'bg-[#E2A63C] hover:bg-[#d4972e] text-[#241A12]'
+                    : 'bg-[#173A20] hover:bg-[#122e19] text-white'
+                } disabled:opacity-40`}
+              >
+                {savingLifecycle ? (
+                  <>
+                    <div className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <Check size={14} />
+                    <span>
+                      {lifecycleModal.targetStatus === 'GROWING' ? 'Set as Growing' : 'Set as Off-Cycle'}
+                    </span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}
