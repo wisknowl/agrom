@@ -52,16 +52,22 @@ export const InboxPage: React.FC = () => {
   });
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const chatInputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-scroll to bottom of messages
+  // Auto-scroll to bottom of messages container directly (never shifts the outer page or header)
   const scrollToBottom = (smooth = true) => {
-    messagesEndRef.current?.scrollIntoView({ behavior: smooth ? "smooth" : "auto" });
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTo({
+        top: messagesContainerRef.current.scrollHeight,
+        behavior: smooth ? "smooth" : "auto"
+      });
+    }
   };
 
   useEffect(() => {
     scrollToBottom(false);
-  }, [messages]);
+  }, [messages, activeConvId]);
 
   // Auth Guard
   useEffect(() => {
@@ -69,12 +75,10 @@ export const InboxPage: React.FC = () => {
     loadConversations();
   }, [isAuthenticated]);
 
-  // Sync activeConvId with URL parameters
+  // Sync activeConvId with URL parameters (enables native phone bottom back button)
   useEffect(() => {
-    const urlConvId = params.id || searchParams.get("c");
-    if (urlConvId && urlConvId !== activeConvId) {
-      setActiveConvId(urlConvId);
-    }
+    const urlConvId = params.id || searchParams.get("c") || null;
+    setActiveConvId(urlConvId);
   }, [params.id, searchParams]);
 
   // Handle URL param ?userId=... to initiate chat with a seller or farmer
@@ -115,23 +119,27 @@ export const InboxPage: React.FC = () => {
           return exists ? prev : [conv, ...prev];
         });
         setActiveConvId(conv.id);
-        setSearchParams({ c: conv.id }, { replace: true });
+        setSearchParams({ c: conv.id });
       }
     } catch (err: any) {
       toast.error("Failed to start conversation. Please try again.");
     }
   };
 
-  // Select conversation and sync URL
+  // Select conversation and push to browser history so phone back button returns to list
   const handleSelectConversation = (convId: string) => {
     setActiveConvId(convId);
-    setSearchParams({ c: convId }, { replace: true });
+    setSearchParams({ c: convId });
   };
 
-  // Back to conversation list on mobile
+  // Back to conversation list on mobile (integrates with browser/phone history)
   const handleBackToList = () => {
-    setActiveConvId(null);
-    setSearchParams({}, { replace: true });
+    if (searchParams.has("c") || params.id) {
+      navigate(-1);
+    } else {
+      setActiveConvId(null);
+      setSearchParams({});
+    }
   };
 
   // Load messages when activeConvId changes
@@ -414,8 +422,8 @@ export const InboxPage: React.FC = () => {
                     key={conv.id}
                     onClick={() => handleSelectConversation(conv.id)}
                     className={`flex items-center gap-3.5 px-4 py-3.5 cursor-pointer transition select-none ${isSelected
-                        ? "bg-[#EEF8F1] border-l-4 border-[#4E8B3F]"
-                        : "hover:bg-[#F2F8F4] bg-white"
+                      ? "bg-[#EEF8F1] border-l-4 border-[#4E8B3F]"
+                      : "hover:bg-[#F2F8F4] bg-white"
                       }`}
                   >
                     {/* User Avatar with Image & Fallback Initials */}
@@ -547,7 +555,7 @@ export const InboxPage: React.FC = () => {
               </div>
 
               {/* Chat Message Scroll Area (Only this area scrolls!) */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-[#F9FAF8]">
+              <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-3 bg-[#F9FAF8]">
                 {/* Security Reassurance Banner */}
                 <div className="max-w-md mx-auto bg-white border border-[#CCEBD5] rounded-2xl p-3 text-center shadow-xs mb-3">
                   <p className="text-[11px] text-[#4E6B52] leading-relaxed">
@@ -580,8 +588,8 @@ export const InboxPage: React.FC = () => {
                         */}
                         <div
                           className={`relative max-w-[85%] sm:max-w-[70%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${isMe
-                              ? "bg-[#EEF8F1] text-[#173A20] border border-[#C6E7CE] rounded-tr-xs shadow-xs"
-                              : "bg-white text-[#1E293B] border border-[#E0EBE2] rounded-tl-xs shadow-xs"
+                            ? "bg-[#EEF8F1] text-[#173A20] border border-[#C6E7CE] rounded-tr-xs shadow-xs"
+                            : "bg-white text-[#1E293B] border border-[#E0EBE2] rounded-tl-xs shadow-xs"
                             }`}
                         >
                           <p className="whitespace-pre-wrap break-words">{msg.content}</p>
@@ -594,7 +602,7 @@ export const InboxPage: React.FC = () => {
                                 })}
                             </span>
                             {isMe && (
-                              <CheckCheck className="w-3.5 h-3.5 text-[#4E8B3F] inline ml-0.5" />
+                              <CheckCheck className="w-3.5 h-3.5 text-[#34B7F1] inline ml-0.5" />
                             )}
                           </div>
                         </div>
@@ -658,8 +666,8 @@ export const InboxPage: React.FC = () => {
                   type="submit"
                   disabled={!inputText.trim() || sending}
                   className={`w-9 sm:w-10 h-9 sm:h-10 rounded-full flex items-center justify-center transition shrink-0 ${inputText.trim() && !sending
-                      ? "bg-[#4E8B3F] text-white hover:bg-[#3D7032] shadow-sm cursor-pointer"
-                      : "bg-[#E0EBE2] text-[#7A9A80] cursor-not-allowed"
+                    ? "bg-[#4E8B3F] text-white hover:bg-[#3D7032] shadow-sm cursor-pointer"
+                    : "bg-[#E0EBE2] text-[#7A9A80] cursor-not-allowed"
                     }`}
                 >
                   <Send className="w-4 h-4 -translate-x-0.5 translate-y-0.5" />
