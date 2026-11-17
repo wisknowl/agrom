@@ -3,32 +3,66 @@
  * Compatible with agrom.app (HTTPS) and localhost
  */
 
+export type ChimeTone = 'harvest_bell' | 'marimba' | 'gentle_chime';
+
 /**
- * Play a subtle, high-quality pleasant chime using Web Audio API
+ * Play a customizable pleasant chime using Web Audio API
  */
-export function playNotificationChime() {
+export function playNotificationChime(tone: ChimeTone = 'harvest_bell') {
   try {
     const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
     if (!AudioContextClass) return;
     const ctx = new AudioContextClass();
 
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
+    if (tone === 'harvest_bell') {
+      // Crisp two-tone bell (A5 to D6) - bright and distinct on laptops & PCs
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(1174.66, ctx.currentTime + 0.12);
 
-    osc.type = 'sine';
-    // Gentle two-tone chime (F#5 to A#5)
-    osc.frequency.setValueAtTime(739.99, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(932.33, ctx.currentTime + 0.12);
+      gain.gain.setValueAtTime(0.001, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
 
-    gain.gain.setValueAtTime(0.001, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + 0.04);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.46);
+    } else if (tone === 'marimba') {
+      // Warm organic wooden marimba chime
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+      osc.frequency.exponentialRampToValueAtTime(659.25, ctx.currentTime + 0.08); // E5
 
-    osc.connect(gain);
-    gain.connect(ctx.destination);
+      gain.gain.setValueAtTime(0.001, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.28);
 
-    osc.start();
-    osc.stop(ctx.currentTime + 0.36);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.3);
+    } else {
+      // Gentle sine sweep
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(739.99, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(932.33, ctx.currentTime + 0.12);
+
+      gain.gain.setValueAtTime(0.001, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.36);
+    }
   } catch (err) {
     // Audio context may be restricted before first user interaction
   }
@@ -73,10 +107,11 @@ export function sendBrowserNotification(
     tag?: string;
     onClickUrl?: string;
     silent?: boolean;
+    soundTone?: ChimeTone;
   }
 ) {
   if (!options?.silent) {
-    playNotificationChime();
+    playNotificationChime(options?.soundTone || 'harvest_bell');
   }
 
   if (!isBrowserNotificationSupported() || Notification.permission !== 'granted') {
@@ -103,3 +138,55 @@ export function sendBrowserNotification(
   }
 }
 
+/**
+ * Trigger an immediate test desktop notification and audio chime
+ */
+export async function testDesktopNotification(tone: ChimeTone = 'harvest_bell'): Promise<{
+  success: boolean;
+  message: string;
+}> {
+  playNotificationChime(tone);
+
+  if (!isBrowserNotificationSupported()) {
+    return {
+      success: false,
+      message: 'This web browser does not support desktop notifications.',
+    };
+  }
+
+  let permission = Notification.permission;
+  if (permission !== 'granted') {
+    const granted = await requestBrowserNotificationPermission();
+    if (!granted) {
+      return {
+        success: false,
+        message:
+          'Notification permission was blocked in your browser. Click the lock/settings icon in the address bar to allow notifications.',
+      };
+    }
+    permission = 'granted';
+  }
+
+  try {
+    const notif = new Notification('🌾 AgroMarket Test Notification', {
+      body: 'Your computer notification system and audio chime are active!',
+      icon: '/favicon.ico',
+      tag: 'agromarket-test',
+    });
+
+    notif.onclick = () => {
+      window.focus();
+      notif.close();
+    };
+
+    return {
+      success: true,
+      message: 'Desktop notification dispatched! Check your screen corner or Windows Action Center.',
+    };
+  } catch (err: any) {
+    return {
+      success: false,
+      message: err.message || 'Notification was blocked by system settings.',
+    };
+  }
+}

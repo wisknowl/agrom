@@ -27,7 +27,8 @@ import { resolveMediaUrl } from "../utils/media";
 import {
   requestBrowserNotificationPermission,
   sendBrowserNotification,
-  playNotificationChime
+  playNotificationChime,
+  testDesktopNotification
 } from "../utils/notification";
 
 export const InboxPage: React.FC = () => {
@@ -273,6 +274,15 @@ export const InboxPage: React.FC = () => {
     }
   };
 
+  const handleTestNotification = async () => {
+    const res = await testDesktopNotification('harvest_bell');
+    if (res.success) {
+      toast.success(res.message, 'Notification Dispatched');
+    } else {
+      toast.warning(res.message, 'Notification Check');
+    }
+  };
+
   // Navigate to public profile
   const handleGoToPublicProfile = () => {
     const targetUserId = activeConv?.participantId || activeConv?.farmerId;
@@ -369,13 +379,16 @@ export const InboxPage: React.FC = () => {
                 </span>
               </div>
             </div>
-            <button
-              onClick={handleEnableDesktopAlerts}
-              title="Notification Settings"
-              className="p-2 hover:bg-[#EEF8F1] text-[#4E6B52] hover:text-[#173A20] rounded-xl transition cursor-pointer"
-            >
-              <Bell className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={handleTestNotification}
+                title="Test Sound & Desktop Alert"
+                className="px-2.5 py-1 text-xs font-semibold bg-[#EEF8F1] hover:bg-[#DDF2E4] text-[#173A20] rounded-lg transition cursor-pointer border border-[#CCEBD5] flex items-center gap-1"
+              >
+                <Bell className="w-3.5 h-3.5 text-[#4E8B3F]" />
+                <span className="hidden sm:inline">Test Alert</span>
+              </button>
+            </div>
           </div>
 
           {/* Search Bar with AgroMarket Themed Pale Mint Styling */}

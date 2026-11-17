@@ -19,6 +19,7 @@ import { addPostCommentApi, toggleLikePostApi } from '@/api';
 import { useCartStore } from '@/store/cartStore';
 import { useFavoritesStore } from '@/store/favoritesStore';
 import { formatXaf, isVideoMedia, resolveMediaUrl } from '@/utils/media';
+import { ShoppableYieldOverlayCard } from './ShoppableYieldOverlayCard';
 
 interface FarmPostsTikTokViewerProps {
   posts: any[];
@@ -324,38 +325,10 @@ export const FarmPostsTikTokViewer: React.FC<FarmPostsTikTokViewerProps> = ({
                     </p>
 
                     {linkedYield && (
-                      <div className="bg-white/95 backdrop-blur-md rounded-2xl p-2.5 border border-[#CCEBD5] flex items-center justify-between gap-2.5 shadow-xl">
-                        <div
-                          onClick={() => {
-                            onClose();
-                            navigate(`/yield/${linkedYield.id}`);
-                          }}
-                          className="flex items-center gap-2.5 min-w-0 cursor-pointer"
-                        >
-                          <img
-                            src={resolveMediaUrl(linkedYield.image || linkedYield.mediaUrls?.[0])}
-                            alt={linkedYield.title}
-                            className="w-11 h-11 rounded-xl object-cover border border-[#CCEBD5] shrink-0"
-                          />
-                          <div className="min-w-0">
-                            <div className="text-xs font-bold text-[#173A20] truncate">
-                              {linkedYield.title}
-                            </div>
-                            <div className="font-mono-num text-xs font-bold text-[#4E8B3F]">
-                              {formatXaf(linkedYield.price ?? linkedYield.pricePerUnit)} / {linkedYield.unit}
-                            </div>
-                          </div>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => addToCart(linkedYield, 1)}
-                          className="px-3 py-2 rounded-full bg-[#E2A63C] hover:bg-[#C68F30] text-[#241A12] text-xs font-bold inline-flex items-center gap-1 shrink-0 transition cursor-pointer"
-                        >
-                          <ShoppingBag size={13} />
-                          <span>1-Tap Buy</span>
-                        </button>
-                      </div>
+                      <ShoppableYieldOverlayCard
+                        yieldItem={linkedYield}
+                        onBeforeNavigate={onClose}
+                      />
                     )}
                   </div>
 
