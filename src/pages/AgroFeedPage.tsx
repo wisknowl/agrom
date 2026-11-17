@@ -241,94 +241,89 @@ export const AgroFeedPage: React.FC = () => {
     const isSaved = isPostFavorite(post.id);
 
     return (
-      <div className="flex flex-col items-center gap-3.5 shrink-0">
-        {isDesktopRail && (
-          <button
-            type="button"
-            onClick={() => navigateToProducer(post)}
-            className="relative mb-1 cursor-pointer group"
-            title={post.farmerName}
-          >
-            <img
-              src={resolveMediaUrl(post.farmerAvatar)}
-              alt={post.farmerName}
-              className="w-11 h-11 rounded-full object-cover border-2 border-[#4E8B3F] group-hover:border-[#E2A63C] transition shadow-md"
-            />
-          </button>
-        )}
+      <div className="flex flex-col items-center gap-4 shrink-0">
+        {/* Farm Circular Profile Avatar: displayed on TOP of right buttons rail for BOTH desktop and mobile web */}
+        <button
+          type="button"
+          onClick={() => navigateToProducer(post)}
+          className="relative mb-0.5 cursor-pointer group transition active:scale-90"
+          title={post.farmerName}
+        >
+          <img
+            src={resolveMediaUrl(post.farmerAvatar)}
+            alt={post.farmerName}
+            className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-lg group-hover:border-[#E2A63C] transition"
+          />
+        </button>
 
+        {/* 1. Like Button: bare icon with drop-shadow, no circular enclosing box */}
         <button
           type="button"
           onClick={() => handleLike(post)}
-          className="flex flex-col items-center gap-1 cursor-pointer"
+          className="flex flex-col items-center gap-1 cursor-pointer transition active:scale-90"
         >
-          <div
-            className={`w-11 h-11 rounded-full flex items-center justify-center border transition ${isLiked
-                ? 'bg-[#B54A34] border-white text-white shadow-md'
-                : isDesktopRail
-                  ? 'bg-white/10 hover:bg-white/20 border-white/20 text-white'
-                  : 'bg-black/50 border-white/25 text-white hover:bg-black/70'
-              }`}
-          >
-            <Heart size={20} className={isLiked ? 'fill-white' : ''} />
-          </div>
-          <span className="font-mono-num text-[11px] font-bold text-white">
+          <Heart
+            size={26}
+            className={`transition drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)] ${
+              isLiked ? 'text-[#E0245E] fill-[#E0245E]' : 'text-white'
+            }`}
+          />
+          <span className="font-mono-num text-[11px] font-bold text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
             {post.likesCount ?? post.likes ?? 0}
           </span>
         </button>
 
+        {/* 2. Comments Button: bare icon with drop-shadow, no circular enclosing box */}
         <button
           type="button"
           onClick={() => setIsCommentsOpen((open) => !open)}
-          className="flex flex-col items-center gap-1 cursor-pointer"
+          className="flex flex-col items-center gap-1 cursor-pointer transition active:scale-90"
         >
-          <div
-            className={`w-11 h-11 rounded-full flex items-center justify-center border transition ${isCommentsOpen
-                ? 'bg-[#4E8B3F] border-white text-white shadow-md'
-                : isDesktopRail
-                  ? 'bg-white/10 hover:bg-white/20 border-white/20 text-white'
-                  : 'bg-black/50 border-white/25 text-white hover:bg-black/70'
-              }`}
-          >
-            <MessageCircle size={20} />
-          </div>
-          <span className="font-mono-num text-[11px] font-bold text-white">
+          <MessageCircle
+            size={26}
+            className={`transition drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)] ${
+              isCommentsOpen ? 'text-[#4E8B3F] fill-[#4E8B3F]' : 'text-white'
+            }`}
+          />
+          <span className="font-mono-num text-[11px] font-bold text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
             {post.commentsCount ?? post.comments?.length ?? 0}
           </span>
         </button>
 
+        {/* 3. Save Button: bare icon with drop-shadow, no circular enclosing box */}
         <button
           type="button"
           onClick={() => togglePost(post.id)}
-          className="flex flex-col items-center gap-1 cursor-pointer"
+          className="flex flex-col items-center gap-1 cursor-pointer transition active:scale-90"
         >
-          <div
-            className={`w-11 h-11 rounded-full flex items-center justify-center border transition ${isSaved
-                ? 'bg-[#4E8B3F] border-white text-white shadow-md'
-                : isDesktopRail
-                  ? 'bg-white/10 hover:bg-white/20 border-white/20 text-white'
-                  : 'bg-black/50 border-white/25 text-white hover:bg-black/70'
-              }`}
+          <Bookmark
+            size={26}
+            className={`transition drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)] ${
+              isSaved ? 'text-[#E2A63C] fill-[#E2A63C]' : 'text-white'
+            }`}
+          />
+          <span
+            className={`text-[10px] font-bold drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] ${
+              isSaved ? 'text-[#E2A63C]' : 'text-white'
+            }`}
           >
-            <Bookmark size={19} className={isSaved ? 'fill-white' : ''} />
-          </div>
-          <span className="text-[10px] font-semibold text-white">Save</span>
+            Save
+          </span>
         </button>
 
+        {/* 4. Share Button: bare icon with drop-shadow, no circular enclosing box */}
         <button
           type="button"
           onClick={() => handleShare(post)}
-          className="flex flex-col items-center gap-1 cursor-pointer"
+          className="flex flex-col items-center gap-1 cursor-pointer transition active:scale-90"
         >
-          <div
-            className={`w-11 h-11 rounded-full flex items-center justify-center border transition ${isDesktopRail
-                ? 'bg-white/10 hover:bg-white/20 border-white/20 text-white'
-                : 'bg-black/50 border-white/25 text-white hover:bg-black/70'
-              }`}
-          >
-            <Share2 size={18} />
-          </div>
-          <span className="text-[10px] font-semibold text-white">Share</span>
+          <Share2
+            size={24}
+            className="text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)]"
+          />
+          <span className="text-[10px] font-bold text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
+            Share
+          </span>
         </button>
       </div>
     );
@@ -580,8 +575,8 @@ export const AgroFeedPage: React.FC = () => {
                       {/* Bottom Scrim */}
                       <div className="absolute inset-x-0 bottom-0 h-72 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none" />
 
-                      {/* Bottom-Left Overlay: Attached Produce (ON TOP) + Producer + Caption */}
-                      <div className="absolute inset-x-0 bottom-0 z-10 p-4 pr-16 md:pr-4 flex flex-col gap-2.5">
+                      {/* Bottom-Left Overlay: Attached Produce (ON TOP) + Farm/Producer + Caption */}
+                      <div className="absolute inset-x-0 bottom-0 z-10 p-4 pr-16 md:pr-4 flex flex-col gap-2">
                         {/* 1. Shoppable Harvest Produce Card (ON TOP of description!) */}
                         {linkedYield && (
                           <div className="mb-0.5">
@@ -589,27 +584,29 @@ export const AgroFeedPage: React.FC = () => {
                           </div>
                         )}
 
-                        {/* 2. Producer Chip */}
+                        {/* 2. Farm Name & Producer Info (Clean typography without redundant avatar chip) */}
                         <div
                           onClick={() => navigateToProducer(post)}
-                          className="inline-flex items-center gap-2.5 self-start bg-black/45 backdrop-blur-md pl-1.5 pr-3 py-1 rounded-full border border-white/20 cursor-pointer"
+                          className="cursor-pointer self-start space-y-0.5 group"
                         >
-                          <img
-                            src={resolveMediaUrl(post.farmerAvatar)}
-                            alt={post.farmerName}
-                            className="w-8 h-8 rounded-full object-cover border border-[#E2A63C]"
-                          />
-                          <div>
-                            <div className="text-xs font-bold text-white leading-tight">
-                              {post.farmerName}
-                            </div>
-                            <div className="text-[10px] text-[#E2A63C] font-mono-num">
-                              Verified • {post.farmerCreditTier || 'GOLD'}
-                            </div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-bold text-white text-sm drop-shadow-[0_1px_3px_rgba(0,0,0,0.85)] group-hover:underline">
+                              {post.farm?.name || post.farmerName || 'Agro Farm'}
+                            </span>
+                            {(post.isPatron || post.farmerCreditTier === 'GOLD' || post.farmerCreditTier === 'PLATINUM') && (
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#E2A63C]/25 text-[#E2A63C] text-[10px] font-bold border border-[#E2A63C]/50">
+                                <Star size={9} className="fill-[#E2A63C]" /> AgroPatron ⭐
+                              </span>
+                            )}
                           </div>
+                          {post.user?.name && post.user.name !== (post.farm?.name || post.farmerName) && (
+                            <span className="text-[11px] text-white/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)] block">
+                              by {post.user.name}
+                            </span>
+                          )}
                         </div>
 
-                        {/* 3. Post Caption / Description (BELOW the produce card) */}
+                        {/* 3. Post Caption / Description (BELOW the produce card & farm name) */}
                         <p className="text-xs sm:text-sm text-white leading-snug drop-shadow line-clamp-3">
                           {post.content}
                         </p>

@@ -335,65 +335,84 @@ export const FarmPostsTikTokViewer: React.FC<FarmPostsTikTokViewerProps> = ({
                   </div>
 
                   {/* Right Vertical Action Rail */}
-                  <div className="flex flex-col items-center gap-3.5 shrink-0 pb-1">
+                  <div className="flex flex-col items-center gap-4 shrink-0 pb-1">
+                    {/* Farm Circular Profile Avatar on Top */}
+                    {(ownerAvatar || post.farmerAvatar || post.farm?.coverPhoto) && (
+                      <div className="relative mb-0.5">
+                        <img
+                          src={resolveMediaUrl(ownerAvatar || post.farmerAvatar || post.farm?.coverPhoto)}
+                          alt={farmName}
+                          className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-lg"
+                        />
+                      </div>
+                    )}
+
+                    {/* 1. Like Button: bare icon with drop-shadow, no circular enclosing box */}
                     <button
                       type="button"
                       onClick={() => handleLike(post)}
-                      className="flex flex-col items-center gap-1 cursor-pointer"
+                      className="flex flex-col items-center gap-1 cursor-pointer transition active:scale-90"
                     >
-                      <div
-                        className={`w-11 h-11 rounded-full flex items-center justify-center border transition ${
-                          isLiked
-                            ? 'bg-[#B54A34] border-white text-white'
-                            : 'bg-black/50 border-white/25 text-white hover:bg-black/75'
+                      <Heart
+                        size={26}
+                        className={`transition drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)] ${
+                          isLiked ? 'text-[#E0245E] fill-[#E0245E]' : 'text-white'
                         }`}
-                      >
-                        <Heart size={20} className={isLiked ? 'fill-white' : ''} />
-                      </div>
-                      <span className="font-mono-num text-[11px] font-bold text-white">
+                      />
+                      <span className="font-mono-num text-[11px] font-bold text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
                         {post.likesCount ?? post.likes ?? 0}
                       </span>
                     </button>
 
+                    {/* 2. Comments Button: bare icon with drop-shadow, no circular enclosing box */}
                     <button
                       type="button"
                       onClick={() => setCommentsOpenForId(post.id)}
-                      className="flex flex-col items-center gap-1 cursor-pointer"
+                      className="flex flex-col items-center gap-1 cursor-pointer transition active:scale-90"
                     >
-                      <div className="w-11 h-11 rounded-full bg-black/50 border border-white/25 text-white hover:bg-black/75 flex items-center justify-center transition">
-                        <MessageCircle size={20} />
-                      </div>
-                      <span className="font-mono-num text-[11px] font-bold text-white">
+                      <MessageCircle
+                        size={26}
+                        className="text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)]"
+                      />
+                      <span className="font-mono-num text-[11px] font-bold text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
                         {post.commentsCount ?? post.comments?.length ?? 0}
                       </span>
                     </button>
 
+                    {/* 3. Save Button: bare icon with drop-shadow, no circular enclosing box */}
                     <button
                       type="button"
                       onClick={() => togglePost(post.id)}
-                      className="flex flex-col items-center gap-1 cursor-pointer"
+                      className="flex flex-col items-center gap-1 cursor-pointer transition active:scale-90"
                     >
-                      <div
-                        className={`w-11 h-11 rounded-full flex items-center justify-center border transition ${
-                          isSaved
-                            ? 'bg-[#4E8B3F] border-white text-white'
-                            : 'bg-black/50 border-white/25 text-white hover:bg-black/75'
+                      <Bookmark
+                        size={26}
+                        className={`transition drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)] ${
+                          isSaved ? 'text-[#E2A63C] fill-[#E2A63C]' : 'text-white'
+                        }`}
+                      />
+                      <span
+                        className={`text-[10px] font-bold drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] ${
+                          isSaved ? 'text-[#E2A63C]' : 'text-white'
                         }`}
                       >
-                        <Bookmark size={20} className={isSaved ? 'fill-white' : ''} />
-                      </div>
-                      <span className="text-[10px] font-semibold text-white">Save</span>
+                        Save
+                      </span>
                     </button>
 
+                    {/* 4. Share Button: bare icon with drop-shadow, no circular enclosing box */}
                     <button
                       type="button"
                       onClick={() => handleShare(post)}
-                      className="flex flex-col items-center gap-1 cursor-pointer"
+                      className="flex flex-col items-center gap-1 cursor-pointer transition active:scale-90"
                     >
-                      <div className="w-11 h-11 rounded-full bg-black/50 border border-white/25 text-white hover:bg-black/75 flex items-center justify-center transition">
-                        <Share2 size={18} />
-                      </div>
-                      <span className="text-[10px] font-semibold text-white">Share</span>
+                      <Share2
+                        size={24}
+                        className="text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)]"
+                      />
+                      <span className="text-[10px] font-bold text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
+                        Share
+                      </span>
                     </button>
                   </div>
                 </div>
