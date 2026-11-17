@@ -319,17 +319,19 @@ export const FarmPostsTikTokViewer: React.FC<FarmPostsTikTokViewerProps> = ({
 
                 {/* Bottom Caption & Shoppable Card + Right Floating Rail */}
                 <div className="absolute inset-x-0 bottom-0 z-20 p-4 pb-6 flex items-end justify-between gap-3">
-                  <div className="flex-1 min-w-0 space-y-3">
-                    <p className="text-sm text-white leading-relaxed drop-shadow-md">
-                      {post.content}
-                    </p>
-
+                  <div className="flex-1 min-w-0 space-y-2.5">
+                    {/* 1. Shoppable Harvest Produce Card (ON TOP of description!) */}
                     {linkedYield && (
                       <ShoppableYieldOverlayCard
                         yieldItem={linkedYield}
                         onBeforeNavigate={onClose}
                       />
                     )}
+
+                    {/* 2. Post Caption / Description (BELOW produce card) */}
+                    <p className="text-sm text-white leading-relaxed drop-shadow-md">
+                      {post.content}
+                    </p>
                   </div>
 
                   {/* Right Vertical Action Rail */}

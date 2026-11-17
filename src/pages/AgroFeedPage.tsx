@@ -580,8 +580,16 @@ export const AgroFeedPage: React.FC = () => {
                       {/* Bottom Scrim */}
                       <div className="absolute inset-x-0 bottom-0 h-72 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none" />
 
-                      {/* Bottom-Left Overlay: Producer + Caption + 1-Tap Buy */}
+                      {/* Bottom-Left Overlay: Attached Produce (ON TOP) + Producer + Caption */}
                       <div className="absolute inset-x-0 bottom-0 z-10 p-4 pr-16 md:pr-4 flex flex-col gap-2.5">
+                        {/* 1. Shoppable Harvest Produce Card (ON TOP of description!) */}
+                        {linkedYield && (
+                          <div className="mb-0.5">
+                            <ShoppableYieldOverlayCard yieldItem={linkedYield} />
+                          </div>
+                        )}
+
+                        {/* 2. Producer Chip */}
                         <div
                           onClick={() => navigateToProducer(post)}
                           className="inline-flex items-center gap-2.5 self-start bg-black/45 backdrop-blur-md pl-1.5 pr-3 py-1 rounded-full border border-white/20 cursor-pointer"
@@ -601,15 +609,10 @@ export const AgroFeedPage: React.FC = () => {
                           </div>
                         </div>
 
+                        {/* 3. Post Caption / Description (BELOW the produce card) */}
                         <p className="text-xs sm:text-sm text-white leading-snug drop-shadow line-clamp-3">
                           {post.content}
                         </p>
-
-                        {linkedYield && (
-                          <div className="mb-1">
-                            <ShoppableYieldOverlayCard yieldItem={linkedYield} />
-                          </div>
-                        )}
                       </div>
 
                       {/* MOBILE Floating Action Rail (inside bottom-right of video) */}
