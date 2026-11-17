@@ -24,6 +24,7 @@ import {
   fetchFeedPostsApi,
   toggleLikePostApi,
   addPostCommentApi,
+  joinProduceWaitlistApi,
 } from '@/api';
 import { Post } from '@/types';
 import { FarmerBadge } from '@/components/MeetingLeafLogo';
@@ -32,6 +33,8 @@ import { useAuthStore } from '@/store/authStore';
 import { useFavoritesStore } from '@/store/favoritesStore';
 import { useRegionalContainerStore } from '@/store/regionalContainerStore';
 import { formatXaf, isVideoMedia, resolveMediaUrl } from '@/utils/media';
+import { toast } from '@/store/toastStore';
+import { playNotificationChime } from '@/utils/notification';
 
 export const AgroFeedPage: React.FC = () => {
   const navigate = useNavigate();
@@ -665,8 +668,18 @@ export const AgroFeedPage: React.FC = () => {
                               ) : isOffCycle ? (
                                 <button
                                   type="button"
-                                  onClick={() => {
-                                    alert(`You will be notified when ${linkedYield.title} begins its next harvest cycle (${linkedYield.nextCycleMonth || 'next season'})!`);
+                                  onClick={async () => {
+                                    if (user) {
+                                      try {
+                                        await joinProduceWaitlistApi(linkedYield.id);
+                                        playNotificationChime();
+                                        toast.success(`You are on the waitlist for ${linkedYield.title}! We'll notify you when harvest begins.`, 'Waitlist Subscribed');
+                                      } catch (err: any) {
+                                        toast.error(err.message || 'Failed to join waitlist');
+                                      }
+                                    } else {
+                                      navigate(`/yield/${linkedYield.id}`);
+                                    }
                                   }}
                                   className="px-3 py-2 rounded-full bg-neutral-100 hover:bg-neutral-200 text-[#241A12] text-xs font-bold inline-flex items-center gap-1 shrink-0 transition cursor-pointer border border-neutral-300"
                                 >

@@ -22,6 +22,7 @@ import {
 import MeetingLeafLogo from './MeetingLeafLogo';
 import { useRegionalContainerStore } from '@/store/regionalContainerStore';
 import { useAuthStore } from '@/store/authStore';
+import { toast } from '@/store/toastStore';
 
 export const EcosystemDrawer: React.FC = () => {
   const navigate = useNavigate();
@@ -40,6 +41,11 @@ export const EcosystemDrawer: React.FC = () => {
 
   const go = (path: string) => {
     setEcosystemDrawerOpen(false);
+    if (path === '/inbox' && !isAuthenticated) {
+      toast.warning('Please sign in to access your direct farm inbox.', 'Sign In Required');
+      navigate('/auth/login?returnUrl=/inbox');
+      return;
+    }
     navigate(path);
   };
 

@@ -13,6 +13,7 @@ import {
   PackageCheck,
   Bell,
   Sprout,
+  X,
 } from 'lucide-react';
 import { Yield } from '@/types';
 import { useCartStore } from '@/store/cartStore';
@@ -20,6 +21,9 @@ import { useAuthStore } from '@/store/authStore';
 import { useFavoritesStore } from '@/store/favoritesStore';
 import { FarmerBadge } from './MeetingLeafLogo';
 import { resolveMediaUrl, formatXaf } from '@/utils/media';
+import { joinProduceWaitlistApi } from '@/api';
+import { toast } from '@/store/toastStore';
+import { playNotificationChime } from '@/utils/notification';
 
 interface YieldCardProps {
   item: Yield;
@@ -44,7 +48,12 @@ export const YieldCard: React.FC<YieldCardProps> = ({ item }) => {
   const isStoreOrigin = Boolean(item.storeId || item.sourceType === 'STORE');
   const storeDisplay = item.storeName || (item as any).store?.name;
 
-  const user = useAuthStore((s) => s.user);
+  const { user, isAuthenticated } = useAuthStore();
+  const [joinedWaitlist, setJoinedWaitlist] = useState(false);
+  const [showWaitlistModal, setShowWaitlistModal] = useState(false);
+  const [guestPhone, setGuestPhone] = useState('');
+  const [submittingWaitlist, setSubmittingWaitlist] = useState(false);
+
   const isOwnProduce = Boolean(
     user &&
     (item.farmerId === user.id ||
@@ -74,10 +83,51 @@ export const YieldCard: React.FC<YieldCardProps> = ({ item }) => {
 
   const handleChat = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!isAuthenticated) {
+      toast.warning('Please sign in to chat directly with this farmer and negotiate orders.', 'Sign In Required');
+      navigate(`/auth/login?returnUrl=/inbox?userId=${farmerTargetId || ''}`);
+      return;
+    }
     if (farmerTargetId) {
       navigate(`/inbox?userId=${farmerTargetId}`);
     } else {
       navigate('/inbox');
+    }
+  };
+
+  const handleWaitlistClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isAuthenticated) {
+      setSubmittingWaitlist(true);
+      try {
+        await joinProduceWaitlistApi(item.id);
+        setJoinedWaitlist(true);
+        playNotificationChime();
+        toast.success(`You're on the waitlist for ${item.title}! You'll be notified when harvest begins.`, 'Waitlist Subscribed');
+      } catch (err: any) {
+        toast.error(err.message || 'Failed to join waitlist');
+      } finally {
+        setSubmittingWaitlist(false);
+      }
+    } else {
+      setShowWaitlistModal(true);
+    }
+  };
+
+  const handleGuestSubmitWaitlist = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!guestPhone.trim()) return;
+    setSubmittingWaitlist(true);
+    try {
+      await joinProduceWaitlistApi(item.id, { phone: guestPhone.trim() });
+      setJoinedWaitlist(true);
+      setShowWaitlistModal(false);
+      playNotificationChime();
+      toast.success(`We'll send an SMS to ${guestPhone} as soon as ${item.title} returns to season!`, 'SMS Alert Saved');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to subscribe to waitlist');
+    } finally {
+      setSubmittingWaitlist(false);
     }
   };
 
@@ -270,15 +320,28 @@ export const YieldCard: React.FC<YieldCardProps> = ({ item }) => {
               {item.lifecycleStatus === 'OFF_CYCLE' ? (
                 <button
                   type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    alert(`You will be notified when ${item.title} begins its next harvest cycle (${item.nextCycleMonth || 'next season'})!`);
-                  }}
+                  onClick={handleWaitlistClick}
+                  disabled={submittingWaitlist}
                   title="Join Harvest Waitlist"
-                  className="h-8 px-2.5 rounded-full font-semibold text-xs inline-flex items-center justify-center gap-1.5 bg-neutral-100 hover:bg-neutral-200 text-[#241A12] border border-neutral-300 transition cursor-pointer shrink-0"
+                  className={`h-8 px-2.5 rounded-full font-semibold text-xs inline-flex items-center justify-center gap-1.5 border transition cursor-pointer shrink-0 ${
+                    joinedWaitlist
+                      ? 'bg-[#EEF8F1] border-[#CCEBD5] text-[#4E8B3F]'
+                      : 'bg-neutral-100 hover:bg-neutral-200 text-[#241A12] border-neutral-300'
+                  }`}
                 >
-                  <Bell size={13} className="text-[#5C5245]" />
-                  <span className="hidden sm:inline">Waitlist</span>
+                  {joinedWaitlist ? (
+                    <>
+                      <Check size={13} className="text-[#4E8B3F]" />
+                      <span className="hidden sm:inline">Waitlisted</span>
+                    </>
+                  ) : submittingWaitlist ? (
+                    <div className="w-3 h-3 border-2 border-neutral-600 border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <Bell size={13} className="text-[#5C5245]" />
+                      <span className="hidden sm:inline">Waitlist</span>
+                    </>
+                  )}
                 </button>
               ) : item.lifecycleStatus === 'GROWING' ? (
                 <button
@@ -329,6 +392,80 @@ export const YieldCard: React.FC<YieldCardProps> = ({ item }) => {
           )}
         </div>
       </div>
+
+      {/* Guest Phone Waitlist Modal */}
+      {showWaitlistModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowWaitlistModal(false);
+          }}
+        >
+          <div className="fixed inset-0 bg-[#241A12]/60 backdrop-blur-xs" />
+          <div
+            className="relative bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl border border-[#CCEBD5] space-y-3.5 z-10 animate-in fade-in zoom-in-95"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-[#FEF2D8] text-[#E2A63C] flex items-center justify-center">
+                  <Bell size={18} />
+                </div>
+                <div>
+                  <h4 className="font-bold text-sm text-[#173A20]">Harvest Waitlist</h4>
+                  <p className="text-[11px] text-[#5C5245] truncate max-w-[200px]">{item.title}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowWaitlistModal(false)}
+                className="w-7 h-7 rounded-full bg-[#EEF8F1] flex items-center justify-center text-[#173A20]"
+              >
+                <X size={13} />
+              </button>
+            </div>
+
+            <p className="text-xs text-[#5C5245] leading-relaxed">
+              Enter your WhatsApp or MoMo phone number. We will send you an instant SMS notification when this harvest opens for orders.
+            </p>
+
+            <form onSubmit={handleGuestSubmitWaitlist} className="space-y-3">
+              <div>
+                <label className="block text-[11px] font-semibold text-[#173A20] mb-1">
+                  Mobile / WhatsApp Number
+                </label>
+                <input
+                  type="tel"
+                  autoFocus
+                  required
+                  value={guestPhone}
+                  onChange={(e) => setGuestPhone(e.target.value)}
+                  placeholder="e.g. +237 670 000 000"
+                  className="w-full rounded-xl bg-white border border-[#CCEBD5] px-3.5 py-2 text-xs text-[#241A12] outline-none focus:border-[#4E8B3F]"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-1 border-t border-[#CCEBD5]">
+                <button
+                  type="button"
+                  onClick={() => setShowWaitlistModal(false)}
+                  className="px-3.5 py-1.5 rounded-full bg-[#EEF8F1] text-xs font-bold text-[#173A20]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingWaitlist || !guestPhone.trim()}
+                  className="px-4 py-1.5 rounded-full bg-[#4E8B3F] hover:bg-[#3d6e32] text-white text-xs font-bold disabled:opacity-40 shadow-xs"
+                >
+                  {submittingWaitlist ? 'Saving...' : 'Notify Me'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

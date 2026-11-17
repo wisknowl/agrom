@@ -31,6 +31,8 @@ import MeetingLeafLogo from './MeetingLeafLogo';
 import EcosystemDrawer from './EcosystemDrawer';
 import CreatePostModal from './CreatePostModal';
 import DownloadAppModal from './DownloadAppModal';
+import AgromToastContainer from './AgromToastContainer';
+import { toast } from '@/store/toastStore';
 import { useCartStore } from '@/store/cartStore';
 import { useAuthStore } from '@/store/authStore';
 import { useSearchStore } from '@/store/searchStore';
@@ -968,7 +970,14 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
           {/* 4. Inbox */}
           <button
             type="button"
-            onClick={() => navigate('/inbox')}
+            onClick={() => {
+              if (!isAuthenticated) {
+                toast.warning('Please sign in to access your direct farm inbox.', 'Sign In Required');
+                navigate('/auth/login?returnUrl=/inbox');
+              } else {
+                navigate('/inbox');
+              }
+            }}
             className="flex-1 flex flex-col items-center justify-center py-0.5 cursor-pointer"
           >
             <div
@@ -1011,13 +1020,14 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
         </div>
       </nav>
 
-      {/* Modals & Drawers */}
+      {/* Modals, Drawers & Global Toast Container */}
       <EcosystemDrawer />
       <CreatePostModal />
       <DownloadAppModal
         isOpen={isDownloadModalOpen}
         onClose={() => setIsDownloadModalOpen(false)}
       />
+      <AgromToastContainer />
     </div>
   );
 };

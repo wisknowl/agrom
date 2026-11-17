@@ -23,6 +23,8 @@ import { useFavoritesStore } from '@/store/favoritesStore';
 import { useRegionalContainerStore } from '@/store/regionalContainerStore';
 import { FarmerBadge } from '@/components/MeetingLeafLogo';
 import { formatXaf, resolveMediaUrl } from '@/utils/media';
+import { useAuthStore } from '@/store/authStore';
+import { toast } from '@/store/toastStore';
 
 export const YieldDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -37,6 +39,7 @@ export const YieldDetailPage: React.FC = () => {
   const cartTotal = useCartStore((s) => s.getTotal());
   const regionalContainer = useRegionalContainerStore((s) => s.getContainer());
   const { toggleYield, isYieldFavorite } = useFavoritesStore();
+  const { isAuthenticated } = useAuthStore();
 
   useEffect(() => {
     if (id) {
@@ -190,7 +193,14 @@ export const YieldDetailPage: React.FC = () => {
             <div className="flex items-center gap-2 pt-1 border-t border-[#CCEBD5]/60">
               <button
                 type="button"
-                onClick={() => navigate(`/inbox?userId=${farmerTargetId}`)}
+                onClick={() => {
+                  if (!isAuthenticated) {
+                    toast.warning('Please sign in to chat directly with this farmer.', 'Sign In Required');
+                    navigate(`/auth/login?returnUrl=/inbox?userId=${farmerTargetId || ''}`);
+                    return;
+                  }
+                  navigate(`/inbox?userId=${farmerTargetId}`);
+                }}
                 className="flex-1 py-2 px-3 rounded-xl bg-white border border-[#CCEBD5] hover:border-[#4E8B3F] text-xs font-semibold text-[#173A20] inline-flex items-center justify-center gap-1.5 transition cursor-pointer"
               >
                 <MessageCircle size={14} className="text-[#4E8B3F]" />
@@ -389,7 +399,14 @@ export const YieldDetailPage: React.FC = () => {
 
               <button
                 type="button"
-                onClick={() => navigate(`/inbox?userId=${farmerTargetId}`)}
+                onClick={() => {
+                  if (!isAuthenticated) {
+                    toast.warning('Please sign in to chat directly with this farmer.', 'Sign In Required');
+                    navigate(`/auth/login?returnUrl=/inbox?userId=${farmerTargetId || ''}`);
+                    return;
+                  }
+                  navigate(`/inbox?userId=${farmerTargetId}`);
+                }}
                 className="sm:col-span-2 py-3.5 px-3 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] hover:border-[#4E8B3F] text-[#173A20] font-semibold text-xs inline-flex items-center justify-center gap-1 cursor-pointer transition"
               >
                 <MessageCircle size={15} className="text-[#4E8B3F]" />

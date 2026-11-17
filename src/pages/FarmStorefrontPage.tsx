@@ -26,6 +26,7 @@ import {
 import { useAuthStore } from '@/store/authStore';
 import { useCartStore } from '@/store/cartStore';
 import { useRegionalContainerStore } from '@/store/regionalContainerStore';
+import { toast } from '@/store/toastStore';
 import {
   fetchFarmByIdApi,
   fetchFeedPostsApi,
@@ -43,7 +44,7 @@ import { resolveMediaUrl, formatXaf, isVideoMedia } from '@/utils/media';
 export const FarmStorefrontPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
   const setCreatePostModalOpen = useRegionalContainerStore((s) => s.setCreatePostModalOpen);
   const lastPostCreatedAt = useRegionalContainerStore((s) => s.lastPostCreatedAt);
 
@@ -408,7 +409,14 @@ export const FarmStorefrontPage: React.FC = () => {
 
               <button
                 type="button"
-                onClick={() => navigate(`/inbox?userId=${farm.userId || farm.id}`)}
+                onClick={() => {
+                  if (!isAuthenticated) {
+                    toast.warning('Please sign in to chat directly with this farm.', 'Sign In Required');
+                    navigate(`/auth/login?returnUrl=/inbox?userId=${farm.userId || farm.id}`);
+                    return;
+                  }
+                  navigate(`/inbox?userId=${farm.userId || farm.id}`);
+                }}
                 className="py-3 px-4 rounded-full bg-white border border-[#CCEBD5] hover:bg-[#EEF8F1] text-[#241A12] text-xs font-semibold inline-flex items-center justify-center gap-1.5 transition cursor-pointer"
               >
                 <MessageCircle size={15} />

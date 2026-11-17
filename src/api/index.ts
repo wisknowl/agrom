@@ -1222,6 +1222,27 @@ export const sendMessageApi = async (
   };
 };
 
+export const getOrCreateConversationWithUserApi = async (userId: string): Promise<Conversation> => {
+  const res = await apiClient.get(`/chat/with/${userId}`);
+  return res.data;
+};
+
+export const joinProduceWaitlistApi = async (
+  yieldId: string,
+  data?: { phone?: string; email?: string }
+): Promise<{ success: boolean; message: string; title: string }> => {
+  const res = await apiClient.post(`/yields/${yieldId}/waitlist`, data || {});
+  return res.data;
+};
+
+export const leaveProduceWaitlistApi = async (
+  yieldId: string,
+  data?: { phone?: string; email?: string }
+): Promise<{ success: boolean; message: string }> => {
+  const res = await apiClient.delete(`/yields/${yieldId}/waitlist`, { data });
+  return res.data;
+};
+
 // ============================================================================
 // ADMIN API
 // ============================================================================

@@ -28,6 +28,7 @@ import {
 import { useAuthStore } from '@/store/authStore';
 import { useFavoritesStore } from '@/store/favoritesStore';
 import { useRegionalContainerStore } from '@/store/regionalContainerStore';
+import { toast } from '@/store/toastStore';
 import {
   fetchCurrentUserApi,
   fetchPublicProfileApi,
@@ -462,7 +463,14 @@ export const ProfilePage: React.FC = () => {
             {!isOwner && (
               <button
                 type="button"
-                onClick={() => navigate(`/inbox?userId=${targetUser.id}`)}
+                onClick={() => {
+                  if (!isAuthenticated) {
+                    toast.warning('Please sign in to message users.', 'Sign In Required');
+                    navigate(`/auth/login?returnUrl=/inbox?userId=${targetUser.id}`);
+                    return;
+                  }
+                  navigate(`/inbox?userId=${targetUser.id}`);
+                }}
                 className="inline-flex items-center gap-1.5 bg-[#4E8B3F] hover:bg-[#3D7030] text-white px-4 py-1.5 rounded-full text-xs font-bold transition shadow-xs cursor-pointer"
               >
                 <MessageCircle size={15} strokeWidth={2.2} />

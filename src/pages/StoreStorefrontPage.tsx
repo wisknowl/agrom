@@ -20,6 +20,7 @@ import {
   Settings,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
+import { toast } from '@/store/toastStore';
 import { fetchStoreByIdApi, createYieldApi } from '@/api';
 import YieldCard from '@/components/YieldCard';
 import { resolveMediaUrl, formatXaf } from '@/utils/media';
@@ -27,7 +28,7 @@ import { resolveMediaUrl, formatXaf } from '@/utils/media';
 export const StoreStorefrontPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
 
   const [store, setStore] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -256,10 +257,15 @@ export const StoreStorefrontPage: React.FC = () => {
                   type="button"
                   onClick={() => {
                     const merchantId = store.userId || store.user?.id;
+                    if (!isAuthenticated) {
+                      toast.warning('Please sign in to chat directly with this store merchant.', 'Sign In Required');
+                      navigate(`/auth/login?returnUrl=/inbox?partnerId=${merchantId || ''}`);
+                      return;
+                    }
                     if (merchantId) {
                       navigate(`/inbox?partnerId=${merchantId}&storeId=${store.id}&title=${encodeURIComponent(store.name)}`);
                     } else {
-                      alert('Store merchant contact currently unavailable');
+                      toast.error('Store merchant contact currently unavailable');
                     }
                   }}
                   className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#4E8B3F] text-white text-xs font-bold hover:bg-[#3D7030] transition shadow-md cursor-pointer"

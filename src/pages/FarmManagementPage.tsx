@@ -2590,8 +2590,8 @@ export const FarmManagementPage: React.FC = () => {
               <div className="flex items-center gap-3">
                 <div
                   className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${lifecycleModal.targetStatus === 'GROWING'
-                      ? 'bg-[#FEF2D8] text-[#E2A63C]'
-                      : 'bg-neutral-100 text-neutral-600'
+                    ? 'bg-[#FEF2D8] text-[#E2A63C]'
+                    : 'bg-neutral-100 text-neutral-600'
                     }`}
                 >
                   {lifecycleModal.targetStatus === 'GROWING' ? <Clock size={20} /> : <Calendar size={20} />}
@@ -2697,8 +2697,8 @@ export const FarmManagementPage: React.FC = () => {
                         })
                       }
                       className={`text-[11px] px-2.5 py-1 rounded-full border transition cursor-pointer select-none font-medium ${lifecycleModal.value === preset
-                          ? 'bg-[#173A20] text-white border-[#173A20]'
-                          : 'bg-[#EEF8F1] border-[#CCEBD5] text-[#173A20] hover:border-[#4E8B3F]'
+                        ? 'bg-[#173A20] text-white border-[#173A20]'
+                        : 'bg-[#EEF8F1] border-[#CCEBD5] text-[#173A20] hover:border-[#4E8B3F]'
                         }`}
                     >
                       {preset}
@@ -2730,8 +2730,8 @@ export const FarmManagementPage: React.FC = () => {
                 }
                 disabled={savingLifecycle || !lifecycleModal.value.trim()}
                 className={`px-5 py-2.5 rounded-full text-xs font-bold transition shadow-xs cursor-pointer inline-flex items-center gap-1.5 ${lifecycleModal.targetStatus === 'GROWING'
-                    ? 'bg-[#E2A63C] hover:bg-[#d4972e] text-[#241A12]'
-                    : 'bg-[#173A20] hover:bg-[#122e19] text-white'
+                  ? 'bg-[#E2A63C] hover:bg-[#d4972e] text-[#241A12]'
+                  : 'bg-[#173A20] hover:bg-[#122e19] text-white'
                   } disabled:opacity-40`}
               >
                 {savingLifecycle ? (
