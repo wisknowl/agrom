@@ -150,6 +150,9 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
   const isFarmActive = pathname.startsWith('/farmer/manage') || pathname === '/farmer/new';
   const isCartActive = pathname.startsWith('/cart');
   const isInboxActive = pathname.startsWith('/inbox') || pathname.startsWith('/chat');
+  const isChatThreadActive =
+    (pathname.startsWith('/chat/') && pathname !== '/chat') ||
+    (isInboxActive && location.search.includes('c='));
   const isProfileActive = pathname === '/profile';
 
   // Intelligent desktop sidebar links conditioned on role & ownership
@@ -780,7 +783,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
       {/* =====================================================================
           MAIN BODY: DESKTOP LEFT RAIL + RESPONSIVE CONTENT VIEWPORT
       ===================================================================== */}
-      <div className={`flex-1 w-full mx-auto flex min-h-0 overflow-hidden ${isMarketRoot ? 'max-w-none' : 'max-w-[1440px]'}`}>
+      <div className={`flex-1 w-full mx-auto flex min-h-0 overflow-hidden ${isMarketRoot || isInboxActive ? 'max-w-none' : 'max-w-[1440px]'}`}>
         {/* Desktop Left Navigation Rail:
             - Kept for non-market pages (orders, profile, inbox, farm/store management, etc.)
             - Hidden on AgroMarket root ('/') so buyers get an expansive full-width shopping experience
@@ -869,10 +872,13 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
         {/* Main Content Area (Scrolls independently while header & sidebar remain pinned) */}
         <main
-          className={`flex-1 min-w-0 h-full ${isFeedActive
+          className={`flex-1 min-w-0 h-full ${
+            isFeedActive
               ? 'overflow-hidden pb-[max(63px,calc(57px+env(safe-area-inset-bottom,0px)))] md:pb-0'
+              : isInboxActive
+              ? 'overflow-hidden pb-0 md:pb-0'
               : 'overflow-y-auto pb-safe-nav md:pb-10'
-            }`}
+          }`}
         >
           {children}
         </main>
@@ -884,7 +890,9 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
       ===================================================================== */}
       <nav
         aria-label="Mobile Bottom Navigation"
-        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[#CCEBD5] px-2 pt-1.5 pb-[max(0.4rem,env(safe-area-inset-bottom))] shadow-[0_-4px_16px_rgba(36,26,18,0.06)]"
+        className={`md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[#CCEBD5] px-2 pt-1.5 pb-[max(0.4rem,env(safe-area-inset-bottom))] shadow-[0_-4px_16px_rgba(36,26,18,0.06)] ${
+          isChatThreadActive ? 'hidden' : ''
+        }`}
       >
         <div className="flex items-center justify-between max-w-md mx-auto">
           {/* 1. AgroFeed */}

@@ -323,11 +323,10 @@ export const YieldCard: React.FC<YieldCardProps> = ({ item }) => {
                   onClick={handleWaitlistClick}
                   disabled={submittingWaitlist}
                   title="Join Harvest Waitlist"
-                  className={`h-8 px-2.5 rounded-full font-semibold text-xs inline-flex items-center justify-center gap-1.5 border transition cursor-pointer shrink-0 ${
-                    joinedWaitlist
+                  className={`h-8 px-2.5 rounded-full font-semibold text-xs inline-flex items-center justify-center gap-1.5 border transition cursor-pointer shrink-0 ${joinedWaitlist
                       ? 'bg-[#EEF8F1] border-[#CCEBD5] text-[#4E8B3F]'
                       : 'bg-neutral-100 hover:bg-neutral-200 text-[#241A12] border-neutral-300'
-                  }`}
+                    }`}
                 >
                   {joinedWaitlist ? (
                     <>

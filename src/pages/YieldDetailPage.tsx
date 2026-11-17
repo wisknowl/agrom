@@ -149,11 +149,10 @@ export const YieldDetailPage: React.FC = () => {
                   key={idx}
                   type="button"
                   onClick={() => setActiveImageIdx(idx)}
-                  className={`w-16 h-16 rounded-xl overflow-hidden border-2 transition cursor-pointer shrink-0 ${
-                    activeImageIdx === idx
+                  className={`w-16 h-16 rounded-xl overflow-hidden border-2 transition cursor-pointer shrink-0 ${activeImageIdx === idx
                       ? 'border-[#E2A63C] ring-2 ring-[#E2A63C]/30'
                       : 'border-[#CCEBD5] hover:border-[#4E8B3F]'
-                  }`}
+                    }`}
                 >
                   <img src={url} alt={`Photo ${idx + 1}`} className="w-full h-full object-cover" />
                 </button>
@@ -303,11 +302,10 @@ export const YieldDetailPage: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
               <div
                 onClick={() => setQuantity(item.minOrderQuantity || 1)}
-                className={`p-3.5 rounded-2xl border cursor-pointer transition ${
-                  !isBulkActive
+                className={`p-3.5 rounded-2xl border cursor-pointer transition ${!isBulkActive
                     ? 'bg-[#EEF8F1] border-[#4E8B3F] ring-1 ring-[#4E8B3F]'
                     : 'bg-white border-[#CCEBD5] hover:border-[#4E8B3F]'
-                }`}
+                  }`}
               >
                 <div className="text-xs font-semibold text-[#5C5245]">Standard Retail Price</div>
                 <div className="font-mono-num text-xl font-bold text-[#173A20] mt-0.5">
@@ -319,11 +317,10 @@ export const YieldDetailPage: React.FC = () => {
               {item.isWholesaleBulkAvailable && item.bulkPricePerUnit && (
                 <div
                   onClick={() => setQuantity(item.bulkMinQuantity || 10)}
-                  className={`p-3.5 rounded-2xl border cursor-pointer transition ${
-                    isBulkActive
+                  className={`p-3.5 rounded-2xl border cursor-pointer transition ${isBulkActive
                       ? 'bg-[#FEF7EE] border-[#E2A63C] ring-1 ring-[#E2A63C]'
                       : 'bg-white border-[#CCEBD5] hover:border-[#E2A63C]'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-[#8D5B28]">
