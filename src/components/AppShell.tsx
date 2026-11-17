@@ -244,7 +244,9 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
       {/* =====================================================================
           TOP COMMAND BAR (Responsive Desktop & Mobile Header - Never scrolls away)
       ===================================================================== */}
-      <header className="h-16 shrink-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#CCEBD5]">
+      <header className={`h-16 shrink-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#CCEBD5] ${
+        isChatThreadActive ? 'hidden md:block' : ''
+      }`}>
         <div className="max-w-[1440px] mx-auto px-[11px] h-16 flex items-center justify-between gap-2.5">
           {/* Left: Brand Lockup (Agrom) + Navigation Pills */}
           <div className="flex items-center gap-3 lg:gap-4 shrink-0">
@@ -872,13 +874,12 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
         {/* Main Content Area (Scrolls independently while header & sidebar remain pinned) */}
         <main
-          className={`flex-1 min-w-0 h-full ${
-            isFeedActive
+          className={`flex-1 min-w-0 h-full ${isFeedActive
               ? 'overflow-hidden pb-[max(63px,calc(57px+env(safe-area-inset-bottom,0px)))] md:pb-0'
               : isInboxActive
-              ? 'overflow-hidden pb-0 md:pb-0'
-              : 'overflow-y-auto pb-safe-nav md:pb-10'
-          }`}
+                ? 'overflow-hidden pb-0 md:pb-0'
+                : 'overflow-y-auto pb-safe-nav md:pb-10'
+            }`}
         >
           {children}
         </main>
@@ -890,9 +891,8 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
       ===================================================================== */}
       <nav
         aria-label="Mobile Bottom Navigation"
-        className={`md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[#CCEBD5] px-2 pt-1.5 pb-[max(0.4rem,env(safe-area-inset-bottom))] shadow-[0_-4px_16px_rgba(36,26,18,0.06)] ${
-          isChatThreadActive ? 'hidden' : ''
-        }`}
+        className={`md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[#CCEBD5] px-2 pt-1.5 pb-[max(0.4rem,env(safe-area-inset-bottom))] shadow-[0_-4px_16px_rgba(36,26,18,0.06)] ${isChatThreadActive ? 'hidden' : ''
+          }`}
       >
         <div className="flex items-center justify-between max-w-md mx-auto">
           {/* 1. AgroFeed */}

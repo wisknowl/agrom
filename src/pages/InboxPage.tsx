@@ -231,13 +231,13 @@ export const InboxPage: React.FC = () => {
         prev.map((c) =>
           c.id === activeConvId
             ? {
-                ...c,
-                lastMessage: textToSend,
-                lastMessageTime: new Date().toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit"
-                })
-              }
+              ...c,
+              lastMessage: textToSend,
+              lastMessageTime: new Date().toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit"
+              })
+            }
             : c
         )
       );
@@ -336,7 +336,7 @@ export const InboxPage: React.FC = () => {
 
       {/* Main Dual-Pane Inbox Container: Edge-to-edge, unrounded, zero outer scroll */}
       <div className="flex-1 flex overflow-hidden w-full h-full bg-white">
-        
+
         {/* =====================================================================
             LEFT PANE: Conversation List
             - Hidden on mobile (<768px) when an active conversation is selected
@@ -344,12 +344,11 @@ export const InboxPage: React.FC = () => {
             - Has its own independent vertical scroll
         ===================================================================== */}
         <div
-          className={`w-full md:w-[360px] lg:w-[400px] shrink-0 flex flex-col bg-white border-r border-[#CCEBD5] ${
-            activeConvId ? "hidden md:flex" : "flex"
-          }`}
+          className={`w-full md:w-[360px] lg:w-[400px] shrink-0 flex flex-col bg-white border-r border-[#CCEBD5] ${activeConvId ? "hidden md:flex" : "flex"
+            }`}
         >
-          {/* List Header */}
-          <div className="h-16 px-4 bg-[#F8FAF9] border-b border-[#CCEBD5] flex items-center justify-between shrink-0">
+          {/* List Header: Pure white background */}
+          <div className="h-16 px-4 bg-white border-b border-[#CCEBD5] flex items-center justify-between shrink-0">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-[#173A20] text-white font-bold flex items-center justify-center text-sm shadow-xs">
                 {user?.name?.charAt(0).toUpperCase() || "U"}
@@ -414,11 +413,10 @@ export const InboxPage: React.FC = () => {
                   <div
                     key={conv.id}
                     onClick={() => handleSelectConversation(conv.id)}
-                    className={`flex items-center gap-3.5 px-4 py-3.5 cursor-pointer transition select-none ${
-                      isSelected
+                    className={`flex items-center gap-3.5 px-4 py-3.5 cursor-pointer transition select-none ${isSelected
                         ? "bg-[#EEF8F1] border-l-4 border-[#4E8B3F]"
                         : "hover:bg-[#F2F8F4] bg-white"
-                    }`}
+                      }`}
                   >
                     {/* User Avatar with Image & Fallback Initials */}
                     <div className="relative shrink-0">
@@ -476,28 +474,27 @@ export const InboxPage: React.FC = () => {
             - Features AgroMarket mint canvas, custom bubbles, and profile navigation
         ===================================================================== */}
         <div
-          className={`flex-1 flex flex-col bg-[#F9FAF8] ${
-            !activeConvId ? "hidden md:flex" : "flex"
-          }`}
+          className={`flex-1 min-w-0 w-full max-w-full flex flex-col bg-[#F9FAF8] overflow-hidden ${!activeConvId ? "hidden md:flex" : "flex"
+            }`}
         >
           {activeConv ? (
             <>
               {/* Chat Thread Header: Displays verified grower info and click-to-profile */}
-              <div className="h-16 px-4 bg-white border-b border-[#CCEBD5] flex items-center justify-between shrink-0 z-10 shadow-xs">
-                <div className="flex items-center gap-3 min-w-0">
-                  {/* Mobile Back Button: Standard WhatsApp style (<) */}
+              <div className="h-16 px-3 sm:px-4 bg-white border-b border-[#CCEBD5] flex items-center justify-between shrink-0 z-10 shadow-xs">
+                <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                  {/* Mobile Back Button: Properly padded circular button */}
                   <button
                     onClick={handleBackToList}
-                    className="p-2 -ml-2 text-[#173A20] hover:bg-[#EEF8F1] md:hidden rounded-full transition cursor-pointer"
+                    className="w-9 h-9 flex items-center justify-center rounded-full bg-[#EEF8F1] hover:bg-[#DDF2E4] text-[#173A20] md:hidden transition shrink-0 cursor-pointer"
                     title="Back to conversation list"
                   >
-                    <ArrowLeft className="w-5 h-5" />
+                    <ArrowLeft className="w-5 h-5 text-[#173A20]" />
                   </button>
 
                   {/* Profile Click Target: Avatar + Name navigate to user's public profile */}
                   <div
                     onClick={handleGoToPublicProfile}
-                    className="flex items-center gap-3 cursor-pointer group min-w-0"
+                    className="flex items-center gap-2.5 sm:gap-3 cursor-pointer group min-w-0"
                     title="View grower's public profile"
                   >
                     <div className="w-10 h-10 rounded-full bg-[#173A20] text-white font-bold flex items-center justify-center text-sm shadow-xs overflow-hidden border border-[#CCEBD5] group-hover:ring-2 group-hover:ring-[#4E8B3F] transition shrink-0">
@@ -534,7 +531,7 @@ export const InboxPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2.5 text-[#173A20] shrink-0">
+                <div className="flex items-center gap-2 text-[#173A20] shrink-0">
                   <div className="hidden sm:flex items-center gap-1.5 text-xs text-[#173A20] bg-[#EEF8F1] px-3 py-1 rounded-full border border-[#CCEBD5] font-medium">
                     <Shield className="w-3.5 h-3.5 text-[#4E8B3F]" />
                     <span>Escrow Protected</span>
@@ -582,11 +579,10 @@ export const InboxPage: React.FC = () => {
                             - Receiver: Crisp white (#FFFFFF) with dark slate text and soft border (#E2E8F0)
                         */}
                         <div
-                          className={`relative max-w-[85%] sm:max-w-[70%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
-                            isMe
+                          className={`relative max-w-[85%] sm:max-w-[70%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${isMe
                               ? "bg-[#EEF8F1] text-[#173A20] border border-[#C6E7CE] rounded-tr-xs shadow-xs"
                               : "bg-white text-[#1E293B] border border-[#E0EBE2] rounded-tl-xs shadow-xs"
-                          }`}
+                            }`}
                         >
                           <p className="whitespace-pre-wrap break-words">{msg.content}</p>
                           <div className="flex items-center justify-end gap-1 mt-1 text-[10px]">
@@ -610,25 +606,25 @@ export const InboxPage: React.FC = () => {
               </div>
 
               {/* Quick Negotiation Action Chips */}
-              <div className="px-4 py-2 bg-white border-t border-[#CCEBD5]/60 flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0">
+              <div className="px-3 sm:px-4 py-2 bg-white border-t border-[#CCEBD5]/60 flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0 w-full max-w-full">
                 <button
                   type="button"
                   onClick={() => setInputText("Hello, is this produce batch ready for immediate delivery?")}
-                  className="px-3 py-1 bg-[#EEF8F1] hover:bg-[#E0EBE2] text-[#173A20] text-xs font-medium rounded-full whitespace-nowrap transition border border-[#CCEBD5] cursor-pointer"
+                  className="px-3 py-1 bg-[#EEF8F1] hover:bg-[#E0EBE2] text-[#173A20] text-xs font-medium rounded-full whitespace-nowrap transition border border-[#CCEBD5] cursor-pointer shrink-0"
                 >
                   🌾 Check Batch Availability
                 </button>
                 <button
                   type="button"
                   onClick={() => setInputText("What is your wholesale discount price per bag/crate?")}
-                  className="px-3 py-1 bg-[#FEF2D8] hover:bg-[#FDE7B6] text-[#8F5E11] text-xs font-medium rounded-full whitespace-nowrap transition border border-[#E2A63C]/30 cursor-pointer"
+                  className="px-3 py-1 bg-[#FEF2D8] hover:bg-[#FDE7B6] text-[#8F5E11] text-xs font-medium rounded-full whitespace-nowrap transition border border-[#E2A63C]/30 cursor-pointer shrink-0"
                 >
                   💰 Wholesale Price Quote
                 </button>
                 <button
                   type="button"
                   onClick={() => setInputText("Can you arrange depot delivery through AgroLogistics?")}
-                  className="px-3 py-1 bg-[#FAFBF9] hover:bg-[#EEF8F1] text-[#173A20] text-xs font-medium rounded-full whitespace-nowrap transition border border-[#CCEBD5] cursor-pointer"
+                  className="px-3 py-1 bg-[#FAFBF9] hover:bg-[#EEF8F1] text-[#173A20] text-xs font-medium rounded-full whitespace-nowrap transition border border-[#CCEBD5] cursor-pointer shrink-0"
                 >
                   🚚 Freight & Transport
                 </button>
@@ -637,13 +633,13 @@ export const InboxPage: React.FC = () => {
               {/* Message Input Bar: AgroMarket Themed */}
               <form
                 onSubmit={handleSendMessage}
-                className="p-3 bg-[#F8FAF9] border-t border-[#CCEBD5] flex items-center gap-2.5 shrink-0"
+                className="p-2.5 sm:p-3 bg-[#F8FAF9] border-t border-[#CCEBD5] flex items-center gap-2 shrink-0 w-full max-w-full box-border pb-[max(0.65rem,calc(env(safe-area-inset-bottom,0px)+0.25rem))]"
               >
                 <button
                   type="button"
                   title="Attach sample picture or document"
                   onClick={() => toast.info("Media attachments will be enabled with AgroMarket Cloud Media")}
-                  className="p-2 text-[#4E6B52] hover:text-[#173A20] rounded-xl hover:bg-[#EEF8F1] transition cursor-pointer"
+                  className="p-2 text-[#4E6B52] hover:text-[#173A20] rounded-xl hover:bg-[#EEF8F1] transition shrink-0 cursor-pointer"
                 >
                   <Paperclip className="w-5 h-5" />
                 </button>
@@ -655,17 +651,16 @@ export const InboxPage: React.FC = () => {
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   disabled={sending}
-                  className="flex-1 py-2.5 px-4 bg-white rounded-full text-sm border border-[#CCEBD5] focus:outline-none focus:ring-2 focus:ring-[#4E8B3F] text-[#173A20] placeholder-[#7A9A80] transition"
+                  className="flex-1 min-w-0 py-2 sm:py-2.5 px-3.5 sm:px-4 bg-white rounded-full text-sm border border-[#CCEBD5] focus:outline-none focus:ring-2 focus:ring-[#4E8B3F] text-[#173A20] placeholder-[#7A9A80] transition"
                 />
 
                 <button
                   type="submit"
                   disabled={!inputText.trim() || sending}
-                  className={`w-10 h-10 rounded-full flex items-center justify-center transition shrink-0 ${
-                    inputText.trim() && !sending
+                  className={`w-9 sm:w-10 h-9 sm:h-10 rounded-full flex items-center justify-center transition shrink-0 ${inputText.trim() && !sending
                       ? "bg-[#4E8B3F] text-white hover:bg-[#3D7032] shadow-sm cursor-pointer"
                       : "bg-[#E0EBE2] text-[#7A9A80] cursor-not-allowed"
-                  }`}
+                    }`}
                 >
                   <Send className="w-4 h-4 -translate-x-0.5 translate-y-0.5" />
                 </button>
