@@ -43,7 +43,13 @@ import {
   Sunset,
   RefreshCw,
   Calendar,
+  Truck,
 } from 'lucide-react';
+import {
+  CAMEROON_DELIVERY_CORRIDORS,
+  formatDeliveryReachSummary,
+  parseDeliveryReach,
+} from '@/constants/deliveryLocations';
 import { useAuthStore } from '@/store/authStore';
 import { useRegionalContainerStore } from '@/store/regionalContainerStore';
 import {
@@ -251,6 +257,11 @@ const INITIAL_PRODUCE_FORM = {
   bulkPricePerUnit: '',
   mediaUrl: '',
   mediaUrls: [] as string[],
+  deliveryCities: ['Douala', 'Yaoundé'] as string[],
+  deliveryHubs: [] as string[],
+  deliveryQuartiers: [] as string[],
+  customDepot: '',
+  allowFarmGate: true,
 };
 
 export const FarmManagementPage: React.FC = () => {
@@ -312,6 +323,7 @@ export const FarmManagementPage: React.FC = () => {
     );
     const isKnownUnit = UNITS.some((u) => u.id === y.unit);
     const existingUrls = (y.mediaUrls && y.mediaUrls.length > 0 ? y.mediaUrls : [y.image].filter(Boolean)) as string[];
+    const parsedReach = parseDeliveryReach(y.dispatchSiteName);
     setProduceForm({
       title: y.title || '',
       description: y.description || '',
@@ -334,6 +346,11 @@ export const FarmManagementPage: React.FC = () => {
       bulkPricePerUnit: String(y.bulkPricePerUnit || y.price || y.pricePerUnit || ''),
       mediaUrl: existingUrls[0] || '',
       mediaUrls: existingUrls,
+      deliveryCities: parsedReach.supportedCities.length > 0 ? parsedReach.supportedCities : ['Douala', 'Yaoundé'],
+      deliveryHubs: parsedReach.supportedHubs,
+      deliveryQuartiers: parsedReach.supportedQuartiers,
+      customDepot: parsedReach.customHubOrDepot || '',
+      allowFarmGate: parsedReach.allowFarmGatePickup,
     });
     setShowEditProduceModal(true);
   };
@@ -551,6 +568,13 @@ export const FarmManagementPage: React.FC = () => {
         : produceForm.unit;
 
       const fallbackImage = 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=800';
+      const dispatchSiteName = formatDeliveryReachSummary({
+        supportedCities: produceForm.deliveryCities,
+        supportedHubs: produceForm.deliveryHubs,
+        supportedQuartiers: produceForm.deliveryQuartiers,
+        customHubOrDepot: produceForm.customDepot,
+        allowFarmGatePickup: produceForm.allowFarmGate,
+      });
 
       await createProduceApi({
         farmId: activeFarm.id,
@@ -559,6 +583,7 @@ export const FarmManagementPage: React.FC = () => {
         title: produceForm.title.trim(),
         description: produceForm.description.trim() || `Fresh harvest directly from ${activeFarm.name}.`,
         originRegion,
+        dispatchSiteName,
         pricePerUnit: Number(produceForm.pricePerUnit),
         unit: effectiveUnit,
         customUnit: produceForm.unit === 'CUSTOM' ? produceForm.customUnit.trim() : undefined,
@@ -600,12 +625,21 @@ export const FarmManagementPage: React.FC = () => {
         ? `${chosenParcel.name} (${chosenParcel.city}, ${chosenParcel.region})`
         : `${activeFarm?.city || 'Foumbot'}, ${activeFarm?.region || 'West Region'}`;
 
+      const dispatchSiteName = formatDeliveryReachSummary({
+        supportedCities: produceForm.deliveryCities,
+        supportedHubs: produceForm.deliveryHubs,
+        supportedQuartiers: produceForm.deliveryQuartiers,
+        customHubOrDepot: produceForm.customDepot,
+        allowFarmGatePickup: produceForm.allowFarmGate,
+      });
+
       await updateProduceApi(editingProduceItem.id, {
         title: produceForm.title.trim(),
         description: produceForm.description.trim(),
         categoryId: categoryObj.id,
         categoryName: categoryObj.name,
         originRegion,
+        dispatchSiteName,
         pricePerUnit: Number(produceForm.pricePerUnit),
         unit: effectiveUnit,
         customUnit: produceForm.unit === 'CUSTOM' ? produceForm.customUnit.trim() : undefined,
@@ -1893,6 +1927,153 @@ export const FarmManagementPage: React.FC = () => {
                 <div>
                   <div className="text-xs font-bold text-[#173A20]">Natural & Certified Organic / Cameroon GAP</div>
                   <div className="text-[11px] text-[#5C5245]">Grown with organic compost, zero synthetic pesticides, hygienic harvest handling</div>
+                </div>
+              </div>
+
+              {/* Delivery Reach & Dispatch Corridors / Markets */}
+              <div className="p-4 rounded-2xl bg-[#EEF8F1] border border-[#CCEBD5] space-y-3.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Truck size={16} className="text-[#4E8B3F]" />
+                    <span className="text-xs font-bold text-[#173A20]">
+                      Delivery Reach & Dispatch Corridors
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-[#5C5245] font-medium">
+                    Where can this produce reach?
+                  </span>
+                </div>
+
+                {/* 1. Supported Corridors / Cities */}
+                <div>
+                  <label className="block text-[11px] font-semibold text-[#5C5245] mb-1.5">
+                    Serviceable Cities / Corridors
+                  </label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {CAMEROON_DELIVERY_CORRIDORS.map((c) => {
+                      const isSelected = produceForm.deliveryCities.includes(c.name);
+                      return (
+                        <button
+                          key={c.name}
+                          type="button"
+                          onClick={() => {
+                            const next = isSelected
+                              ? produceForm.deliveryCities.filter((x) => x !== c.name)
+                              : [...produceForm.deliveryCities, c.name];
+                            setProduceForm({ ...produceForm, deliveryCities: next });
+                          }}
+                          className={`text-xs px-2.5 py-1 rounded-full border transition cursor-pointer font-medium ${isSelected
+                              ? 'bg-[#4E8B3F] text-white border-[#4E8B3F]'
+                              : 'bg-white text-[#241A12] border-[#CCEBD5] hover:bg-[#EEF8F1]'
+                            }`}
+                        >
+                          {isSelected ? '✓ ' : '+ '}
+                          {c.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* 2. Commercial Wholesale Markets & Bus Agencies */}
+                <div>
+                  <label className="block text-[11px] font-semibold text-[#5C5245] mb-1.5">
+                    Commercial Markets & Travel Agencies (Bus Depots)
+                  </label>
+                  <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto p-1 bg-white/70 rounded-xl border border-[#CCEBD5]">
+                    {CAMEROON_DELIVERY_CORRIDORS.filter(
+                      (c) => produceForm.deliveryCities.length === 0 || produceForm.deliveryCities.includes(c.name)
+                    )
+                      .flatMap((c) => c.hubs)
+                      .map((hub) => {
+                        const isSelected = produceForm.deliveryHubs.includes(hub.name);
+                        return (
+                          <button
+                            key={hub.id}
+                            type="button"
+                            onClick={() => {
+                              const next = isSelected
+                                ? produceForm.deliveryHubs.filter((x) => x !== hub.name)
+                                : [...produceForm.deliveryHubs, hub.name];
+                              setProduceForm({ ...produceForm, deliveryHubs: next });
+                            }}
+                            className={`text-[11px] px-2 py-0.5 rounded-lg border transition cursor-pointer ${isSelected
+                                ? 'bg-[#173A20] text-white border-[#173A20]'
+                                : 'bg-white text-[#5C5245] border-[#CCEBD5] hover:bg-[#EEF8F1]'
+                              }`}
+                          >
+                            {isSelected ? '✓ ' : ''}
+                            {hub.name} ({hub.city})
+                          </button>
+                        );
+                      })}
+                  </div>
+                </div>
+
+                {/* 3. Quartiers / Neighborhood Reach (e.g. Bonanjo, Bonapriso, Bastos, Mile 4) */}
+                <div>
+                  <label className="block text-[11px] font-semibold text-[#5C5245] mb-1.5">
+                    Quartiers / Doorstep Areas (e.g. Bonanjo, Bonapriso, Bastos, Mile 4)
+                  </label>
+                  <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto p-1 bg-white/70 rounded-xl border border-[#CCEBD5]">
+                    {CAMEROON_DELIVERY_CORRIDORS.filter(
+                      (c) => produceForm.deliveryCities.length === 0 || produceForm.deliveryCities.includes(c.name)
+                    )
+                      .flatMap((c) => c.quartiers)
+                      .filter((val, idx, self) => self.indexOf(val) === idx)
+                      .map((q) => {
+                        const isSelected = produceForm.deliveryQuartiers.includes(q);
+                        return (
+                          <button
+                            key={q}
+                            type="button"
+                            onClick={() => {
+                              const next = isSelected
+                                ? produceForm.deliveryQuartiers.filter((x) => x !== q)
+                                : [...produceForm.deliveryQuartiers, q];
+                              setProduceForm({ ...produceForm, deliveryQuartiers: next });
+                            }}
+                            className={`text-[11px] px-2 py-0.5 rounded-lg border transition cursor-pointer ${isSelected
+                                ? 'bg-[#E2A63C] text-[#241A12] border-[#E2A63C] font-semibold'
+                                : 'bg-white text-[#5C5245] border-[#CCEBD5] hover:bg-[#EEF8F1]'
+                              }`}
+                          >
+                            {isSelected ? '✓ ' : ''}
+                            {q}
+                          </button>
+                        );
+                      })}
+                  </div>
+                </div>
+
+                {/* 4. Custom User-Added Depot / Hub / Cold-room */}
+                <div>
+                  <label className="block text-[11px] font-semibold text-[#5C5245] mb-1">
+                    Custom Depot / Cold Room (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={produceForm.customDepot}
+                    onChange={(e) => setProduceForm({ ...produceForm, customDepot: e.target.value })}
+                    placeholder="e.g. Mile 16 Cold Hub, Bafoussam Coop Warehouse"
+                    className="w-full rounded-xl bg-white border border-[#CCEBD5] px-3.5 py-2 text-xs text-[#241A12] outline-none focus:border-[#4E8B3F] transition"
+                  />
+                </div>
+
+                {/* 5. Farm-Gate Direct Pickup Toggle */}
+                <div
+                  onClick={() => setProduceForm({ ...produceForm, allowFarmGate: !produceForm.allowFarmGate })}
+                  className="flex items-center gap-2 cursor-pointer select-none pt-1"
+                >
+                  <div
+                    className={`w-4 h-4 rounded-md flex items-center justify-center shrink-0 ${produceForm.allowFarmGate ? 'bg-[#4E8B3F] text-white' : 'border border-[#CCEBD5] bg-white'
+                      }`}
+                  >
+                    {produceForm.allowFarmGate && <Check size={12} strokeWidth={3} />}
+                  </div>
+                  <span className="text-xs text-[#241A12] font-medium">
+                    Allow direct Farm-Gate / Store Pickup (0 XAF delivery fee for buyer)
+                  </span>
                 </div>
               </div>
 

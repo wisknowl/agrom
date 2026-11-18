@@ -11,21 +11,32 @@ import {
   Building2,
   Sparkles,
   ShoppingBag,
+  MapPin,
+  Store,
+  HelpCircle,
 } from 'lucide-react';
 import { useCartStore } from '@/store/cartStore';
 import { useRegionalContainerStore } from '@/store/regionalContainerStore';
 import { checkoutOrderApi } from '@/api';
 import { PaymentMethod } from '@/types';
 import { formatXaf } from '@/utils/media';
+import {
+  CAMEROON_DELIVERY_CORRIDORS,
+  parseDeliveryReach,
+} from '@/constants/deliveryLocations';
 
 export const CartAndCheckoutPage: React.FC = () => {
   const navigate = useNavigate();
   const { items, updateQuantity, removeFromCart, clearCart, getTotal } = useCartStore();
   const regionalContainer = useRegionalContainerStore((s) => s.getContainer());
 
-  const [deliveryCity, setDeliveryCity] = useState('Douala (Bonapriso / Akwa)');
-  const [deliveryAddress, setDeliveryAddress] = useState('Rue Njo-Njo, Bonapriso');
+  const [deliveryMode, setDeliveryMode] = useState<'HUB' | 'DOORSTEP' | 'FARM_GATE'>('HUB');
+  const [selectedCity, setSelectedCity] = useState('Douala');
+  const [selectedHub, setSelectedHub] = useState('Marché Sandaga (Fruit & Vegetable Terminal)');
+  const [selectedQuartier, setSelectedQuartier] = useState('Bonapriso');
+  const [streetLandmark, setStreetLandmark] = useState('');
   const [deliveryPhone, setDeliveryPhone] = useState('+237 677 00 11 22');
+  const [buyerNote, setBuyerNote] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('MTN_MOMO');
   const [submitting, setSubmitting] = useState(false);
   const [orderCompleted, setOrderCompleted] = useState<any>(null);
@@ -34,18 +45,30 @@ export const CartAndCheckoutPage: React.FC = () => {
   const totalItems = items.reduce((acc, i) => acc + i.quantity, 0);
   // Gamified Eco-Delivery Perk: Free delivery when >= 3 items
   const unlockedFreeEcoDelivery = totalItems >= 3;
-  const deliveryFee = items.length === 0 ? 0 : unlockedFreeEcoDelivery ? 0 : 1500;
+  const baseDeliveryFee = deliveryMode === 'FARM_GATE' ? 0 : deliveryMode === 'HUB' ? 1000 : 2000;
+  const deliveryFee = items.length === 0 ? 0 : unlockedFreeEcoDelivery ? 0 : baseDeliveryFee;
   const grandTotal = subtotal + deliveryFee;
+
+  const currentCorridor =
+    CAMEROON_DELIVERY_CORRIDORS.find((c) => c.name === selectedCity) || CAMEROON_DELIVERY_CORRIDORS[0];
 
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
     if (items.length === 0) return;
     setSubmitting(true);
+
+    const deliveryAddress =
+      deliveryMode === 'HUB'
+        ? `Pickup Hub: ${selectedHub} (${selectedCity})`
+        : deliveryMode === 'DOORSTEP'
+        ? `${selectedQuartier}, ${streetLandmark ? streetLandmark + ', ' : ''}${selectedCity}`
+        : `Farm-Gate Direct Pickup (${items[0]?.yield?.originRegion || selectedCity})`;
+
     try {
       const res = await checkoutOrderApi({
         items: items.map((i) => ({ yieldId: i.yieldId, quantity: i.quantity })),
         deliveryAddress,
-        deliveryCity,
+        deliveryCity: selectedCity,
         deliveryPhone,
         paymentMethod,
         currency: regionalContainer.currency === 'FCFA' ? 'XAF' : regionalContainer.currency,
@@ -56,6 +79,8 @@ export const CartAndCheckoutPage: React.FC = () => {
           status: 'ESCROW_LOCKED',
           totalAmount: grandTotal,
           paymentMethod,
+          deliveryAddress,
+          deliveryCity: selectedCity,
         }
       );
       clearCart();
@@ -67,7 +92,7 @@ export const CartAndCheckoutPage: React.FC = () => {
         totalAmount: grandTotal,
         paymentMethod,
         deliveryAddress,
-        deliveryCity,
+        deliveryCity: selectedCity,
       });
       clearCart();
     } finally {
@@ -252,36 +277,191 @@ export const CartAndCheckoutPage: React.FC = () => {
               </span>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-3.5">
+              {/* Delivery Mode Tabs */}
               <div>
-                <label className="block text-xs font-semibold text-[#5C5245] mb-1">
-                  Delivery City / Corridor
+                <label className="block text-xs font-semibold text-[#5C5245] mb-1.5">
+                  Choose Delivery Method
                 </label>
-                <input
-                  type="text"
-                  required
-                  value={deliveryCity}
-                  onChange={(e) => setDeliveryCity(e.target.value)}
-                  className="w-full rounded-xl bg-[#FFF9EE] border border-[#F2DCAA] focus:bg-[#FEF2D8]/40 focus:border-[#E2A63C] focus:outline-none px-3.5 py-2 text-xs text-[#241A12] transition"
-                />
+                <div className="grid grid-cols-3 gap-1.5 p-1 bg-[#FFF9EE] border border-[#F2DCAA] rounded-2xl">
+                  <button
+                    type="button"
+                    onClick={() => setDeliveryMode('HUB')}
+                    className={`py-2 px-1.5 rounded-xl text-center transition cursor-pointer ${
+                      deliveryMode === 'HUB'
+                        ? 'bg-[#E2A63C] text-[#241A12] font-bold shadow-2xs'
+                        : 'text-[#5C5245] hover:text-[#241A12]'
+                    }`}
+                  >
+                    <div className="text-[11px] leading-tight">Market / Agency</div>
+                    <div className="text-[9px] opacity-80">{unlockedFreeEcoDelivery ? 'FREE' : '1,000 XAF'}</div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDeliveryMode('DOORSTEP')}
+                    className={`py-2 px-1.5 rounded-xl text-center transition cursor-pointer ${
+                      deliveryMode === 'DOORSTEP'
+                        ? 'bg-[#E2A63C] text-[#241A12] font-bold shadow-2xs'
+                        : 'text-[#5C5245] hover:text-[#241A12]'
+                    }`}
+                  >
+                    <div className="text-[11px] leading-tight">Doorstep</div>
+                    <div className="text-[9px] opacity-80">{unlockedFreeEcoDelivery ? 'FREE' : '2,000 XAF'}</div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDeliveryMode('FARM_GATE')}
+                    className={`py-2 px-1.5 rounded-xl text-center transition cursor-pointer ${
+                      deliveryMode === 'FARM_GATE'
+                        ? 'bg-[#E2A63C] text-[#241A12] font-bold shadow-2xs'
+                        : 'text-[#5C5245] hover:text-[#241A12]'
+                    }`}
+                  >
+                    <div className="text-[11px] leading-tight">Farm-Gate</div>
+                    <div className="text-[9px] opacity-80">0 XAF (Free)</div>
+                  </button>
+                </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-[#5C5245] mb-1">
-                  Street / Market Drop-off Address
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={deliveryAddress}
-                  onChange={(e) => setDeliveryAddress(e.target.value)}
-                  className="w-full rounded-xl bg-[#FFF9EE] border border-[#F2DCAA] focus:bg-[#FEF2D8]/40 focus:border-[#E2A63C] focus:outline-none px-3.5 py-2 text-xs text-[#241A12] transition"
-                />
-              </div>
+              {/* Delivery Destination Inputs based on Mode */}
+              {deliveryMode === 'HUB' && (
+                <div className="space-y-2.5 p-3 rounded-2xl bg-[#FFF9EE]/70 border border-[#F2DCAA]">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-[#5C5245] mb-1">
+                      Corridor / Destination City
+                    </label>
+                    <select
+                      value={selectedCity}
+                      onChange={(e) => {
+                        const newCity = e.target.value;
+                        setSelectedCity(newCity);
+                        const cor = CAMEROON_DELIVERY_CORRIDORS.find((c) => c.name === newCity);
+                        if (cor && cor.hubs.length > 0) {
+                          setSelectedHub(cor.hubs[0].name);
+                        }
+                      }}
+                      className="w-full rounded-xl bg-white border border-[#F2DCAA] focus:border-[#E2A63C] focus:outline-none px-3 py-2 text-xs text-[#241A12] transition"
+                    >
+                      {CAMEROON_DELIVERY_CORRIDORS.map((c) => (
+                        <option key={c.name} value={c.name}>
+                          {c.name} ({c.region} Region)
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
+                  <div>
+                    <label className="block text-[11px] font-semibold text-[#5C5245] mb-1">
+                      Select Pickup Market / Bus Agency Hub
+                    </label>
+                    <select
+                      value={selectedHub}
+                      onChange={(e) => setSelectedHub(e.target.value)}
+                      className="w-full rounded-xl bg-white border border-[#F2DCAA] focus:border-[#E2A63C] focus:outline-none px-3 py-2 text-xs text-[#241A12] transition"
+                    >
+                      {currentCorridor.hubs.map((hub) => (
+                        <option key={hub.id} value={hub.name}>
+                          {hub.type === 'BUS_AGENCY' ? '🚌 ' : '🏢 '}
+                          {hub.name}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="text-[10px] text-[#5C5245] mt-1">
+                      Produce will be dispatched via cold-chain to this central pickup depot.
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {deliveryMode === 'DOORSTEP' && (
+                <div className="space-y-2.5 p-3 rounded-2xl bg-[#FFF9EE]/70 border border-[#F2DCAA]">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-[#5C5245] mb-1">
+                      Destination City
+                    </label>
+                    <select
+                      value={selectedCity}
+                      onChange={(e) => {
+                        const newCity = e.target.value;
+                        setSelectedCity(newCity);
+                        const cor = CAMEROON_DELIVERY_CORRIDORS.find((c) => c.name === newCity);
+                        if (cor && cor.quartiers.length > 0) {
+                          setSelectedQuartier(cor.quartiers[0]);
+                        }
+                      }}
+                      className="w-full rounded-xl bg-white border border-[#F2DCAA] focus:border-[#E2A63C] focus:outline-none px-3 py-2 text-xs text-[#241A12] transition"
+                    >
+                      {CAMEROON_DELIVERY_CORRIDORS.map((c) => (
+                        <option key={c.name} value={c.name}>
+                          {c.name} ({c.region})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-[#5C5245] mb-1">
+                      Quartier / Area (e.g. Bonapriso, Bonanjo, Bastos, Mile 4)
+                    </label>
+                    <div className="flex gap-2">
+                      <select
+                        value={selectedQuartier}
+                        onChange={(e) => setSelectedQuartier(e.target.value)}
+                        className="w-1/2 rounded-xl bg-white border border-[#F2DCAA] focus:border-[#E2A63C] focus:outline-none px-3 py-2 text-xs text-[#241A12] transition"
+                      >
+                        {currentCorridor.quartiers.map((q) => (
+                          <option key={q} value={q}>
+                            {q}
+                          </option>
+                        ))}
+                        <option value="Custom">Other Quartier...</option>
+                      </select>
+                      <input
+                        type="text"
+                        placeholder="Or custom neighborhood..."
+                        value={selectedQuartier === 'Custom' ? '' : selectedQuartier}
+                        onChange={(e) => setSelectedQuartier(e.target.value)}
+                        className="w-1/2 rounded-xl bg-white border border-[#F2DCAA] focus:border-[#E2A63C] focus:outline-none px-3 py-2 text-xs text-[#241A12] transition"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-[#5C5245] mb-1">
+                      Street Address & Nearby Landmark
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Rue Njo-Njo, opposite Pharmacy, 2nd gate on right"
+                      value={streetLandmark}
+                      onChange={(e) => setStreetLandmark(e.target.value)}
+                      className="w-full rounded-xl bg-white border border-[#F2DCAA] focus:border-[#E2A63C] focus:outline-none px-3 py-2 text-xs text-[#241A12] transition"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {deliveryMode === 'FARM_GATE' && (
+                <div className="p-3.5 rounded-2xl bg-[#EEF8F1] border border-[#CCEBD5] space-y-2 text-xs text-[#173A20]">
+                  <div className="font-bold flex items-center gap-1.5">
+                    <Store size={14} className="text-[#4E8B3F]" />
+                    <span>Direct Farm-Gate / Store Pickup (0 XAF)</span>
+                  </div>
+                  <p className="text-[11px] text-[#5C5245] leading-relaxed">
+                    You or your driver will pick up this harvest lot directly from the cooperative farm site:{' '}
+                    <strong>{items[0]?.yield?.originRegion || 'Farm Production Parcel'}</strong>.
+                  </p>
+                  <div className="text-[10px] text-[#4E8B3F] font-semibold">
+                    ✓ Zero delivery fee • Direct inspection upon crate handover.
+                  </div>
+                </div>
+              )}
+
+              {/* MoMo / Buyer Contact Phone */}
               <div>
                 <label className="block text-xs font-semibold text-[#5C5245] mb-1">
-                  MoMo / Contact Phone Number
+                  Buyer MoMo / Contact Phone Number
                 </label>
                 <input
                   type="text"
