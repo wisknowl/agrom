@@ -355,6 +355,63 @@ export const FarmManagementPage: React.FC = () => {
     setShowEditProduceModal(true);
   };
 
+  // Farm Switcher Loading State
+  const [isSwitchingFarm, setIsSwitchingFarm] = useState(false);
+
+  // Delivery Reach Dedicated Modal State
+  const [deliveryReachModalVisible, setDeliveryReachModalVisible] = useState(false);
+  const [selectedReachYield, setSelectedReachYield] = useState<any>(null);
+  const [reachForm, setReachForm] = useState({
+    deliveryCities: ['Douala', 'Yaoundé'] as string[],
+    deliveryHubs: [] as string[],
+    deliveryQuartiers: [] as string[],
+    customDepot: '',
+    allowFarmGate: true,
+  });
+  const [savingReach, setSavingReach] = useState(false);
+
+  const openDeliveryReachModal = (y: any) => {
+    setSelectedReachYield(y);
+    const parsed = parseDeliveryReach(y.dispatchSiteName);
+    setReachForm({
+      deliveryCities: parsed.supportedCities.length > 0 ? parsed.supportedCities : ['Douala', 'Yaoundé'],
+      deliveryHubs: parsed.supportedHubs,
+      deliveryQuartiers: parsed.supportedQuartiers,
+      customDepot: parsed.customHubOrDepot || '',
+      allowFarmGate: parsed.allowFarmGatePickup,
+    });
+    setDeliveryReachModalVisible(true);
+  };
+
+  const handleSaveDeliveryReach = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedReachYield?.id) return;
+    try {
+      setSavingReach(true);
+      const dispatchSiteName = formatDeliveryReachSummary({
+        supportedCities: reachForm.deliveryCities,
+        supportedHubs: reachForm.deliveryHubs,
+        supportedQuartiers: reachForm.deliveryQuartiers,
+        customHubOrDepot: reachForm.customDepot,
+        allowFarmGatePickup: reachForm.allowFarmGate,
+      });
+      await updateProduceApi(selectedReachYield.id, { dispatchSiteName });
+      if (activeFarm && activeFarm.yields) {
+        setActiveFarm({
+          ...activeFarm,
+          yields: activeFarm.yields.map((item: any) =>
+            item.id === selectedReachYield.id ? { ...item, dispatchSiteName } : item
+          ),
+        });
+      }
+      setDeliveryReachModalVisible(false);
+    } catch (err: any) {
+      alert(err.message || 'Failed to update delivery reach');
+    } finally {
+      setSavingReach(false);
+    }
+  };
+
   // Stock Balancing Modal
   const [stockModalVisible, setStockModalVisible] = useState(false);
   const [selectedStockYield, setSelectedStockYield] = useState<any>(null);
@@ -430,12 +487,15 @@ export const FarmManagementPage: React.FC = () => {
 
   const handleSelectFarm = async (farmId: string) => {
     setSelectedFarmId(farmId);
+    setIsSwitchingFarm(true);
     try {
       const detailed = await fetchFarmByIdApi(farmId);
       setActiveFarm(detailed);
     } catch {
       const f = farmsList.find((item) => item.id === farmId);
       if (f) setActiveFarm(f);
+    } finally {
+      setIsSwitchingFarm(false);
     }
   };
 
@@ -1037,8 +1097,15 @@ export const FarmManagementPage: React.FC = () => {
         </div>
       )}
 
-      {/* Active Farm Card (Parity with Store Card: image on left, details middle, stats right) */}
-      {activeFarm && (() => {
+      {/* Farm Switching Centered Green Indicator or Active Farm Content */}
+      {isSwitchingFarm ? (
+        <div className="py-24 flex items-center justify-center">
+          <div className="w-8 h-8 border-3 border-[#4E8B3F] border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : (
+        <>
+          {/* Active Farm Card (Parity with Store Card: image on left, details middle, stats right) */}
+          {activeFarm && (() => {
         const farmImg = resolveMediaUrl(activeFarm.avatarPhoto || activeFarm.coverPhoto);
         return (
           <div className="bg-white border border-[#CCEBD5] rounded-3xl overflow-hidden shadow-xs flex flex-col md:flex-row items-center">
@@ -1241,7 +1308,9 @@ export const FarmManagementPage: React.FC = () => {
                 return (
                   <div
                     key={y.id}
-                    className="p-3.5 sm:p-4 rounded-2xl bg-white border border-[#CCEBD5] hover:border-[#4E8B3F] flex flex-col justify-between gap-3.5 transition shadow-2xs hover:shadow-sm"
+                    onClick={() => navigate(`/yield/${y.id}`)}
+                    className="p-3.5 sm:p-4 rounded-2xl bg-white border border-[#CCEBD5] hover:border-[#4E8B3F] flex flex-col justify-between gap-3.5 transition shadow-2xs hover:shadow-sm cursor-pointer group"
+                    title="Click to view public produce page"
                   >
                     {/* Top Row: Produce info on the left, Edit/Stock/Delete actions cleanly on the right */}
                     <div className="flex items-start justify-between gap-2.5">
@@ -1260,7 +1329,7 @@ export const FarmManagementPage: React.FC = () => {
                         )}
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <h3 className="font-bold text-sm text-[#241A12] truncate max-w-[150px] sm:max-w-none">{y.title}</h3>
+                            <h3 className="font-bold text-sm text-[#241A12] group-hover:text-[#4E8B3F] transition truncate max-w-[150px] sm:max-w-none">{y.title}</h3>
                             {y.isOrganic && (
                               <span className="text-[10px] font-semibold bg-[#EEF8F1] text-[#4E8B3F] border border-[#CCEBD5] px-2 py-0.2 rounded-full shrink-0">
                                 Organic
@@ -1273,7 +1342,10 @@ export const FarmManagementPage: React.FC = () => {
                           {y.lifecycleStatus === 'GROWING' ? (
                             <button
                               type="button"
-                              onClick={() => openLifecycleModal(y, 'GROWING')}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openLifecycleModal(y, 'GROWING');
+                              }}
                               className="flex items-center gap-1.5 text-[11px] text-amber-800 bg-[#E2A63C]/15 hover:bg-[#E2A63C]/25 border border-[#E2A63C]/30 px-2 py-0.5 rounded-md mt-1 w-fit transition cursor-pointer"
                               title="Click to update harvest window"
                             >
@@ -1285,7 +1357,10 @@ export const FarmManagementPage: React.FC = () => {
                           ) : y.lifecycleStatus === 'OFF_CYCLE' ? (
                             <button
                               type="button"
-                              onClick={() => openLifecycleModal(y, 'OFF_CYCLE')}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openLifecycleModal(y, 'OFF_CYCLE');
+                              }}
                               className="flex items-center gap-1.5 text-[11px] text-neutral-600 bg-neutral-100 hover:bg-neutral-200/80 border border-neutral-200 px-2 py-0.5 rounded-md mt-1 w-fit transition cursor-pointer"
                               title="Click to update next season"
                             >
@@ -1310,11 +1385,14 @@ export const FarmManagementPage: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* Right side: Action buttons (Balance Stock, Edit, Delete) */}
+                      {/* Right side: Action buttons (Balance Stock, Delivery Reach, Edit, Delete) */}
                       <div className="flex items-center gap-1.5 shrink-0 self-start">
                         <button
                           type="button"
-                          onClick={() => openStockModal(y)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openStockModal(y);
+                          }}
                           className="px-2.5 py-1.5 rounded-full bg-[#EEF8F1] hover:bg-[#E1F3E7] border border-[#CCEBD5] text-[#4E8B3F] text-xs font-semibold inline-flex items-center gap-1 transition cursor-pointer"
                           title="Balance Stock"
                         >
@@ -1325,7 +1403,23 @@ export const FarmManagementPage: React.FC = () => {
 
                         <button
                           type="button"
-                          onClick={() => handleOpenEditProduce(y)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openDeliveryReachModal(y);
+                          }}
+                          className="px-2.5 py-1.5 rounded-full bg-[#FFF9EE] hover:bg-[#FEF2D8] border border-[#F2DCAA] text-[#B87D1E] text-xs font-semibold inline-flex items-center gap-1 transition cursor-pointer"
+                          title="Delivery Reach & Dispatch Hubs"
+                        >
+                          <Truck size={13} />
+                          <span className="hidden sm:inline">Reach</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenEditProduce(y);
+                          }}
                           className="w-8 h-8 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] flex items-center justify-center text-[#241A12] hover:border-[#4E8B3F] transition cursor-pointer"
                           title="Edit Produce"
                         >
@@ -1334,7 +1428,10 @@ export const FarmManagementPage: React.FC = () => {
 
                         <button
                           type="button"
-                          onClick={() => handleDeleteProduce(y.id, y.title)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteProduce(y.id, y.title);
+                          }}
                           className="w-8 h-8 rounded-full bg-white border border-[#dc2626]/30 text-[#dc2626] hover:bg-[#FDF3F1] flex items-center justify-center transition cursor-pointer"
                           title="Delete Produce"
                         >
@@ -1348,12 +1445,55 @@ export const FarmManagementPage: React.FC = () => {
                       <div className="w-full grid grid-cols-3 p-1 rounded-xl bg-[#EEF8F1] border border-[#CCEBD5] text-[11px] gap-1">
                         <button
                           type="button"
-                          onClick={() => handleSetProduceLifecycle(y, 'SELLING')}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSetProduceLifecycle(y, 'SELLING');
+                          }}
                           className={`w-full py-1.5 rounded-lg flex items-center justify-center gap-1.5 font-semibold transition cursor-pointer select-none ${(y.lifecycleStatus === 'SELLING' || !y.lifecycleStatus) && !isPaused
                             ? 'bg-[#4E8B3F] text-white shadow-xs font-bold'
                             : 'text-[#173A20] hover:bg-white/60'
                             }`}
                           title="Selling: Immediate orders accepted"
+                        >
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full shrink-0 ${(y.lifecycleStatus === 'SELLING' || !y.lifecycleStatus) && !isPaused
+                              ? 'bg-white'
+                              : 'bg-[#4E8B3F]'
+                              }`}
+                          />
+                          <span className="truncate">Selling</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSetProduceLifecycle(y, 'GROWING');
+                          }}
+                          className={`w-full py-1.5 rounded-lg flex items-center justify-center gap-1.5 font-semibold transition cursor-pointer select-none ${y.lifecycleStatus === 'GROWING'
+                            ? 'bg-[#E2A63C] text-[#241A12] shadow-xs font-bold'
+                            : 'text-[#5C5245] hover:bg-white/60'
+                            }`}
+                          title="Growing: Pre-orders open with harvest window"
+                        >
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full shrink-0 ${y.lifecycleStatus === 'GROWING' ? 'bg-[#241A12]' : 'bg-[#E2A63C]'
+                              }`}
+                          />
+                          <span className="truncate">Growing</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSetProduceLifecycle(y, 'OFF_CYCLE');
+                          }}
+                          className={`w-full py-1.5 rounded-lg flex items-center justify-center gap-1.5 font-semibold transition cursor-pointer select-none ${y.lifecycleStatus === 'OFF_CYCLE'
+                            ? 'bg-neutral-600 text-white shadow-xs font-bold'
+                            : 'text-[#5C5245] hover:bg-white/60'
+                            }`}
+                          title="Off-Cycle: Inactive season"
                         >
                           <span
                             className={`w-1.5 h-1.5 rounded-full shrink-0 ${(y.lifecycleStatus === 'SELLING' || !y.lifecycleStatus) && !isPaused
@@ -1498,6 +1638,8 @@ export const FarmManagementPage: React.FC = () => {
             ))}
           </div>
         </div>
+      )}
+      </>
       )}
 
 
@@ -1930,153 +2072,6 @@ export const FarmManagementPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Delivery Reach & Dispatch Corridors / Markets */}
-              <div className="p-4 rounded-2xl bg-[#EEF8F1] border border-[#CCEBD5] space-y-3.5">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Truck size={16} className="text-[#4E8B3F]" />
-                    <span className="text-xs font-bold text-[#173A20]">
-                      Delivery Reach & Dispatch Corridors
-                    </span>
-                  </div>
-                  <span className="text-[10px] text-[#5C5245] font-medium">
-                    Where can this produce reach?
-                  </span>
-                </div>
-
-                {/* 1. Supported Corridors / Cities */}
-                <div>
-                  <label className="block text-[11px] font-semibold text-[#5C5245] mb-1.5">
-                    Serviceable Cities / Corridors
-                  </label>
-                  <div className="flex flex-wrap gap-1.5">
-                    {CAMEROON_DELIVERY_CORRIDORS.map((c) => {
-                      const isSelected = produceForm.deliveryCities.includes(c.name);
-                      return (
-                        <button
-                          key={c.name}
-                          type="button"
-                          onClick={() => {
-                            const next = isSelected
-                              ? produceForm.deliveryCities.filter((x) => x !== c.name)
-                              : [...produceForm.deliveryCities, c.name];
-                            setProduceForm({ ...produceForm, deliveryCities: next });
-                          }}
-                          className={`text-xs px-2.5 py-1 rounded-full border transition cursor-pointer font-medium ${isSelected
-                              ? 'bg-[#4E8B3F] text-white border-[#4E8B3F]'
-                              : 'bg-white text-[#241A12] border-[#CCEBD5] hover:bg-[#EEF8F1]'
-                            }`}
-                        >
-                          {isSelected ? '✓ ' : '+ '}
-                          {c.name}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* 2. Commercial Wholesale Markets & Bus Agencies */}
-                <div>
-                  <label className="block text-[11px] font-semibold text-[#5C5245] mb-1.5">
-                    Commercial Markets & Travel Agencies (Bus Depots)
-                  </label>
-                  <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto p-1 bg-white/70 rounded-xl border border-[#CCEBD5]">
-                    {CAMEROON_DELIVERY_CORRIDORS.filter(
-                      (c) => produceForm.deliveryCities.length === 0 || produceForm.deliveryCities.includes(c.name)
-                    )
-                      .flatMap((c) => c.hubs)
-                      .map((hub) => {
-                        const isSelected = produceForm.deliveryHubs.includes(hub.name);
-                        return (
-                          <button
-                            key={hub.id}
-                            type="button"
-                            onClick={() => {
-                              const next = isSelected
-                                ? produceForm.deliveryHubs.filter((x) => x !== hub.name)
-                                : [...produceForm.deliveryHubs, hub.name];
-                              setProduceForm({ ...produceForm, deliveryHubs: next });
-                            }}
-                            className={`text-[11px] px-2 py-0.5 rounded-lg border transition cursor-pointer ${isSelected
-                                ? 'bg-[#173A20] text-white border-[#173A20]'
-                                : 'bg-white text-[#5C5245] border-[#CCEBD5] hover:bg-[#EEF8F1]'
-                              }`}
-                          >
-                            {isSelected ? '✓ ' : ''}
-                            {hub.name} ({hub.city})
-                          </button>
-                        );
-                      })}
-                  </div>
-                </div>
-
-                {/* 3. Quartiers / Neighborhood Reach (e.g. Bonanjo, Bonapriso, Bastos, Mile 4) */}
-                <div>
-                  <label className="block text-[11px] font-semibold text-[#5C5245] mb-1.5">
-                    Quartiers / Doorstep Areas (e.g. Bonanjo, Bonapriso, Bastos, Mile 4)
-                  </label>
-                  <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto p-1 bg-white/70 rounded-xl border border-[#CCEBD5]">
-                    {CAMEROON_DELIVERY_CORRIDORS.filter(
-                      (c) => produceForm.deliveryCities.length === 0 || produceForm.deliveryCities.includes(c.name)
-                    )
-                      .flatMap((c) => c.quartiers)
-                      .filter((val, idx, self) => self.indexOf(val) === idx)
-                      .map((q) => {
-                        const isSelected = produceForm.deliveryQuartiers.includes(q);
-                        return (
-                          <button
-                            key={q}
-                            type="button"
-                            onClick={() => {
-                              const next = isSelected
-                                ? produceForm.deliveryQuartiers.filter((x) => x !== q)
-                                : [...produceForm.deliveryQuartiers, q];
-                              setProduceForm({ ...produceForm, deliveryQuartiers: next });
-                            }}
-                            className={`text-[11px] px-2 py-0.5 rounded-lg border transition cursor-pointer ${isSelected
-                                ? 'bg-[#E2A63C] text-[#241A12] border-[#E2A63C] font-semibold'
-                                : 'bg-white text-[#5C5245] border-[#CCEBD5] hover:bg-[#EEF8F1]'
-                              }`}
-                          >
-                            {isSelected ? '✓ ' : ''}
-                            {q}
-                          </button>
-                        );
-                      })}
-                  </div>
-                </div>
-
-                {/* 4. Custom User-Added Depot / Hub / Cold-room */}
-                <div>
-                  <label className="block text-[11px] font-semibold text-[#5C5245] mb-1">
-                    Custom Depot / Cold Room (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    value={produceForm.customDepot}
-                    onChange={(e) => setProduceForm({ ...produceForm, customDepot: e.target.value })}
-                    placeholder="e.g. Mile 16 Cold Hub, Bafoussam Coop Warehouse"
-                    className="w-full rounded-xl bg-white border border-[#CCEBD5] px-3.5 py-2 text-xs text-[#241A12] outline-none focus:border-[#4E8B3F] transition"
-                  />
-                </div>
-
-                {/* 5. Farm-Gate Direct Pickup Toggle */}
-                <div
-                  onClick={() => setProduceForm({ ...produceForm, allowFarmGate: !produceForm.allowFarmGate })}
-                  className="flex items-center gap-2 cursor-pointer select-none pt-1"
-                >
-                  <div
-                    className={`w-4 h-4 rounded-md flex items-center justify-center shrink-0 ${produceForm.allowFarmGate ? 'bg-[#4E8B3F] text-white' : 'border border-[#CCEBD5] bg-white'
-                      }`}
-                  >
-                    {produceForm.allowFarmGate && <Check size={12} strokeWidth={3} />}
-                  </div>
-                  <span className="text-xs text-[#241A12] font-medium">
-                    Allow direct Farm-Gate / Store Pickup (0 XAF delivery fee for buyer)
-                  </span>
-                </div>
-              </div>
-
               {/* 9. Harvest Notes & Description */}
               <div>
                 <label className="block text-xs font-semibold text-[#5C5245] mb-1">
@@ -2204,6 +2199,193 @@ export const FarmManagementPage: React.FC = () => {
               >
                 Confirm Inventory Adjustment
               </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* =====================================================================
+          MODAL 2.5: DEDICATED DELIVERY REACH & DISPATCH HUBS
+      ===================================================================== */}
+      {deliveryReachModalVisible && selectedReachYield && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs"
+            onClick={() => !savingReach && setDeliveryReachModalVisible(false)}
+          />
+          <div className="relative z-10 w-full max-w-lg bg-white rounded-3xl border border-[#CCEBD5] p-5 sm:p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-[#CCEBD5]">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-[#EEF8F1] border border-[#CCEBD5] flex items-center justify-center text-[#4E8B3F]">
+                  <Truck size={20} strokeWidth={2.4} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-[#173A20]">Delivery Reach & Dispatch Hubs</h3>
+                  <p className="text-xs text-[#5C5245] truncate max-w-xs">{selectedReachYield.title}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => !savingReach && setDeliveryReachModalVisible(false)}
+                className="w-8 h-8 rounded-full bg-[#EEF8F1] flex items-center justify-center text-[#241A12] hover:bg-[#CCEBD5] transition cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveDeliveryReach} className="space-y-4">
+              {/* 1. Supported Corridors / Cities */}
+              <div>
+                <label className="block text-xs font-semibold text-[#5C5245] mb-1.5">
+                  Serviceable Cities / Corridors
+                </label>
+                <div className="flex flex-wrap gap-1.5">
+                  {CAMEROON_DELIVERY_CORRIDORS.map((c) => {
+                    const isSelected = reachForm.deliveryCities.includes(c.name);
+                    return (
+                      <button
+                        key={c.name}
+                        type="button"
+                        onClick={() => {
+                          const next = isSelected
+                            ? reachForm.deliveryCities.filter((x) => x !== c.name)
+                            : [...reachForm.deliveryCities, c.name];
+                          setReachForm({ ...reachForm, deliveryCities: next });
+                        }}
+                        className={`text-xs px-3 py-1.5 rounded-full border transition cursor-pointer font-medium ${
+                          isSelected
+                            ? 'bg-[#4E8B3F] text-white border-[#4E8B3F]'
+                            : 'bg-white text-[#241A12] border-[#CCEBD5] hover:bg-[#EEF8F1]'
+                        }`}
+                      >
+                        {isSelected ? '✓ ' : '+ '}
+                        {c.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 2. Commercial Wholesale Markets & Bus Agencies */}
+              <div>
+                <label className="block text-xs font-semibold text-[#5C5245] mb-1.5">
+                  Commercial Markets & Bus Agency Depots
+                </label>
+                <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto p-2 bg-[#EEF8F1]/40 rounded-2xl border border-[#CCEBD5]">
+                  {CAMEROON_DELIVERY_CORRIDORS.filter(
+                    (c) => reachForm.deliveryCities.length === 0 || reachForm.deliveryCities.includes(c.name)
+                  )
+                    .flatMap((c) => c.hubs)
+                    .map((hub) => {
+                      const isSelected = reachForm.deliveryHubs.includes(hub.name);
+                      return (
+                        <button
+                          key={hub.id}
+                          type="button"
+                          onClick={() => {
+                            const next = isSelected
+                              ? reachForm.deliveryHubs.filter((x) => x !== hub.name)
+                              : [...reachForm.deliveryHubs, hub.name];
+                            setReachForm({ ...reachForm, deliveryHubs: next });
+                          }}
+                          className={`text-xs px-2.5 py-1 rounded-xl border transition cursor-pointer ${
+                            isSelected
+                              ? 'bg-[#173A20] text-white border-[#173A20]'
+                              : 'bg-white text-[#5C5245] border-[#CCEBD5] hover:bg-[#EEF8F1]'
+                          }`}
+                        >
+                          {isSelected ? '✓ ' : ''}
+                          {hub.name} ({hub.city})
+                        </button>
+                      );
+                    })}
+                </div>
+              </div>
+
+              {/* 3. Quartiers / Neighborhood Reach */}
+              <div>
+                <label className="block text-xs font-semibold text-[#5C5245] mb-1.5">
+                  Serviced Quartiers (e.g. Bonanjo, Bonapriso, Bastos, Mile 4)
+                </label>
+                <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-2 bg-[#EEF8F1]/40 rounded-2xl border border-[#CCEBD5]">
+                  {CAMEROON_DELIVERY_CORRIDORS.filter(
+                    (c) => reachForm.deliveryCities.length === 0 || reachForm.deliveryCities.includes(c.name)
+                  )
+                    .flatMap((c) => c.quartiers)
+                    .filter((val, idx, self) => self.indexOf(val) === idx)
+                    .map((q) => {
+                      const isSelected = reachForm.deliveryQuartiers.includes(q);
+                      return (
+                        <button
+                          key={q}
+                          type="button"
+                          onClick={() => {
+                            const next = isSelected
+                              ? reachForm.deliveryQuartiers.filter((x) => x !== q)
+                              : [...reachForm.deliveryQuartiers, q];
+                            setReachForm({ ...reachForm, deliveryQuartiers: next });
+                          }}
+                          className={`text-xs px-2.5 py-1 rounded-xl border transition cursor-pointer ${
+                            isSelected
+                              ? 'bg-[#E2A63C] text-[#241A12] border-[#E2A63C] font-semibold'
+                              : 'bg-white text-[#5C5245] border-[#CCEBD5] hover:bg-[#EEF8F1]'
+                          }`}
+                        >
+                          {isSelected ? '✓ ' : ''}
+                          {q}
+                        </button>
+                      );
+                    })}
+                </div>
+              </div>
+
+              {/* 4. Custom User-Added Depot / Hub / Cold-room */}
+              <div>
+                <label className="block text-xs font-semibold text-[#5C5245] mb-1">
+                  Custom Depot / Cold Room (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={reachForm.customDepot}
+                  onChange={(e) => setReachForm({ ...reachForm, customDepot: e.target.value })}
+                  placeholder="e.g. Mile 16 Cold Hub, Bafoussam Coop Warehouse"
+                  className="w-full rounded-xl bg-[#EEF8F1] border border-[#CCEBD5] px-3.5 py-2 text-xs text-[#241A12] outline-none focus:border-[#4E8B3F] transition"
+                />
+              </div>
+
+              {/* 5. Farm-Gate Direct Pickup Toggle */}
+              <div
+                onClick={() => setReachForm({ ...reachForm, allowFarmGate: !reachForm.allowFarmGate })}
+                className="flex items-center gap-2 cursor-pointer select-none pt-1"
+              >
+                <div
+                  className={`w-4 h-4 rounded-md flex items-center justify-center shrink-0 ${
+                    reachForm.allowFarmGate ? 'bg-[#4E8B3F] text-white' : 'border border-[#CCEBD5] bg-white'
+                  }`}
+                >
+                  {reachForm.allowFarmGate && <Check size={12} strokeWidth={3} />}
+                </div>
+                <span className="text-xs text-[#241A12] font-medium">
+                  Allow direct Farm-Gate / Store Pickup (0 XAF delivery fee for buyer)
+                </span>
+              </div>
+
+              <div className="pt-2 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDeliveryReachModalVisible(false)}
+                  className="px-4 py-2 rounded-full border border-[#CCEBD5] text-[#5C5245] text-xs font-semibold hover:bg-[#EEF8F1] transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingReach}
+                  className="px-6 py-2 rounded-full bg-[#4E8B3F] hover:bg-[#3D7030] text-white text-xs font-bold transition shadow-xs cursor-pointer inline-flex items-center gap-1.5"
+                >
+                  {savingReach ? 'Saving...' : 'Save Delivery Reach'}
+                </button>
+              </div>
             </form>
           </div>
         </div>
