@@ -950,10 +950,10 @@ export const FarmManagementPage: React.FC = () => {
               type="button"
               onClick={() => navigate(`/farmer/${activeFarm.slug || activeFarm.id}`)}
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#EEF8F1] hover:bg-[#CCEBD5] border border-[#CCEBD5] text-xs font-bold text-[#173A20] transition cursor-pointer"
-              title="Preview Public Storefront"
+              title="Preview Public Farm Page"
             >
               <ExternalLink size={14} className="text-[#4E8B3F]" />
-              <span>View Public Storefront</span>
+              <span>View Public Farm Page</span>
             </button>
           )}
 

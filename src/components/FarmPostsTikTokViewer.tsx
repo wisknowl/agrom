@@ -102,7 +102,7 @@ export const FarmPostsTikTokViewer: React.FC<FarmPostsTikTokViewerProps> = ({
         video.play().catch(() => {
           // Browsers may block unmuted autoplay; fallback to muted autoplay
           video.muted = true;
-          video.play().catch(() => {});
+          video.play().catch(() => { });
         });
       } else {
         video.pause();
@@ -156,10 +156,10 @@ export const FarmPostsTikTokViewer: React.FC<FarmPostsTikTokViewerProps> = ({
     const nextPosts = posts.map((p) =>
       p.id === post.id
         ? {
-            ...p,
-            commentsCount: (p.commentsCount ?? p.comments?.length ?? 0) + 1,
-            comments: [newComment, ...(p.comments || [])],
-          }
+          ...p,
+          commentsCount: (p.commentsCount ?? p.comments?.length ?? 0) + 1,
+          comments: [newComment, ...(p.comments || [])],
+        }
         : p
     );
     setPosts(nextPosts);
@@ -175,7 +175,7 @@ export const FarmPostsTikTokViewer: React.FC<FarmPostsTikTokViewerProps> = ({
   const handleShare = (post: any) => {
     const url = window.location.href;
     if (navigator.share) {
-      navigator.share({ title: `${farmName} • AgroPost`, text: post.content, url }).catch(() => {});
+      navigator.share({ title: `${farmName} • AgroPost`, text: post.content, url }).catch(() => { });
     } else {
       navigator.clipboard?.writeText(url);
       alert('Farm post link copied to clipboard!');
@@ -300,7 +300,7 @@ export const FarmPostsTikTokViewer: React.FC<FarmPostsTikTokViewerProps> = ({
                     onClick={(e) => {
                       const vid = e.currentTarget;
                       if (vid.paused) {
-                        vid.play().catch(() => {});
+                        vid.play().catch(() => { });
                       } else {
                         vid.pause();
                       }
@@ -355,9 +355,8 @@ export const FarmPostsTikTokViewer: React.FC<FarmPostsTikTokViewerProps> = ({
                     >
                       <Heart
                         size={26}
-                        className={`transition drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)] ${
-                          isLiked ? 'text-[#E0245E] fill-[#E0245E]' : 'text-white'
-                        }`}
+                        className={`transition drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)] ${isLiked ? 'text-[#E0245E] fill-[#E0245E]' : 'text-white'
+                          }`}
                       />
                       <span className="font-mono-num text-[11px] font-bold text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
                         {post.likesCount ?? post.likes ?? 0}
@@ -387,14 +386,12 @@ export const FarmPostsTikTokViewer: React.FC<FarmPostsTikTokViewerProps> = ({
                     >
                       <Bookmark
                         size={26}
-                        className={`transition drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)] ${
-                          isSaved ? 'text-[#E2A63C] fill-[#E2A63C]' : 'text-white'
-                        }`}
+                        className={`transition drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)] ${isSaved ? 'text-[#E2A63C] fill-[#E2A63C]' : 'text-white'
+                          }`}
                       />
                       <span
-                        className={`text-[10px] font-bold drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] ${
-                          isSaved ? 'text-[#E2A63C]' : 'text-white'
-                        }`}
+                        className={`text-[10px] font-bold drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] ${isSaved ? 'text-[#E2A63C]' : 'text-white'
+                          }`}
                       >
                         Save
                       </span>

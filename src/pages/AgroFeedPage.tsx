@@ -264,9 +264,8 @@ export const AgroFeedPage: React.FC = () => {
         >
           <Heart
             size={26}
-            className={`transition drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)] ${
-              isLiked ? 'text-[#E0245E] fill-[#E0245E]' : 'text-white'
-            }`}
+            className={`transition drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)] ${isLiked ? 'text-[#E0245E] fill-[#E0245E]' : 'text-white'
+              }`}
           />
           <span className="font-mono-num text-[11px] font-bold text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
             {post.likesCount ?? post.likes ?? 0}
@@ -281,9 +280,8 @@ export const AgroFeedPage: React.FC = () => {
         >
           <MessageCircle
             size={26}
-            className={`transition drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)] ${
-              isCommentsOpen ? 'text-[#4E8B3F] fill-[#4E8B3F]' : 'text-white'
-            }`}
+            className={`transition drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)] ${isCommentsOpen ? 'text-[#4E8B3F] fill-[#4E8B3F]' : 'text-white'
+              }`}
           />
           <span className="font-mono-num text-[11px] font-bold text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
             {post.commentsCount ?? post.comments?.length ?? 0}
@@ -298,14 +296,12 @@ export const AgroFeedPage: React.FC = () => {
         >
           <Bookmark
             size={26}
-            className={`transition drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)] ${
-              isSaved ? 'text-[#E2A63C] fill-[#E2A63C]' : 'text-white'
-            }`}
+            className={`transition drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)] ${isSaved ? 'text-[#E2A63C] fill-[#E2A63C]' : 'text-white'
+              }`}
           />
           <span
-            className={`text-[10px] font-bold drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] ${
-              isSaved ? 'text-[#E2A63C]' : 'text-white'
-            }`}
+            className={`text-[10px] font-bold drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] ${isSaved ? 'text-[#E2A63C]' : 'text-white'
+              }`}
           >
             Save
           </span>
@@ -432,8 +428,8 @@ export const AgroFeedPage: React.FC = () => {
                     scrollRef.current?.scrollTo({ top: 0, behavior: 'auto' });
                   }}
                   className={`px-3.5 py-1 rounded-full text-xs font-bold transition cursor-pointer ${active
-                      ? 'bg-[#4E8B3F] text-white shadow-xs'
-                      : 'text-white/75 hover:text-white'
+                    ? 'bg-[#4E8B3F] text-white shadow-xs'
+                    : 'text-white/75 hover:text-white'
                     }`}
                 >
                   {tab}

@@ -821,11 +821,11 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
               ))}
             </div>
 
-            {/* Sidebar Footer with User Status & Logout Button */}
+            {/* Sidebar Footer with User Status & Sign Out Button */}
             <div className="pt-3 border-t border-[#CCEBD5] shrink-0">
               {isAuthenticated && user ? (
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2.5 px-2 py-1.5 rounded-xl bg-[#FAF7F2] border border-[#EBE3D5]">
+                  <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-2xl bg-[#EEF8F1] border border-[#CCEBD5] transition hover:border-[#4E8B3F]">
                     {user.avatarUrl || user.avatar ? (
                       <img
                         src={resolveMediaUrl(user.avatarUrl || user.avatar)}
@@ -833,16 +833,16 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
                         className="w-8 h-8 rounded-full object-cover border border-[#4E8B3F] shrink-0"
                       />
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] flex items-center justify-center text-[#4E8B3F] shrink-0">
+                      <div className="w-8 h-8 rounded-full bg-white border border-[#CCEBD5] flex items-center justify-center text-[#4E8B3F] shrink-0">
                         <User size={15} strokeWidth={2.4} />
                       </div>
                     )}
                     <div className="min-w-0 flex-1">
-                      <div className="text-xs font-bold text-[#241A12] truncate">
+                      <div className="text-xs font-bold text-[#173A20] truncate">
                         {user.name || 'Agrom User'}
                       </div>
-                      <div className="text-[10px] text-[#5C5245] truncate">
-                        {user.email || user.role || 'Member'}
+                      <div className="text-[10.5px] text-[#5C5245] truncate font-medium">
+                        {user.email || user.phone || 'Member'}
                       </div>
                     </div>
                   </div>
@@ -856,7 +856,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
                     className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-[#B54A34] bg-[#FDF3F1] hover:bg-[#FAE5E1] border border-[#B54A34]/20 transition cursor-pointer"
                   >
                     <LogOut size={15} strokeWidth={2.2} />
-                    <span>Log Out</span>
+                    <span>Sign Out</span>
                   </button>
                 </div>
               ) : (
