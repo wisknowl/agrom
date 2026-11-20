@@ -1106,239 +1106,305 @@ export const FarmManagementPage: React.FC = () => {
         <>
           {/* Active Farm Card (Parity with Store Card: image on left, details middle, stats right) */}
           {activeFarm && (() => {
-        const farmImg = resolveMediaUrl(activeFarm.avatarPhoto || activeFarm.coverPhoto);
-        return (
-          <div className="bg-white border border-[#CCEBD5] rounded-3xl overflow-hidden shadow-xs flex flex-col md:flex-row items-center">
-            {/* Left farm image: compact height on mobile (reduced by 1/4), crisp square on desktop */}
-            <div className="w-full h-36 sm:h-44 md:h-36 md:w-32 lg:w-36 shrink-0 bg-[#EEF8F1] border-b md:border-b-0 md:border-r border-[#CCEBD5] relative overflow-hidden">
-              {farmImg ? (
-                <img
-                  src={farmImg}
-                  alt={activeFarm.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-[#4E8B3F] p-4">
-                  <Sprout size={36} />
+            const farmImg = resolveMediaUrl(activeFarm.avatarPhoto || activeFarm.coverPhoto);
+            return (
+              <div className="bg-white border border-[#CCEBD5] rounded-3xl overflow-hidden shadow-xs flex flex-col md:flex-row items-center">
+                {/* Left farm image: compact height on mobile (reduced by 1/4), crisp square on desktop */}
+                <div className="w-full h-36 sm:h-44 md:h-36 md:w-32 lg:w-36 shrink-0 bg-[#EEF8F1] border-b md:border-b-0 md:border-r border-[#CCEBD5] relative overflow-hidden">
+                  {farmImg ? (
+                    <img
+                      src={farmImg}
+                      alt={activeFarm.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-[#4E8B3F] p-4">
+                      <Sprout size={36} />
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
 
-            {/* Farm Details and Metrics */}
-            <div className="flex-1 p-5 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h2 className="text-base sm:text-lg font-bold text-[#173A20]">
-                    {activeFarm.name}
-                  </h2>
-                  <div className="flex items-center gap-1.5 ml-1">
-                    <button
-                      type="button"
-                      onClick={openEditFarmModal}
-                      className="w-7 h-7 rounded-full bg-[#EEF8F1] hover:bg-[#CCEBD5] border border-[#CCEBD5] flex items-center justify-center text-[#173A20] transition cursor-pointer"
-                      title="Edit Farm Profile"
-                    >
-                      <Edit3 size={13} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={openDeleteFarmModal}
-                      className="w-7 h-7 rounded-full bg-white hover:bg-[#FDF3F1] border border-[#dc2626]/30 flex items-center justify-center text-[#dc2626] transition cursor-pointer"
-                      title="Delete Farm"
-                    >
-                      <Trash2 size={13} />
-                    </button>
+                {/* Farm Details and Metrics */}
+                <div className="flex-1 p-5 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h2 className="text-base sm:text-lg font-bold text-[#173A20]">
+                        {activeFarm.name}
+                      </h2>
+                      <div className="flex items-center gap-1.5 ml-1">
+                        <button
+                          type="button"
+                          onClick={openEditFarmModal}
+                          className="w-7 h-7 rounded-full bg-[#EEF8F1] hover:bg-[#CCEBD5] border border-[#CCEBD5] flex items-center justify-center text-[#173A20] transition cursor-pointer"
+                          title="Edit Farm Profile"
+                        >
+                          <Edit3 size={13} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={openDeleteFarmModal}
+                          className="w-7 h-7 rounded-full bg-white hover:bg-[#FDF3F1] border border-[#dc2626]/30 flex items-center justify-center text-[#dc2626] transition cursor-pointer"
+                          title="Delete Farm"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-3 text-xs text-[#5C5245]">
+                      <span className="inline-flex items-center gap-1">
+                        <MapPin size={13} className="text-[#4E8B3F]" />
+                        {activeFarm.city}, {activeFarm.region}
+                      </span>
+                      <span className="text-[#CCEBD5]">•</span>
+                      <span>Category: {activeFarm.category || 'CROPS'}</span>
+                      <span className="text-[#CCEBD5]">•</span>
+                      <span className="inline-flex items-center gap-1 font-semibold text-[#173A20]">
+                        <Warehouse size={12} className="text-[#4E8B3F]" />
+                        {activeParcels.length} Operating Site(s)
+                      </span>
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex flex-wrap items-center gap-3 text-xs text-[#5C5245]">
-                  <span className="inline-flex items-center gap-1">
-                    <MapPin size={13} className="text-[#4E8B3F]" />
-                    {activeFarm.city}, {activeFarm.region}
-                  </span>
-                  <span className="text-[#CCEBD5]">•</span>
-                  <span>Category: {activeFarm.category || 'CROPS'}</span>
-                  <span className="text-[#CCEBD5]">•</span>
-                  <span className="inline-flex items-center gap-1 font-semibold text-[#173A20]">
-                    <Warehouse size={12} className="text-[#4E8B3F]" />
-                    {activeParcels.length} Operating Site(s)
-                  </span>
+                  {/* Quick Metrics (Right side of card) */}
+                  <div className="flex items-center gap-3 sm:gap-6 bg-[#EEF8F1] border border-[#CCEBD5] px-4 py-3 rounded-2xl shrink-0">
+                    <div className="text-center">
+                      <div className="text-sm font-bold font-mono-num text-[#173A20]">
+                        {farmYields.length}
+                      </div>
+                      <div className="text-[10px] text-[#5C5245] uppercase font-semibold">Active Yields</div>
+                    </div>
+                    <div className="w-px h-7 bg-[#CCEBD5]" />
+                    <div className="text-center">
+                      <div className="text-sm font-bold font-mono-num text-[#173A20]">
+                        {activeFarm.sizeHectares || 2.5} ha
+                      </div>
+                      <div className="text-[10px] text-[#5C5245] uppercase font-semibold">Total Land</div>
+                    </div>
+                    <div className="w-px h-7 bg-[#CCEBD5]" />
+                    <div className="text-center">
+                      <div className="text-sm font-bold font-mono-num text-[#173A20]">
+                        {activeFarm.rating?.toFixed(1) || '5.0'} ★
+                      </div>
+                      <div className="text-[10px] text-[#5C5245] uppercase font-semibold">Buyer Rating</div>
+                    </div>
+                    <div className="w-px h-7 bg-[#CCEBD5]" />
+                    <div className="text-center">
+                      <div className="text-sm font-bold font-mono-num text-[#173A20]">
+                        {user?.farmerProfile?.creditScore || activeFarm?.creditScore || 517}
+                      </div>
+                      <div className="text-[10px] text-[#5C5245] uppercase font-semibold">Credit Score</div>
+                    </div>
+                  </div>
                 </div>
               </div>
+            );
+          })()}
 
-              {/* Quick Metrics (Right side of card) */}
-              <div className="flex items-center gap-3 sm:gap-6 bg-[#EEF8F1] border border-[#CCEBD5] px-4 py-3 rounded-2xl shrink-0">
-                <div className="text-center">
-                  <div className="text-sm font-bold font-mono-num text-[#173A20]">
-                    {farmYields.length}
-                  </div>
-                  <div className="text-[10px] text-[#5C5245] uppercase font-semibold">Active Yields</div>
-                </div>
-                <div className="w-px h-7 bg-[#CCEBD5]" />
-                <div className="text-center">
-                  <div className="text-sm font-bold font-mono-num text-[#173A20]">
-                    {activeFarm.sizeHectares || 2.5} ha
-                  </div>
-                  <div className="text-[10px] text-[#5C5245] uppercase font-semibold">Total Land</div>
-                </div>
-                <div className="w-px h-7 bg-[#CCEBD5]" />
-                <div className="text-center">
-                  <div className="text-sm font-bold font-mono-num text-[#173A20]">
-                    {activeFarm.rating?.toFixed(1) || '5.0'} ★
-                  </div>
-                  <div className="text-[10px] text-[#5C5245] uppercase font-semibold">Buyer Rating</div>
-                </div>
-                <div className="w-px h-7 bg-[#CCEBD5]" />
-                <div className="text-center">
-                  <div className="text-sm font-bold font-mono-num text-[#173A20]">
-                    {user?.farmerProfile?.creditScore || activeFarm?.creditScore || 517}
-                  </div>
-                  <div className="text-[10px] text-[#5C5245] uppercase font-semibold">Credit Score</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
-
-      {/* =====================================================================
+          {/* =====================================================================
           PRIMARY TABS (PRODUCE, SITES) - Clean border-bottom tab bar (No enclosing box)
       ===================================================================== */}
-      {activeFarm && (
-        <div className="border-b border-[#CCEBD5]/70 flex items-center">
-          <button
-            type="button"
-            onClick={() => setActiveTab('produce')}
-            className="flex-1 sm:flex-none sm:px-8 py-3 flex items-center justify-center gap-2 relative cursor-pointer hover:text-[#4E8B3F] transition"
-          >
-            <Package
-              size={17}
-              className={activeTab === 'produce' ? 'text-[#4E8B3F]' : 'text-[#241A12]/45'}
-            />
-            <span
-              className={`text-xs sm:text-sm ${activeTab === 'produce' ? 'font-bold text-[#4E8B3F]' : 'font-medium text-[#241A12]/60'
-                }`}
-            >
-              Produce & Harvests ({farmYields.length})
-            </span>
-            {activeTab === 'produce' && (
-              <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#4E8B3F] rounded-full" />
-            )}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('sites')}
-            className="flex-1 sm:flex-none sm:px-8 py-3 flex items-center justify-center gap-2 relative cursor-pointer hover:text-[#4E8B3F] transition"
-          >
-            <Warehouse
-              size={17}
-              className={activeTab === 'sites' ? 'text-[#4E8B3F]' : 'text-[#241A12]/45'}
-            />
-            <span
-              className={`text-xs sm:text-sm ${activeTab === 'sites' ? 'font-bold text-[#4E8B3F]' : 'font-medium text-[#241A12]/60'
-                }`}
-            >
-              Operating Sites & Plots ({activeParcels.length})
-            </span>
-            {activeTab === 'sites' && (
-              <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#4E8B3F] rounded-full" />
-            )}
-          </button>
-        </div>
-      )}
-
-      {/* Produce Action Bar (List Harvest + Search input if >= 10 items) */}
-      {activeFarm && activeTab === 'produce' && (
-        <div className="flex items-center justify-between gap-3 pt-1">
-          <div className="text-xs text-[#5C5245]">
-            <span className="font-bold text-[#173A20]">{farmYields.length}</span> harvest batches published
-          </div>
-
-          <div className="flex items-center gap-2">
-            {farmYields.length >= 10 && (
-              <input
-                type="text"
-                placeholder="Search produce..."
-                value={produceSearchQuery}
-                onChange={(e) => setProduceSearchQuery(e.target.value)}
-                className="px-3.5 py-1.5 rounded-full border border-[#CCEBD5] bg-white text-xs text-[#241A12] placeholder-[#5C5245] focus:outline-none focus:border-[#4E8B3F] w-40 lg:w-56 shadow-2xs"
-              />
-            )}
-            <button
-              type="button"
-              onClick={handleOpenAddProduce}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#4E8B3F] hover:bg-[#3D7030] text-white text-xs font-bold transition shadow-xs cursor-pointer shrink-0"
-            >
-              <Plus size={14} strokeWidth={2.4} />
-              <span>List Harvest</span>
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* =====================================================================
-          TAB 1: PRODUCE & HARVESTS (Desktop 2-Col Grid)
-      ===================================================================== */}
-      {activeFarm && activeTab === 'produce' && (
-        <div className="space-y-4">
-          {filteredProduce.length === 0 ? (
-            <div className="text-center py-12 bg-[#EEF8F1] rounded-3xl border border-dashed border-[#CCEBD5] space-y-3">
-              <Package size={36} className="mx-auto text-[#4E8B3F]" />
-              <h3 className="text-sm font-bold text-[#173A20]">No Active Produce in {activeFarm.name}</h3>
-              <p className="text-xs text-[#5C5245] max-w-sm mx-auto">
-                Publish freshly harvested tomatoes, potatoes, plantains or livestock to start selling directly to households and Buyam-Sellam buyers.
-              </p>
+          {activeFarm && (
+            <div className="border-b border-[#CCEBD5]/70 flex items-center">
               <button
                 type="button"
-                onClick={handleOpenAddProduce}
-                className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-[#4E8B3F] text-white text-xs font-bold hover:bg-[#3D7030] transition cursor-pointer"
+                onClick={() => setActiveTab('produce')}
+                className="flex-1 sm:flex-none sm:px-8 py-3 flex items-center justify-center gap-2 relative cursor-pointer hover:text-[#4E8B3F] transition"
               >
-                <Plus size={14} />
-                <span>List First Harvest</span>
+                <Package
+                  size={17}
+                  className={activeTab === 'produce' ? 'text-[#4E8B3F]' : 'text-[#241A12]/45'}
+                />
+                <span
+                  className={`text-xs sm:text-sm ${activeTab === 'produce' ? 'font-bold text-[#4E8B3F]' : 'font-medium text-[#241A12]/60'
+                    }`}
+                >
+                  Produce & Harvests ({farmYields.length})
+                </span>
+                {activeTab === 'produce' && (
+                  <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#4E8B3F] rounded-full" />
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('sites')}
+                className="flex-1 sm:flex-none sm:px-8 py-3 flex items-center justify-center gap-2 relative cursor-pointer hover:text-[#4E8B3F] transition"
+              >
+                <Warehouse
+                  size={17}
+                  className={activeTab === 'sites' ? 'text-[#4E8B3F]' : 'text-[#241A12]/45'}
+                />
+                <span
+                  className={`text-xs sm:text-sm ${activeTab === 'sites' ? 'font-bold text-[#4E8B3F]' : 'font-medium text-[#241A12]/60'
+                    }`}
+                >
+                  Operating Sites & Plots ({activeParcels.length})
+                </span>
+                {activeTab === 'sites' && (
+                  <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#4E8B3F] rounded-full" />
+                )}
               </button>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-              {filteredProduce.map((y: any) => {
-                const stock = y.stockQuantity ?? 0;
-                const isOut = stock <= 0;
-                const isPaused = y.isAvailable === false;
-                const img = y.image || y.mediaUrls?.[0];
-                return (
-                  <div
-                    key={y.id}
-                    onClick={() => navigate(`/yield/${y.id}`)}
-                    className="p-3.5 sm:p-4 rounded-2xl bg-white border border-[#CCEBD5] hover:border-[#4E8B3F] flex flex-col justify-between gap-3.5 transition shadow-2xs hover:shadow-sm cursor-pointer group"
-                    title="Click to view public produce page"
+          )}
+
+          {/* Produce Action Bar (List Harvest + Search input if >= 10 items) */}
+          {activeFarm && activeTab === 'produce' && (
+            <div className="flex items-center justify-between gap-3 pt-1">
+              <div className="text-xs text-[#5C5245]">
+                <span className="font-bold text-[#173A20]">{farmYields.length}</span> harvest batches published
+              </div>
+
+              <div className="flex items-center gap-2">
+                {farmYields.length >= 10 && (
+                  <input
+                    type="text"
+                    placeholder="Search produce..."
+                    value={produceSearchQuery}
+                    onChange={(e) => setProduceSearchQuery(e.target.value)}
+                    className="px-3.5 py-1.5 rounded-full border border-[#CCEBD5] bg-white text-xs text-[#241A12] placeholder-[#5C5245] focus:outline-none focus:border-[#4E8B3F] w-40 lg:w-56 shadow-2xs"
+                  />
+                )}
+                <button
+                  type="button"
+                  onClick={handleOpenAddProduce}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#4E8B3F] hover:bg-[#3D7030] text-white text-xs font-bold transition shadow-xs cursor-pointer shrink-0"
+                >
+                  <Plus size={14} strokeWidth={2.4} />
+                  <span>List Harvest</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* =====================================================================
+          TAB 1: PRODUCE & HARVESTS (Desktop 2-Col Grid)
+      ===================================================================== */}
+          {activeFarm && activeTab === 'produce' && (
+            <div className="space-y-4">
+              {filteredProduce.length === 0 ? (
+                <div className="text-center py-12 bg-[#EEF8F1] rounded-3xl border border-dashed border-[#CCEBD5] space-y-3">
+                  <Package size={36} className="mx-auto text-[#4E8B3F]" />
+                  <h3 className="text-sm font-bold text-[#173A20]">No Active Produce in {activeFarm.name}</h3>
+                  <p className="text-xs text-[#5C5245] max-w-sm mx-auto">
+                    Publish freshly harvested tomatoes, potatoes, plantains or livestock to start selling directly to households and Buyam-Sellam buyers.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleOpenAddProduce}
+                    className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-[#4E8B3F] text-white text-xs font-bold hover:bg-[#3D7030] transition cursor-pointer"
                   >
-                    {/* Top Row: Produce info on the left, Edit/Stock/Delete actions cleanly on the right */}
-                    <div className="flex items-start justify-between gap-2.5">
-                      {/* Left side: Thumbnail + details */}
-                      <div className="flex items-start gap-3 min-w-0 flex-1">
-                        {img ? (
-                          <img
-                            src={resolveMediaUrl(img)}
-                            alt={y.title}
-                            className="w-16 h-16 rounded-xl object-cover border border-[#CCEBD5] shrink-0"
-                          />
-                        ) : (
-                          <div className="w-16 h-16 rounded-xl bg-[#EEF8F1] border border-[#CCEBD5] flex items-center justify-center text-[#4E8B3F] shrink-0">
-                            <Sprout size={24} />
-                          </div>
-                        )}
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <h3 className="font-bold text-sm text-[#241A12] group-hover:text-[#4E8B3F] transition truncate max-w-[150px] sm:max-w-none">{y.title}</h3>
-                            {y.isOrganic && (
-                              <span className="text-[10px] font-semibold bg-[#EEF8F1] text-[#4E8B3F] border border-[#CCEBD5] px-2 py-0.2 rounded-full shrink-0">
-                                Organic
-                              </span>
+                    <Plus size={14} />
+                    <span>List First Harvest</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                  {filteredProduce.map((y: any) => {
+                    const stock = y.stockQuantity ?? 0;
+                    const isOut = stock <= 0;
+                    const isPaused = y.isAvailable === false;
+                    const img = y.image || y.mediaUrls?.[0];
+                    return (
+                      <div
+                        key={y.id}
+                        onClick={() => navigate(`/yield/${y.id}`)}
+                        className="p-3.5 sm:p-4 rounded-2xl bg-white border border-[#CCEBD5] hover:border-[#4E8B3F] flex flex-col justify-between gap-3.5 transition shadow-2xs hover:shadow-sm cursor-pointer group"
+                        title="Click to view public produce page"
+                      >
+                        {/* ─────────────────────────────────────────────────────────────
+                            ROW BLOCK 1: Produce Thumbnail + Info (Left) & Actions (Right)
+                        ───────────────────────────────────────────────────────────── */}
+                        <div className="flex items-center justify-between gap-3 w-full">
+                          {/* Left side: Thumbnail + Name & Organic Badge + Price */}
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            {img ? (
+                              <img
+                                src={resolveMediaUrl(img)}
+                                alt={y.title}
+                                className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover border border-[#CCEBD5] shrink-0"
+                              />
+                            ) : (
+                              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-[#EEF8F1] border border-[#CCEBD5] flex items-center justify-center text-[#4E8B3F] shrink-0">
+                                <Sprout size={24} />
+                              </div>
                             )}
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <h3 className="font-bold text-sm text-[#241A12] group-hover:text-[#4E8B3F] transition truncate max-w-[160px] sm:max-w-none">
+                                  {y.title}
+                                </h3>
+                                {y.isOrganic && (
+                                  <span className="text-[10px] font-semibold bg-[#EEF8F1] text-[#4E8B3F] border border-[#CCEBD5] px-2 py-0.2 rounded-full shrink-0">
+                                    Organic
+                                  </span>
+                                )}
+                              </div>
+                              <div className="font-mono-num text-xs font-bold text-[#173A20] mt-0.5">
+                                {formatXaf(y.price || y.pricePerUnit)} / {y.unit}
+                              </div>
+                            </div>
                           </div>
-                          <div className="font-mono-num text-xs font-bold text-[#173A20] mt-0.5">
-                            {formatXaf(y.price || y.pricePerUnit)} / {y.unit}
+
+                          {/* Right side: Action buttons (Balance Stock, Reach, Edit, Delete) */}
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openStockModal(y);
+                              }}
+                              className="px-2.5 py-1.5 rounded-full bg-[#EEF8F1] hover:bg-[#E1F3E7] border border-[#CCEBD5] text-[#4E8B3F] text-xs font-semibold inline-flex items-center gap-1 transition cursor-pointer"
+                              title="Balance Stock"
+                            >
+                              <Sliders size={13} />
+                              <span className="hidden sm:inline">Balance Stock</span>
+                              <span className="sm:hidden font-mono-num font-bold">{stock}</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openDeliveryReachModal(y);
+                              }}
+                              className="px-2.5 py-1.5 rounded-full bg-[#FFF9EE] hover:bg-[#FEF2D8] border border-[#F2DCAA] text-[#B87D1E] text-xs font-semibold inline-flex items-center gap-1 transition cursor-pointer"
+                              title="Delivery Reach & Dispatch Hubs"
+                            >
+                              <Truck size={13} />
+                              <span className="hidden sm:inline">Reach</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenEditProduce(y);
+                              }}
+                              className="w-8 h-8 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] flex items-center justify-center text-[#241A12] hover:border-[#4E8B3F] transition cursor-pointer"
+                              title="Edit Produce"
+                            >
+                              <Edit3 size={13} />
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteProduce(y.id, y.title);
+                              }}
+                              className="w-8 h-8 rounded-full bg-white border border-[#dc2626]/30 text-[#dc2626] hover:bg-[#FDF3F1] flex items-center justify-center transition cursor-pointer"
+                              title="Delete Produce"
+                            >
+                              <Trash2 size={13} />
+                            </button>
                           </div>
+                        </div>
+
+                        {/* ─────────────────────────────────────────────────────────────
+                            ROW BLOCK 2: Full-Width Produce Cycle & Harvest Info Banner
+                        ───────────────────────────────────────────────────────────── */}
+                        <div className="w-full">
                           {y.lifecycleStatus === 'GROWING' ? (
                             <button
                               type="button"
@@ -1346,13 +1412,17 @@ export const FarmManagementPage: React.FC = () => {
                                 e.stopPropagation();
                                 openLifecycleModal(y, 'GROWING');
                               }}
-                              className="flex items-center gap-1.5 text-[11px] text-amber-800 bg-[#E2A63C]/15 hover:bg-[#E2A63C]/25 border border-[#E2A63C]/30 px-2 py-0.5 rounded-md mt-1 w-fit transition cursor-pointer"
+                              className="w-full flex items-center justify-between text-xs text-[#173A20] bg-[#EEF8F1] hover:bg-[#E1F3E7] border border-[#CCEBD5] px-3 py-2 rounded-xl transition cursor-pointer group/row"
                               title="Click to update harvest window"
                             >
-                              <Clock size={11} className="text-[#E2A63C] shrink-0" />
-                              <span>Harvest: {y.expectedHarvestWindow || 'Coming Soon'}</span>
-                              <span className="font-mono-num font-semibold text-[#173A20] ml-1">({stock} {y.unit})</span>
-                              <Edit3 size={10} className="text-amber-700/60 ml-0.5" />
+                              <div className="flex items-center gap-2 truncate">
+                                <Clock size={13} className="text-[#4E8B3F] shrink-0" />
+                                <span className="font-semibold truncate">Harvest: {y.expectedHarvestWindow || 'Next Month'}</span>
+                                <span className="font-mono-num font-bold text-[#4E8B3F]">({stock} {y.unit})</span>
+                              </div>
+                              <span className="text-[11px] font-medium text-[#4E8B3F] flex items-center gap-1 shrink-0 ml-2 group-hover/row:underline">
+                                Update <Edit3 size={11} />
+                              </span>
                             </button>
                           ) : y.lifecycleStatus === 'OFF_CYCLE' ? (
                             <button
@@ -1361,285 +1431,210 @@ export const FarmManagementPage: React.FC = () => {
                                 e.stopPropagation();
                                 openLifecycleModal(y, 'OFF_CYCLE');
                               }}
-                              className="flex items-center gap-1.5 text-[11px] text-neutral-600 bg-neutral-100 hover:bg-neutral-200/80 border border-neutral-200 px-2 py-0.5 rounded-md mt-1 w-fit transition cursor-pointer"
+                              className="w-full flex items-center justify-between text-xs text-neutral-700 bg-neutral-100 hover:bg-neutral-200/80 border border-neutral-200 px-3 py-2 rounded-xl transition cursor-pointer group/row"
                               title="Click to update next season"
                             >
-                              <span>Off-Season • Next: {y.nextCycleMonth || 'Next Season'}</span>
-                              <Edit3 size={10} className="text-neutral-500/60 ml-0.5" />
+                              <div className="flex items-center gap-2 truncate">
+                                <span className="shrink-0">💤</span>
+                                <span className="font-semibold truncate">Off-Season • Next: {y.nextCycleMonth || 'Next Season'}</span>
+                              </div>
+                              <span className="text-[11px] font-medium text-neutral-600 flex items-center gap-1 shrink-0 ml-2 group-hover/row:underline">
+                                Update <Edit3 size={11} />
+                              </span>
                             </button>
                           ) : (
-                            <div className="flex items-center gap-2 text-[11px] text-[#5C5245] mt-1 flex-wrap">
-                              <span
-                                className={`font-mono-num font-semibold ${isOut ? 'text-[#dc2626]' : 'text-[#4E8B3F]'
-                                  }`}
-                              >
-                                {isOut ? 'Out of Stock' : `${stock} ${y.unit} in stock`}
-                              </span>
+                            <div className="w-full flex items-center justify-between text-xs text-[#5C5245] bg-[#FEF9EE] border border-[#F2DCAA] px-3 py-2 rounded-xl">
+                              <div className="flex items-center gap-2 truncate">
+                                <span className="w-2 h-2 rounded-full bg-[#E2A63C] shrink-0" />
+                                <span className={`font-mono-num font-bold ${isOut ? 'text-[#dc2626]' : 'text-[#B87D1E]'}`}>
+                                  {isOut ? 'Out of Stock' : `${stock} ${y.unit} in stock`}
+                                </span>
+                                <span className="text-neutral-400">•</span>
+                                <span className="text-[#5C5245] truncate">Immediate Orders Active</span>
+                              </div>
                               {isPaused && (
-                                <span className="bg-[#FEF2D8] text-[#B87D1E] px-2 py-0.2 rounded-full font-bold text-[10px]">
+                                <span className="bg-[#FEF2D8] text-[#B87D1E] px-2 py-0.5 rounded-full font-bold text-[10px] shrink-0 ml-2">
                                   Paused
                                 </span>
                               )}
                             </div>
                           )}
                         </div>
+
+                        {/* ─────────────────────────────────────────────────────────────
+                            ROW BLOCK 3: 3-State Lifecycle Segmented Control (Colors swapped!)
+                            Selling = Harvest Gold/Amber (#E2A63C)
+                            Growing = Botanical Green (#4E8B3F)
+                            Off-Cycle = Neutral Gray (bg-neutral-700)
+                        ───────────────────────────────────────────────────────────── */}
+                        <div className="w-full pt-1">
+                          <div className="w-full grid grid-cols-3 p-1 rounded-xl bg-[#EEF8F1] border border-[#CCEBD5] text-[11px] gap-1">
+                            {/* 1. SELLING (Now Harvest Gold/Amber!) */}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSetProduceLifecycle(y, 'SELLING');
+                              }}
+                              className={`w-full py-1.5 rounded-lg flex items-center justify-center gap-1.5 font-semibold transition cursor-pointer select-none ${(y.lifecycleStatus === 'SELLING' || !y.lifecycleStatus) && !isPaused
+                                ? 'bg-[#E2A63C] text-[#241A12] shadow-xs font-bold'
+                                : 'text-[#5C5245] hover:bg-white/60'
+                                }`}
+                              title="Selling: Immediate orders accepted"
+                            >
+                              <span
+                                className={`w-1.5 h-1.5 rounded-full shrink-0 ${(y.lifecycleStatus === 'SELLING' || !y.lifecycleStatus) && !isPaused
+                                  ? 'bg-[#241A12]'
+                                  : 'bg-[#E2A63C]'
+                                  }`}
+                              />
+                              <span className="truncate">Selling</span>
+                            </button>
+
+                            {/* 2. GROWING (Now Botanical Green!) */}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSetProduceLifecycle(y, 'GROWING');
+                              }}
+                              className={`w-full py-1.5 rounded-lg flex items-center justify-center gap-1.5 font-semibold transition cursor-pointer select-none ${y.lifecycleStatus === 'GROWING'
+                                ? 'bg-[#4E8B3F] text-white shadow-xs font-bold'
+                                : 'text-[#173A20] hover:bg-white/60'
+                                }`}
+                              title="Growing: Pre-orders open with harvest window"
+                            >
+                              <span
+                                className={`w-1.5 h-1.5 rounded-full shrink-0 ${y.lifecycleStatus === 'GROWING' ? 'bg-white' : 'bg-[#4E8B3F]'
+                                  }`}
+                              />
+                              <span className="truncate">Growing</span>
+                            </button>
+
+                            {/* 3. OFF-CYCLE (Neutral Gray) */}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSetProduceLifecycle(y, 'OFF_CYCLE');
+                              }}
+                              className={`w-full py-1.5 rounded-lg flex items-center justify-center gap-1.5 font-semibold transition cursor-pointer select-none ${y.lifecycleStatus === 'OFF_CYCLE'
+                                ? 'bg-neutral-700 text-white shadow-xs font-bold'
+                                : 'text-[#5C5245] hover:bg-white/60'
+                                }`}
+                              title="Off-Cycle: Waitlist notification active"
+                            >
+                              <span
+                                className={`w-1.5 h-1.5 rounded-full shrink-0 ${y.lifecycleStatus === 'OFF_CYCLE' ? 'bg-white' : 'bg-neutral-400'
+                                  }`}
+                              />
+                              <span className="truncate">Off-Cycle</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* =====================================================================
+          TAB 2: OPERATING SITES & PLOTS
+      ===================================================================== */}
+          {activeFarm && activeTab === 'sites' && (
+            <div className="bg-white rounded-3xl border border-[#CCEBD5] p-5 sm:p-6 space-y-4 shadow-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-3 border-b border-[#EEF8F1]">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] flex items-center justify-center text-[#4E8B3F]">
+                    <MapPin size={16} strokeWidth={2.4} />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-bold text-[#173A20]">
+                      Operating Sites & Plots ({activeParcels.length})
+                    </h2>
+                    <p className="text-xs text-[#5C5245]">
+                      Multi-site footprint across Cameroon agricultural production zones
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowAddSiteModal(true)}
+                  className="self-start sm:self-auto inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#4E8B3F] hover:bg-[#3D7030] text-white text-xs font-bold transition shadow-xs cursor-pointer"
+                >
+                  <Plus size={14} strokeWidth={2.5} />
+                  <span>Add Operating Site</span>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                {activeParcels.map((parcel, idx) => (
+                  <div
+                    key={parcel.id || idx}
+                    className="p-4 rounded-2xl bg-[#EEF8F1] border border-[#CCEBD5] flex items-start justify-between gap-3 hover:border-[#4E8B3F] transition shadow-2xs"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${parcel.isHeadquarters
+                          ? 'bg-[#173A20] text-[#E2A63C]'
+                          : 'bg-[#EEF8F1] text-[#4E8B3F] border border-[#CCEBD5]'
+                          }`}
+                      >
+                        <MapPin size={18} />
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-bold text-sm text-[#173A20]">{parcel.name}</span>
+                          {parcel.isHeadquarters ? (
+                            <span className="px-2 py-0.5 rounded-full bg-[#173A20] text-[#E2A63C] text-[10px] font-bold">
+                              HQ Base
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] text-[#4E8B3F] text-[10px] font-semibold">
+                              Branch Plot
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs text-[#5C5245]">
+                          {parcel.city}, {parcel.region} {parcel.division ? `(${parcel.division})` : ''}
+                        </div>
+                        {parcel.location && (
+                          <div className="text-[11px] text-[#5C5245]/80 flex items-center gap-1">
+                            <span>📍</span>
+                            <span>{parcel.location}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col items-end justify-between shrink-0 self-stretch">
+                      <div className="text-right">
+                        <div className="font-mono-num text-sm font-bold text-[#173A20]">
+                          {parcel.sizeHectares || 1.0}
+                        </div>
+                        <div className="text-[10px] font-bold text-[#5C5245] uppercase">Hectares</div>
                       </div>
 
-                      {/* Right side: Action buttons (Balance Stock, Delivery Reach, Edit, Delete) */}
-                      <div className="flex items-center gap-1.5 shrink-0 self-start">
+                      {!parcel.isHeadquarters && (
                         <button
                           type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openStockModal(y);
-                          }}
-                          className="px-2.5 py-1.5 rounded-full bg-[#EEF8F1] hover:bg-[#E1F3E7] border border-[#CCEBD5] text-[#4E8B3F] text-xs font-semibold inline-flex items-center gap-1 transition cursor-pointer"
-                          title="Balance Stock"
-                        >
-                          <Sliders size={13} />
-                          <span className="hidden sm:inline">Balance Stock</span>
-                          <span className="sm:hidden font-mono-num font-bold">{stock}</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openDeliveryReachModal(y);
-                          }}
-                          className="px-2.5 py-1.5 rounded-full bg-[#FFF9EE] hover:bg-[#FEF2D8] border border-[#F2DCAA] text-[#B87D1E] text-xs font-semibold inline-flex items-center gap-1 transition cursor-pointer"
-                          title="Delivery Reach & Dispatch Hubs"
-                        >
-                          <Truck size={13} />
-                          <span className="hidden sm:inline">Reach</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleOpenEditProduce(y);
-                          }}
-                          className="w-8 h-8 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] flex items-center justify-center text-[#241A12] hover:border-[#4E8B3F] transition cursor-pointer"
-                          title="Edit Produce"
-                        >
-                          <Edit3 size={13} />
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteProduce(y.id, y.title);
-                          }}
-                          className="w-8 h-8 rounded-full bg-white border border-[#dc2626]/30 text-[#dc2626] hover:bg-[#FDF3F1] flex items-center justify-center transition cursor-pointer"
-                          title="Delete Produce"
+                          onClick={() => handleDeleteSite(parcel.id)}
+                          className="p-1 rounded-lg text-[#5C5245] hover:text-[#B54A34] hover:bg-[#FDF3F1] transition cursor-pointer"
+                          title="Remove site"
                         >
                           <Trash2 size={13} />
                         </button>
-                      </div>
-                    </div>
-
-                    {/* Bottom Row: 3-State Lifecycle Segmented Control spread evenly across full width */}
-                    <div className="w-full pt-2.5 border-t border-[#EEF8F1]">
-                      <div className="w-full grid grid-cols-3 p-1 rounded-xl bg-[#EEF8F1] border border-[#CCEBD5] text-[11px] gap-1">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleSetProduceLifecycle(y, 'SELLING');
-                          }}
-                          className={`w-full py-1.5 rounded-lg flex items-center justify-center gap-1.5 font-semibold transition cursor-pointer select-none ${(y.lifecycleStatus === 'SELLING' || !y.lifecycleStatus) && !isPaused
-                            ? 'bg-[#4E8B3F] text-white shadow-xs font-bold'
-                            : 'text-[#173A20] hover:bg-white/60'
-                            }`}
-                          title="Selling: Immediate orders accepted"
-                        >
-                          <span
-                            className={`w-1.5 h-1.5 rounded-full shrink-0 ${(y.lifecycleStatus === 'SELLING' || !y.lifecycleStatus) && !isPaused
-                              ? 'bg-white'
-                              : 'bg-[#4E8B3F]'
-                              }`}
-                          />
-                          <span className="truncate">Selling</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleSetProduceLifecycle(y, 'GROWING');
-                          }}
-                          className={`w-full py-1.5 rounded-lg flex items-center justify-center gap-1.5 font-semibold transition cursor-pointer select-none ${y.lifecycleStatus === 'GROWING'
-                            ? 'bg-[#E2A63C] text-[#241A12] shadow-xs font-bold'
-                            : 'text-[#5C5245] hover:bg-white/60'
-                            }`}
-                          title="Growing: Pre-orders open with harvest window"
-                        >
-                          <span
-                            className={`w-1.5 h-1.5 rounded-full shrink-0 ${y.lifecycleStatus === 'GROWING' ? 'bg-[#241A12]' : 'bg-[#E2A63C]'
-                              }`}
-                          />
-                          <span className="truncate">Growing</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleSetProduceLifecycle(y, 'OFF_CYCLE');
-                          }}
-                          className={`w-full py-1.5 rounded-lg flex items-center justify-center gap-1.5 font-semibold transition cursor-pointer select-none ${y.lifecycleStatus === 'OFF_CYCLE'
-                            ? 'bg-neutral-600 text-white shadow-xs font-bold'
-                            : 'text-[#5C5245] hover:bg-white/60'
-                            }`}
-                          title="Off-Cycle: Inactive season"
-                        >
-                          <span
-                            className={`w-1.5 h-1.5 rounded-full shrink-0 ${(y.lifecycleStatus === 'SELLING' || !y.lifecycleStatus) && !isPaused
-                              ? 'bg-white'
-                              : 'bg-[#4E8B3F]'
-                              }`}
-                          />
-                          <span className="truncate">Selling</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => handleSetProduceLifecycle(y, 'GROWING')}
-                          className={`w-full py-1.5 rounded-lg flex items-center justify-center gap-1.5 font-semibold transition cursor-pointer select-none ${y.lifecycleStatus === 'GROWING'
-                            ? 'bg-[#E2A63C] text-[#241A12] shadow-xs font-bold'
-                            : 'text-[#5C5245] hover:bg-white/60'
-                            }`}
-                          title="Growing: Pre-orders open with harvest window"
-                        >
-                          <span
-                            className={`w-1.5 h-1.5 rounded-full shrink-0 ${y.lifecycleStatus === 'GROWING' ? 'bg-[#241A12]' : 'bg-[#E2A63C]'
-                              }`}
-                          />
-                          <span className="truncate">Growing</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => handleSetProduceLifecycle(y, 'OFF_CYCLE')}
-                          className={`w-full py-1.5 rounded-lg flex items-center justify-center gap-1.5 font-semibold transition cursor-pointer select-none ${y.lifecycleStatus === 'OFF_CYCLE'
-                            ? 'bg-neutral-600 text-white shadow-xs font-bold'
-                            : 'text-[#5C5245] hover:bg-white/60'
-                            }`}
-                          title="Off-Cycle: Waitlist notification active"
-                        >
-                          <span
-                            className={`w-1.5 h-1.5 rounded-full shrink-0 ${y.lifecycleStatus === 'OFF_CYCLE' ? 'bg-white' : 'bg-neutral-400'
-                              }`}
-                          />
-                          <span className="truncate">Off-Cycle</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* =====================================================================
-          TAB 2: OPERATING SITES & PLOTS
-      ===================================================================== */}
-      {activeFarm && activeTab === 'sites' && (
-        <div className="bg-white rounded-3xl border border-[#CCEBD5] p-5 sm:p-6 space-y-4 shadow-xs">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-3 border-b border-[#EEF8F1]">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] flex items-center justify-center text-[#4E8B3F]">
-                <MapPin size={16} strokeWidth={2.4} />
-              </div>
-              <div>
-                <h2 className="text-base font-bold text-[#173A20]">
-                  Operating Sites & Plots ({activeParcels.length})
-                </h2>
-                <p className="text-xs text-[#5C5245]">
-                  Multi-site footprint across Cameroon agricultural production zones
-                </p>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setShowAddSiteModal(true)}
-              className="self-start sm:self-auto inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#4E8B3F] hover:bg-[#3D7030] text-white text-xs font-bold transition shadow-xs cursor-pointer"
-            >
-              <Plus size={14} strokeWidth={2.5} />
-              <span>Add Operating Site</span>
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-            {activeParcels.map((parcel, idx) => (
-              <div
-                key={parcel.id || idx}
-                className="p-4 rounded-2xl bg-[#EEF8F1] border border-[#CCEBD5] flex items-start justify-between gap-3 hover:border-[#4E8B3F] transition shadow-2xs"
-              >
-                <div className="flex items-start gap-3">
-                  <div
-                    className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${parcel.isHeadquarters
-                      ? 'bg-[#173A20] text-[#E2A63C]'
-                      : 'bg-[#EEF8F1] text-[#4E8B3F] border border-[#CCEBD5]'
-                      }`}
-                  >
-                    <MapPin size={18} />
-                  </div>
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-bold text-sm text-[#173A20]">{parcel.name}</span>
-                      {parcel.isHeadquarters ? (
-                        <span className="px-2 py-0.5 rounded-full bg-[#173A20] text-[#E2A63C] text-[10px] font-bold">
-                          HQ Base
-                        </span>
-                      ) : (
-                        <span className="px-2 py-0.5 rounded-full bg-[#EEF8F1] border border-[#CCEBD5] text-[#4E8B3F] text-[10px] font-semibold">
-                          Branch Plot
-                        </span>
                       )}
                     </div>
-                    <div className="text-xs text-[#5C5245]">
-                      {parcel.city}, {parcel.region} {parcel.division ? `(${parcel.division})` : ''}
-                    </div>
-                    {parcel.location && (
-                      <div className="text-[11px] text-[#5C5245]/80 flex items-center gap-1">
-                        <span>📍</span>
-                        <span>{parcel.location}</span>
-                      </div>
-                    )}
                   </div>
-                </div>
-
-                <div className="flex flex-col items-end justify-between shrink-0 self-stretch">
-                  <div className="text-right">
-                    <div className="font-mono-num text-sm font-bold text-[#173A20]">
-                      {parcel.sizeHectares || 1.0}
-                    </div>
-                    <div className="text-[10px] font-bold text-[#5C5245] uppercase">Hectares</div>
-                  </div>
-
-                  {!parcel.isHeadquarters && (
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteSite(parcel.id)}
-                      className="p-1 rounded-lg text-[#5C5245] hover:text-[#B54A34] hover:bg-[#FDF3F1] transition cursor-pointer"
-                      title="Remove site"
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  )}
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
-      )}
-      </>
+            </div>
+          )}
+        </>
       )}
 
 
@@ -1764,11 +1759,11 @@ export const FarmManagementPage: React.FC = () => {
                       type="button"
                       onClick={() => setProduceForm({ ...produceForm, lifecycleStatus: 'SELLING' })}
                       className={`py-2 px-1 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer select-none ${produceForm.lifecycleStatus === 'SELLING'
-                        ? 'bg-[#4E8B3F] text-white shadow-2xs'
-                        : 'text-[#173A20] hover:bg-white/60'
+                        ? 'bg-[#E2A63C] text-[#241A12] shadow-2xs'
+                        : 'text-[#5C5245] hover:bg-white/60'
                         }`}
                     >
-                      <span className={`w-1.5 h-1.5 rounded-full ${produceForm.lifecycleStatus === 'SELLING' ? 'bg-white' : 'bg-[#4E8B3F]'}`} />
+                      <span className={`w-1.5 h-1.5 rounded-full ${produceForm.lifecycleStatus === 'SELLING' ? 'bg-[#241A12]' : 'bg-[#E2A63C]'}`} />
                       <span>Selling</span>
                     </button>
 
@@ -1776,11 +1771,11 @@ export const FarmManagementPage: React.FC = () => {
                       type="button"
                       onClick={() => setProduceForm({ ...produceForm, lifecycleStatus: 'GROWING' })}
                       className={`py-2 px-1 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer select-none ${produceForm.lifecycleStatus === 'GROWING'
-                        ? 'bg-[#E2A63C] text-[#241A12] shadow-2xs'
-                        : 'text-[#5C5245] hover:bg-white/60'
+                        ? 'bg-[#4E8B3F] text-white shadow-2xs'
+                        : 'text-[#173A20] hover:bg-white/60'
                         }`}
                     >
-                      <span className={`w-1.5 h-1.5 rounded-full ${produceForm.lifecycleStatus === 'GROWING' ? 'bg-[#241A12]' : 'bg-[#E2A63C]'}`} />
+                      <span className={`w-1.5 h-1.5 rounded-full ${produceForm.lifecycleStatus === 'GROWING' ? 'bg-white' : 'bg-[#4E8B3F]'}`} />
                       <span>Growing</span>
                     </button>
 
@@ -2252,11 +2247,10 @@ export const FarmManagementPage: React.FC = () => {
                             : [...reachForm.deliveryCities, c.name];
                           setReachForm({ ...reachForm, deliveryCities: next });
                         }}
-                        className={`text-xs px-3 py-1.5 rounded-full border transition cursor-pointer font-medium ${
-                          isSelected
+                        className={`text-xs px-3 py-1.5 rounded-full border transition cursor-pointer font-medium ${isSelected
                             ? 'bg-[#4E8B3F] text-white border-[#4E8B3F]'
                             : 'bg-white text-[#241A12] border-[#CCEBD5] hover:bg-[#EEF8F1]'
-                        }`}
+                          }`}
                       >
                         {isSelected ? '✓ ' : '+ '}
                         {c.name}
@@ -2288,11 +2282,10 @@ export const FarmManagementPage: React.FC = () => {
                               : [...reachForm.deliveryHubs, hub.name];
                             setReachForm({ ...reachForm, deliveryHubs: next });
                           }}
-                          className={`text-xs px-2.5 py-1 rounded-xl border transition cursor-pointer ${
-                            isSelected
+                          className={`text-xs px-2.5 py-1 rounded-xl border transition cursor-pointer ${isSelected
                               ? 'bg-[#173A20] text-white border-[#173A20]'
                               : 'bg-white text-[#5C5245] border-[#CCEBD5] hover:bg-[#EEF8F1]'
-                          }`}
+                            }`}
                         >
                           {isSelected ? '✓ ' : ''}
                           {hub.name} ({hub.city})
@@ -2325,11 +2318,10 @@ export const FarmManagementPage: React.FC = () => {
                               : [...reachForm.deliveryQuartiers, q];
                             setReachForm({ ...reachForm, deliveryQuartiers: next });
                           }}
-                          className={`text-xs px-2.5 py-1 rounded-xl border transition cursor-pointer ${
-                            isSelected
+                          className={`text-xs px-2.5 py-1 rounded-xl border transition cursor-pointer ${isSelected
                               ? 'bg-[#E2A63C] text-[#241A12] border-[#E2A63C] font-semibold'
                               : 'bg-white text-[#5C5245] border-[#CCEBD5] hover:bg-[#EEF8F1]'
-                          }`}
+                            }`}
                         >
                           {isSelected ? '✓ ' : ''}
                           {q}
@@ -2359,9 +2351,8 @@ export const FarmManagementPage: React.FC = () => {
                 className="flex items-center gap-2 cursor-pointer select-none pt-1"
               >
                 <div
-                  className={`w-4 h-4 rounded-md flex items-center justify-center shrink-0 ${
-                    reachForm.allowFarmGate ? 'bg-[#4E8B3F] text-white' : 'border border-[#CCEBD5] bg-white'
-                  }`}
+                  className={`w-4 h-4 rounded-md flex items-center justify-center shrink-0 ${reachForm.allowFarmGate ? 'bg-[#4E8B3F] text-white' : 'border border-[#CCEBD5] bg-white'
+                    }`}
                 >
                   {reachForm.allowFarmGate && <Check size={12} strokeWidth={3} />}
                 </div>
@@ -3093,8 +3084,8 @@ export const FarmManagementPage: React.FC = () => {
                 }
                 disabled={savingLifecycle || !lifecycleModal.value.trim()}
                 className={`px-5 py-2.5 rounded-full text-xs font-bold transition shadow-xs cursor-pointer inline-flex items-center gap-1.5 ${lifecycleModal.targetStatus === 'GROWING'
-                  ? 'bg-[#E2A63C] hover:bg-[#d4972e] text-[#241A12]'
-                  : 'bg-[#173A20] hover:bg-[#122e19] text-white'
+                  ? 'bg-[#4E8B3F] hover:bg-[#3d6e32] text-white'
+                  : 'bg-neutral-800 hover:bg-neutral-900 text-white'
                   } disabled:opacity-40`}
               >
                 {savingLifecycle ? (
