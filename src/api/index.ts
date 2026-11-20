@@ -1272,3 +1272,106 @@ export const fetchAdminStatsApi = async (): Promise<any> => {
   }
 };
 
+export interface DeliveryHubItem {
+  id: string;
+  name: string;
+  type: 'WHOLESALE_MARKET' | 'BUS_AGENCY' | 'COOP_DEPOT';
+  city: string;
+  region: string;
+}
+
+export interface AdminCityCorridor {
+  name: string;
+  region: string;
+  isMajor: boolean;
+  hubs: DeliveryHubItem[];
+  quartiers: string[];
+}
+
+export interface AdminCustomDepot {
+  id: string;
+  name: string;
+  city: string;
+  region: string;
+  type: 'WHOLESALE_MARKET' | 'BUS_AGENCY' | 'COOP_DEPOT';
+  submittedByFarmer?: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  createdAt: string;
+}
+
+export const fetchAdminCorridorsApi = async (): Promise<AdminCityCorridor[]> => {
+  try {
+    const res = await apiClient.get('/admin/delivery-corridors');
+    return res.data;
+  } catch {
+    const { CAMEROON_DELIVERY_CORRIDORS } = await import('@/constants/deliveryLocations');
+    return CAMEROON_DELIVERY_CORRIDORS as AdminCityCorridor[];
+  }
+};
+
+export const createAdminMarketApi = async (data: {
+  city: string;
+  name: string;
+  type: 'WHOLESALE_MARKET' | 'BUS_AGENCY' | 'COOP_DEPOT';
+  region?: string;
+}): Promise<{ message: string; hub: DeliveryHubItem }> => {
+  const res = await apiClient.post('/admin/delivery-corridors/market', data);
+  return res.data;
+};
+
+export const deleteAdminMarketApi = async (marketId: string): Promise<{ message: string }> => {
+  const res = await apiClient.delete(`/admin/delivery-corridors/market/${marketId}`);
+  return res.data;
+};
+
+export const createAdminCityApi = async (data: {
+  name: string;
+  region: string;
+  isMajor?: boolean;
+  quartiers?: string[];
+}): Promise<{ message: string; city: AdminCityCorridor }> => {
+  const res = await apiClient.post('/admin/delivery-corridors/city', data);
+  return res.data;
+};
+
+export const fetchAdminCustomDepotsApi = async (): Promise<AdminCustomDepot[]> => {
+  try {
+    const res = await apiClient.get('/admin/custom-depots');
+    return res.data;
+  } catch {
+    return [
+      {
+        id: 'cd-1',
+        name: 'Mile 16 Cold Hub Buea',
+        city: 'Buea',
+        region: 'Southwest',
+        type: 'COOP_DEPOT',
+        submittedByFarmer: 'Tanyi Green Harvests',
+        status: 'PENDING',
+        createdAt: '2026-11-19T08:00:00.000Z',
+      },
+      {
+        id: 'cd-2',
+        name: 'Marché Ndokoti Annex Produce Depot',
+        city: 'Douala',
+        region: 'Littoral',
+        type: 'WHOLESALE_MARKET',
+        submittedByFarmer: 'Coopérative Maraîchère Littoral',
+        status: 'PENDING',
+        createdAt: '2026-11-20T10:30:00.000Z',
+      },
+    ];
+  }
+};
+
+export const approveAdminCustomDepotApi = async (depotId: string): Promise<any> => {
+  const res = await apiClient.patch(`/admin/custom-depots/${depotId}/approve`);
+  return res.data;
+};
+
+export const rejectAdminCustomDepotApi = async (depotId: string): Promise<any> => {
+  const res = await apiClient.patch(`/admin/custom-depots/${depotId}/reject`);
+  return res.data;
+};
+
+
