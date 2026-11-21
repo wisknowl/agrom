@@ -419,6 +419,13 @@ export const FarmManagementPage: React.FC = () => {
   const [stockInputDelta, setStockInputDelta] = useState('');
   const [isAvailableToggle, setIsAvailableToggle] = useState(true);
 
+  // Quick Price Modal State
+  const [priceModalOpen, setPriceModalOpen] = useState(false);
+  const [priceTargetProduce, setPriceTargetProduce] = useState<any>(null);
+  const [newSellingPrice, setNewSellingPrice] = useState<string>('');
+  const [newOldPrice, setNewOldPrice] = useState<string>('');
+  const [updatingPrice, setUpdatingPrice] = useState(false);
+
   // Farm Edit Profile Modal & Cover Upload
   const [showEditFarmModal, setShowEditFarmModal] = useState(false);
   const [editFarmName, setEditFarmName] = useState('');
@@ -733,6 +740,43 @@ export const FarmManagementPage: React.FC = () => {
       handleSelectFarm(activeFarm.id);
     } catch (err: any) {
       alert(err.message || 'Could not delete produce listing');
+    }
+  };
+
+  // Quick Price & Discount Management
+  const openPriceModal = (item: any) => {
+    setPriceTargetProduce(item);
+    setNewSellingPrice(String(item.price || item.pricePerUnit || ''));
+    setNewOldPrice(item.oldPrice ? String(item.oldPrice) : '');
+    setPriceModalOpen(true);
+  };
+
+  const handleSavePrice = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!priceTargetProduce || !newSellingPrice.trim()) return;
+    setUpdatingPrice(true);
+    try {
+      const sellingVal = Number(newSellingPrice);
+      const oldVal = newOldPrice.trim() ? Number(newOldPrice) : null;
+      await updateProduceApi(priceTargetProduce.id, {
+        pricePerUnit: sellingVal,
+        oldPrice: oldVal !== null ? oldVal : (null as any),
+      });
+
+      setActiveFarm((prev: any) => {
+        if (!prev) return prev;
+        const updatedYields = (prev.yields || []).map((y: any) =>
+          y.id === priceTargetProduce.id
+            ? { ...y, price: sellingVal, pricePerUnit: sellingVal, oldPrice: oldVal }
+            : y
+        );
+        return { ...prev, yields: updatedYields };
+      });
+      setPriceModalOpen(false);
+    } catch (err: any) {
+      alert(err.message || 'Failed to update price');
+    } finally {
+      setUpdatingPrice(false);
     }
   };
 
@@ -1340,13 +1384,18 @@ export const FarmManagementPage: React.FC = () => {
                                   </span>
                                 )}
                               </div>
-                              <div className="font-mono-num text-xs font-bold text-[#173A20] mt-0.5">
-                                {formatXaf(y.price || y.pricePerUnit)} / {y.unit}
+                              <div className="font-mono-num text-xs font-bold text-[#173A20] mt-0.5 flex items-center gap-2 flex-wrap">
+                                <span>{formatXaf(y.price || y.pricePerUnit)} / {y.unit}</span>
+                                {y.oldPrice && Number(y.oldPrice) > Number(y.price || y.pricePerUnit) && (
+                                  <span className="text-[11px] text-[#9C9284] line-through font-normal">
+                                    {formatXaf(y.oldPrice)}
+                                  </span>
+                                )}
                               </div>
                             </div>
                           </div>
 
-                          {/* Right side: Action buttons (Balance Stock, Reach, Edit, Delete) */}
+                          {/* Right side: Action buttons (Balance Stock, Reach, Price, Edit, Delete) */}
                           <div className="flex items-center gap-1.5 shrink-0">
                             <button
                               type="button"
@@ -1373,6 +1422,19 @@ export const FarmManagementPage: React.FC = () => {
                             >
                               <Truck size={13} />
                               <span className="hidden sm:inline">Reach</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openPriceModal(y);
+                              }}
+                              className="px-2.5 py-1.5 rounded-full bg-[#EEF8F1] hover:bg-[#E1F3E7] border border-[#CCEBD5] text-[#173A20] text-xs font-semibold inline-flex items-center gap-1 transition cursor-pointer"
+                              title="Quick Price & Discount Adjust"
+                            >
+                              <Tag size={13} className="text-[#4E8B3F]" />
+                              <span className="hidden sm:inline">Price</span>
                             </button>
 
                             <button
@@ -2375,6 +2437,115 @@ export const FarmManagementPage: React.FC = () => {
                   className="px-6 py-2 rounded-full bg-[#4E8B3F] hover:bg-[#3D7030] text-white text-xs font-bold transition shadow-xs cursor-pointer inline-flex items-center gap-1.5"
                 >
                   {savingReach ? 'Saving...' : 'Save Delivery Reach'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* =====================================================================
+          MODAL: QUICK PRICE & DISCOUNT ADJUST
+      ===================================================================== */}
+      {priceModalOpen && priceTargetProduce && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs"
+            onClick={() => !updatingPrice && setPriceModalOpen(false)}
+          />
+          <div className="relative z-10 w-full max-w-md bg-white rounded-3xl border border-[#CCEBD5] p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#CCEBD5]">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-[#EEF8F1] flex items-center justify-center text-[#4E8B3F]">
+                  <Tag size={16} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-[#173A20]">Quick Price & Discount</h3>
+                  <p className="text-xs text-[#5C5245] truncate max-w-xs">{priceTargetProduce.title} ({priceTargetProduce.unit})</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => !updatingPrice && setPriceModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-[#EEF8F1] flex items-center justify-center text-[#241A12] hover:bg-[#CCEBD5] transition cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSavePrice} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-[#173A20] mb-1">
+                  Active Selling Price (FCFA / {priceTargetProduce.unit}) *
+                </label>
+                <input
+                  type="number"
+                  required
+                  min="1"
+                  value={newSellingPrice}
+                  onChange={(e) => setNewSellingPrice(e.target.value)}
+                  placeholder="e.g. 1200"
+                  className="w-full rounded-xl bg-[#EEF8F1] border border-[#CCEBD5] px-3.5 py-2.5 text-sm font-bold text-[#173A20] outline-none focus:border-[#4E8B3F] focus:ring-2 focus:ring-[#4E8B3F]/20 transition"
+                />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-semibold text-[#5C5245]">
+                    Original / Old Price (Strike-through Discount)
+                  </label>
+                  {newOldPrice && (
+                    <button
+                      type="button"
+                      onClick={() => setNewOldPrice('')}
+                      className="text-[11px] text-[#B54A34] hover:underline font-medium cursor-pointer"
+                    >
+                      Clear Discount
+                    </button>
+                  )}
+                </div>
+                <input
+                  type="number"
+                  min="1"
+                  value={newOldPrice}
+                  onChange={(e) => setNewOldPrice(e.target.value)}
+                  placeholder="e.g. 1500 (optional)"
+                  className="w-full rounded-xl bg-[#EEF8F1] border border-[#CCEBD5] px-3.5 py-2.5 text-sm text-[#173A20] outline-none focus:border-[#4E8B3F] focus:ring-2 focus:ring-[#4E8B3F]/20 transition"
+                />
+                <p className="text-[11px] text-[#5C5245] mt-1">
+                  Leave empty if selling at regular price. When set higher than active price, buyers see:
+                  <span className="line-through text-[#9C9284] ml-1.5 mr-1 font-mono-num">
+                    {newOldPrice ? `${Number(newOldPrice).toLocaleString()} XAF` : '---'}
+                  </span>
+                  ➔ <span className="font-bold text-[#4E8B3F] font-mono-num">{newSellingPrice ? `${Number(newSellingPrice).toLocaleString()} XAF` : '---'}</span>
+                </p>
+              </div>
+
+              {newOldPrice && newSellingPrice && Number(newOldPrice) > Number(newSellingPrice) && (
+                <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-between">
+                  <div className="text-xs text-amber-900 font-semibold flex items-center gap-1.5">
+                    <span>🔥 Buyer Discount Badge:</span>
+                  </div>
+                  <span className="font-mono-num font-bold text-xs bg-[#E2A63C] text-black px-2 py-0.5 rounded-full">
+                    -{Math.round(((Number(newOldPrice) - Number(newSellingPrice)) / Number(newOldPrice)) * 100)}% OFF
+                  </span>
+                </div>
+              )}
+
+              <div className="pt-2 flex justify-end gap-2 border-t border-[#CCEBD5]">
+                <button
+                  type="button"
+                  onClick={() => setPriceModalOpen(false)}
+                  className="px-4 py-2 rounded-full border border-[#CCEBD5] text-[#5C5245] text-xs font-semibold hover:bg-[#EEF8F1] transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={updatingPrice}
+                  className="px-6 py-2 rounded-full bg-[#4E8B3F] hover:bg-[#3D7030] text-white text-xs font-bold transition shadow-xs cursor-pointer inline-flex items-center gap-1.5"
+                >
+                  {updatingPrice ? 'Saving...' : 'Update Price'}
                 </button>
               </div>
             </form>
