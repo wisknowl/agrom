@@ -1357,46 +1357,50 @@ export const FarmManagementPage: React.FC = () => {
                         title="Click to view public produce page"
                       >
                         {/* ─────────────────────────────────────────────────────────────
-                            ROW BLOCK 1: Produce Thumbnail + Info (Left) & Actions (Right)
+                            ROW BLOCK 1: Produce Thumbnail (Left) + Full Produce Name & Badges (Right)
+                            Displays fully without truncation (no cut offs)
                         ───────────────────────────────────────────────────────────── */}
-                        <div className="flex items-center justify-between gap-3 w-full">
-                          {/* Left side: Thumbnail + Name & Organic Badge + Price */}
-                          <div className="flex items-center gap-3 min-w-0 flex-1">
-                            {img ? (
-                              <img
-                                src={resolveMediaUrl(img)}
-                                alt={y.title}
-                                className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover border border-[#CCEBD5] shrink-0"
-                              />
-                            ) : (
-                              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-[#EEF8F1] border border-[#CCEBD5] flex items-center justify-center text-[#4E8B3F] shrink-0">
-                                <Sprout size={24} />
-                              </div>
-                            )}
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-1.5 flex-wrap">
-                                <h3 className="font-bold text-sm text-[#241A12] group-hover:text-[#4E8B3F] transition truncate max-w-[160px] sm:max-w-none">
-                                  {y.title}
-                                </h3>
-                                {y.isOrganic && (
-                                  <span className="text-[10px] font-semibold bg-[#EEF8F1] text-[#4E8B3F] border border-[#CCEBD5] px-2 py-0.2 rounded-full shrink-0">
-                                    Organic
-                                  </span>
-                                )}
-                              </div>
-                              <div className="font-mono-num text-xs font-bold text-[#173A20] mt-0.5 flex items-center gap-2 flex-wrap">
-                                <span>{formatXaf(y.price || y.pricePerUnit)} / {y.unit}</span>
-                                {y.oldPrice && Number(y.oldPrice) > Number(y.price || y.pricePerUnit) && (
-                                  <span className="text-[11px] text-[#9C9284] line-through font-normal">
-                                    {formatXaf(y.oldPrice)}
-                                  </span>
-                                )}
-                              </div>
+                        <div className="flex items-center gap-3 w-full">
+                          {img ? (
+                            <img
+                              src={resolveMediaUrl(img)}
+                              alt={y.title}
+                              className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl object-cover border border-[#CCEBD5] shrink-0"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-[#EEF8F1] border border-[#CCEBD5] flex items-center justify-center text-[#4E8B3F] shrink-0">
+                              <Sprout size={22} />
                             </div>
+                          )}
+                          <div className="min-w-0 flex-1 flex items-center gap-2 flex-wrap">
+                            <h3 className="font-bold text-sm sm:text-base text-[#241A12] group-hover:text-[#4E8B3F] transition break-words leading-snug">
+                              {y.title}
+                            </h3>
+                            {y.isOrganic && (
+                              <span className="text-[10px] font-semibold bg-[#EEF8F1] text-[#4E8B3F] border border-[#CCEBD5] px-2 py-0.5 rounded-full shrink-0">
+                                Organic
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* ─────────────────────────────────────────────────────────────
+                            ROW BLOCK 2: Price Per Unit & Strikethrough (Left) + Quick Edit Buttons (Right)
+                            Buttons flow up/down on the right and don't break unit price or title
+                        ───────────────────────────────────────────────────────────── */}
+                        <div className="flex items-center justify-between gap-2.5 w-full flex-wrap sm:flex-nowrap pt-0.5">
+                          {/* Left: Unit Price and crossed-out old price */}
+                          <div className="font-mono-num text-xs sm:text-sm font-bold text-[#173A20] flex items-center gap-2 flex-wrap shrink-0">
+                            <span>{formatXaf(y.price || y.pricePerUnit)} / {y.unit}</span>
+                            {y.oldPrice && Number(y.oldPrice) > Number(y.price || y.pricePerUnit) && (
+                              <span className="text-[11px] text-[#9C9284] line-through font-normal">
+                                {formatXaf(y.oldPrice)}
+                              </span>
+                            )}
                           </div>
 
-                          {/* Right side: Action buttons (Balance Stock, Reach, Price, Edit, Delete) */}
-                          <div className="flex items-center gap-1.5 shrink-0">
+                          {/* Right: Quick Edit Buttons (wraps/flows up and down on the right) */}
+                          <div className="flex flex-wrap items-center justify-end gap-1.5 shrink-0 ml-auto max-w-[280px] sm:max-w-none">
                             <button
                               type="button"
                               onClick={(e) => {
@@ -1407,8 +1411,7 @@ export const FarmManagementPage: React.FC = () => {
                               title="Balance Stock"
                             >
                               <Sliders size={13} />
-                              <span className="hidden sm:inline">Balance Stock</span>
-                              <span className="sm:hidden font-mono-num font-bold">{stock}</span>
+                              <span>Balance Stock</span>
                             </button>
 
                             <button
@@ -1421,7 +1424,7 @@ export const FarmManagementPage: React.FC = () => {
                               title="Delivery Reach & Dispatch Hubs"
                             >
                               <Truck size={13} />
-                              <span className="hidden sm:inline">Reach</span>
+                              <span>Reach</span>
                             </button>
 
                             <button
@@ -1434,7 +1437,7 @@ export const FarmManagementPage: React.FC = () => {
                               title="Quick Price & Discount Adjust"
                             >
                               <Tag size={13} className="text-[#4E8B3F]" />
-                              <span className="hidden sm:inline">Price</span>
+                              <span>Price</span>
                             </button>
 
                             <button
@@ -1464,7 +1467,7 @@ export const FarmManagementPage: React.FC = () => {
                         </div>
 
                         {/* ─────────────────────────────────────────────────────────────
-                            ROW BLOCK 2: Full-Width Produce Cycle & Harvest Info Banner
+                            ROW BLOCK 3: Full-Width Produce Cycle & Harvest Info Banner
                         ───────────────────────────────────────────────────────────── */}
                         <div className="w-full">
                           {y.lifecycleStatus === 'GROWING' ? (
@@ -2310,8 +2313,8 @@ export const FarmManagementPage: React.FC = () => {
                           setReachForm({ ...reachForm, deliveryCities: next });
                         }}
                         className={`text-xs px-3 py-1.5 rounded-full border transition cursor-pointer font-medium ${isSelected
-                            ? 'bg-[#4E8B3F] text-white border-[#4E8B3F]'
-                            : 'bg-white text-[#241A12] border-[#CCEBD5] hover:bg-[#EEF8F1]'
+                          ? 'bg-[#4E8B3F] text-white border-[#4E8B3F]'
+                          : 'bg-white text-[#241A12] border-[#CCEBD5] hover:bg-[#EEF8F1]'
                           }`}
                       >
                         {isSelected ? '✓ ' : '+ '}
@@ -2345,8 +2348,8 @@ export const FarmManagementPage: React.FC = () => {
                             setReachForm({ ...reachForm, deliveryHubs: next });
                           }}
                           className={`text-xs px-2.5 py-1 rounded-xl border transition cursor-pointer ${isSelected
-                              ? 'bg-[#173A20] text-white border-[#173A20]'
-                              : 'bg-white text-[#5C5245] border-[#CCEBD5] hover:bg-[#EEF8F1]'
+                            ? 'bg-[#173A20] text-white border-[#173A20]'
+                            : 'bg-white text-[#5C5245] border-[#CCEBD5] hover:bg-[#EEF8F1]'
                             }`}
                         >
                           {isSelected ? '✓ ' : ''}
@@ -2381,8 +2384,8 @@ export const FarmManagementPage: React.FC = () => {
                             setReachForm({ ...reachForm, deliveryQuartiers: next });
                           }}
                           className={`text-xs px-2.5 py-1 rounded-xl border transition cursor-pointer ${isSelected
-                              ? 'bg-[#E2A63C] text-[#241A12] border-[#E2A63C] font-semibold'
-                              : 'bg-white text-[#5C5245] border-[#CCEBD5] hover:bg-[#EEF8F1]'
+                            ? 'bg-[#E2A63C] text-[#241A12] border-[#E2A63C] font-semibold'
+                            : 'bg-white text-[#5C5245] border-[#CCEBD5] hover:bg-[#EEF8F1]'
                             }`}
                         >
                           {isSelected ? '✓ ' : ''}
