@@ -137,7 +137,7 @@ export const YieldCard: React.FC<YieldCardProps> = ({ item }) => {
       className="group bg-white rounded-2xl border border-[#CCEBD5] hover:border-[#4E8B3F] transition-all duration-200 overflow-hidden cursor-pointer flex flex-col shadow-[0_2px_10px_rgba(36,26,18,0.04)] hover:shadow-[0_8px_24px_rgba(23,58,32,0.09)]"
     >
       {/* Image Header */}
-      <div className="relative h-44 sm:h-48 w-full bg-[#EEF8F1] overflow-hidden">
+      <div className="relative h-52 sm:h-48 w-full bg-[#EEF8F1] overflow-hidden">
         <img
           src={displayImage}
           alt={item.title}

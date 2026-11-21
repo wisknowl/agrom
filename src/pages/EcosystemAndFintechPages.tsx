@@ -880,11 +880,10 @@ export const AdminConsolePage: React.FC = () => {
         <button
           type="button"
           onClick={() => setActiveAdminTab('corridors')}
-          className={`px-4 py-2 rounded-full text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
-            activeAdminTab === 'corridors'
+          className={`px-4 py-2 rounded-full text-xs font-bold transition flex items-center gap-2 cursor-pointer ${activeAdminTab === 'corridors'
               ? 'bg-[#173A20] text-white'
               : 'bg-white border border-[#CCEBD5] text-[#173A20] hover:bg-[#EEF8F1]'
-          }`}
+            }`}
         >
           <MapPin size={14} />
           <span>Corridors & Markets</span>
@@ -896,11 +895,10 @@ export const AdminConsolePage: React.FC = () => {
         <button
           type="button"
           onClick={() => setActiveAdminTab('depots')}
-          className={`px-4 py-2 rounded-full text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
-            activeAdminTab === 'depots'
+          className={`px-4 py-2 rounded-full text-xs font-bold transition flex items-center gap-2 cursor-pointer ${activeAdminTab === 'depots'
               ? 'bg-[#173A20] text-white'
               : 'bg-white border border-[#CCEBD5] text-[#173A20] hover:bg-[#EEF8F1]'
-          }`}
+            }`}
         >
           <Warehouse size={14} />
           <span>Farmer Custom Depots</span>
@@ -914,11 +912,10 @@ export const AdminConsolePage: React.FC = () => {
         <button
           type="button"
           onClick={() => setActiveAdminTab('flags')}
-          className={`px-4 py-2 rounded-full text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
-            activeAdminTab === 'flags'
+          className={`px-4 py-2 rounded-full text-xs font-bold transition flex items-center gap-2 cursor-pointer ${activeAdminTab === 'flags'
               ? 'bg-[#173A20] text-white'
               : 'bg-white border border-[#CCEBD5] text-[#173A20] hover:bg-[#EEF8F1]'
-          }`}
+            }`}
         >
           <ShieldCheck size={14} />
           <span>Engine Modular Flags</span>
@@ -940,17 +937,15 @@ export const AdminConsolePage: React.FC = () => {
                     key={c.name}
                     type="button"
                     onClick={() => setSelectedCity(c.name)}
-                    className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-2 whitespace-nowrap cursor-pointer ${
-                      isSelected
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-2 whitespace-nowrap cursor-pointer ${isSelected
                         ? 'bg-[#4E8B3F] text-white shadow-2xs'
                         : 'bg-[#EEF8F1] border border-[#CCEBD5] text-[#173A20] hover:border-[#4E8B3F]'
-                    }`}
+                      }`}
                   >
                     <span>{c.name}</span>
                     <span
-                      className={`font-mono-num px-1.5 py-0.2 rounded-full text-[10px] ${
-                        isSelected ? 'bg-white/25 text-white' : 'bg-black/5 text-[#5C5245]'
-                      }`}
+                      className={`font-mono-num px-1.5 py-0.2 rounded-full text-[10px] ${isSelected ? 'bg-white/25 text-white' : 'bg-black/5 text-[#5C5245]'
+                        }`}
                     >
                       {c.hubs?.length || 0}
                     </span>
@@ -1043,13 +1038,12 @@ export const AdminConsolePage: React.FC = () => {
                       >
                         <div className="flex items-center gap-3 flex-1 min-w-0">
                           <div
-                            className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                              isAgency
+                            className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${isAgency
                                 ? 'bg-blue-50 text-blue-600 border border-blue-200'
                                 : isCoop
-                                ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                                : 'bg-[#EEF8F1] text-[#4E8B3F] border border-[#CCEBD5]'
-                            }`}
+                                  ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                  : 'bg-[#EEF8F1] text-[#4E8B3F] border border-[#CCEBD5]'
+                              }`}
                           >
                             {isAgency ? (
                               <Truck size={17} />
@@ -1065,13 +1059,12 @@ export const AdminConsolePage: React.FC = () => {
                             </div>
                             <div className="flex items-center gap-2 mt-0.5">
                               <span
-                                className={`text-[10px] font-mono-num font-bold px-1.5 py-0.2 rounded-md ${
-                                  isAgency
+                                className={`text-[10px] font-mono-num font-bold px-1.5 py-0.2 rounded-md ${isAgency
                                     ? 'bg-blue-100/70 text-blue-700'
                                     : isCoop
-                                    ? 'bg-amber-100/80 text-amber-800'
-                                    : 'bg-[#CCEBD5] text-[#173A20]'
-                                }`}
+                                      ? 'bg-amber-100/80 text-amber-800'
+                                      : 'bg-[#CCEBD5] text-[#173A20]'
+                                  }`}
                               >
                                 {isAgency ? 'BUS AGENCY' : isCoop ? 'COOP COLD DEPOT' : 'WHOLESALE MARKET'}
                               </span>
@@ -1143,13 +1136,12 @@ export const AdminConsolePage: React.FC = () => {
                 return (
                   <div
                     key={depot.id}
-                    className={`bg-white rounded-2xl border p-4 shadow-2xs space-y-3 ${
-                      isApproved
+                    className={`bg-white rounded-2xl border p-4 shadow-2xs space-y-3 ${isApproved
                         ? 'border-[#4E8B3F]'
                         : isPending
-                        ? 'border-[#E2A63C]'
-                        : 'border-[#CCEBD5]'
-                    }`}
+                          ? 'border-[#E2A63C]'
+                          : 'border-[#CCEBD5]'
+                      }`}
                   >
                     <div className="flex items-start justify-between">
                       <div>
@@ -1165,13 +1157,12 @@ export const AdminConsolePage: React.FC = () => {
                       </div>
 
                       <span
-                        className={`text-xs font-mono-num font-bold px-2.5 py-0.5 rounded-full ${
-                          isApproved
+                        className={`text-xs font-mono-num font-bold px-2.5 py-0.5 rounded-full ${isApproved
                             ? 'bg-[#EEF8F1] text-[#4E8B3F] border border-[#CCEBD5]'
                             : isPending
-                            ? 'bg-[#E2A63C]/20 text-[#8F5E0A]'
-                            : 'bg-neutral-100 text-neutral-600'
-                        }`}
+                              ? 'bg-[#E2A63C]/20 text-[#8F5E0A]'
+                              : 'bg-neutral-100 text-neutral-600'
+                          }`}
                       >
                         {depot.status}
                       </span>
